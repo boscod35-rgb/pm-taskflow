@@ -434,8 +434,8 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .fi-goto:hover{border-color:var(--blue);color:var(--blue);}
 /* C3: FLAG BUTTON */
 .ci-flag{background:none;border:none;cursor:pointer;font-size:.7rem;padding:1px 3px;opacity:.25;transition:opacity .15s;}
-.ci-lbl-btn{background:none;border:none;cursor:pointer;font-size:.68rem;padding:1px 3px;opacity:.3;transition:opacity .15s;}
-.ci-lbl-btn:hover{opacity:.9;}
+.ci-lbl-btn{background:rgba(77,158,255,.15);border:1px solid rgba(77,158,255,.4);border-radius:3px;cursor:pointer;font-size:.6rem;font-family:'DM Mono',monospace;font-weight:700;color:var(--blue);padding:1px 5px;letter-spacing:.03em;opacity:1;transition:all .15s;}
+.ci-lbl-btn:hover{background:var(--blue);color:#fff;}
 .ci-lbl-picker{position:fixed;}
 .ci-flag:hover{opacity:.75;}
 .ci-flag.ci-flag-on{opacity:1;}
@@ -473,7 +473,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .toggle-switch input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--blue);}
 /* C9: LABELS */
 .lbl-badge{font-family:'DM Mono',monospace;font-size:.6rem;padding:2px 8px;border-radius:99px;border:1px solid;white-space:nowrap;}
-.row-lbl{font-size:.55rem;padding:1px 6px;vertical-align:middle;cursor:pointer;}
+.row-lbl{font-size:.58rem;padding:2px 7px;vertical-align:middle;cursor:pointer;opacity:1;margin-left:4px;}
 .label-group{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:10px;}
 .label-group-hdr{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--b1);}
 .label-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--s3);font-size:.8rem;}
@@ -668,7 +668,7 @@ function renderDashWsSelector(){
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.1.5</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.1.6</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -2192,13 +2192,18 @@ function showCILabelPicker(itemId,clId,ciId,btn){
   rows.forEach(function(r){picker.appendChild(r);});
   // Position near button
   const rect=btn.getBoundingClientRect();
-  picker.style.left=rect.left+'px';
-  picker.style.top=(rect.bottom+4)+'px';
   document.body.appendChild(picker);
+  // Smart position - near button, within viewport
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const pw=picker.offsetWidth||200,ph=picker.offsetHeight||220;
+  const left=Math.max(10,Math.min(rect.left,vw-pw-10));
+  const top=vh-rect.bottom>ph+10?rect.bottom+4:rect.top-ph-4;
+  picker.style.left=left+'px';
+  picker.style.top=Math.max(10,top)+'px';
   // Close on outside click
   setTimeout(()=>document.addEventListener('click',function h(){picker.remove();document.removeEventListener('click',h);},true),10);
 }
-function toggleCILabel(itemId,clId,ciId,labelId){const item=items.find(i=>i.id===itemId);if(!item)return;const cl=item.checklists?.find(c=>c.id===clId);if(!cl)return;const ci=cl.items?.find(i=>i.id===ciId);if(!ci)return;if(!ci.labels)ci.labels=[];const ix=ci.labels.indexOf(labelId);if(ix===-1)ci.labels.push(labelId);else ci.labels.splice(ix,1);patchCard(item);saveData();}
+function toggleCILabel(itemId,clId,ciId,labelId){const item=items.find(i=>i.id===itemId);if(!item)return;const cl=item.checklists?.find(c=>c.id===clId);if(!cl)return;const ci=cl.items?.find(i=>i.id===ciId);if(!ci)return;if(!ci.labels)ci.labels=[];const ix=ci.labels.indexOf(labelId);if(ix===-1)ci.labels.push(labelId);else ci.labels.splice(ix,1);patchCard(item);saveData();if(document.getElementById('viewLabels')?.style.display!=='none')renderLabelsBoard();}
 function addConfigItem(key,inputId){const inp=document.getElementById(inputId);if(!inp)return;const val=inp.value.trim();if(!val)return;if(!appConfig[key])appConfig[key]=[];if(appConfig[key].includes(val))return;appConfig[key].push(val);saveConfig();inp.value='';renderSettings();updateDropdowns();}
 function addLabel(){const inp=document.getElementById('newLblInp');const col=document.getElementById('newLblColor');if(!inp)return;const name=inp.value.trim();if(!name)return;if(!appConfig.labels)appConfig.labels=[];appConfig.labels.push({id:uid(),name,color:col?.value||'#4d9eff'});saveConfig();inp.value='';renderSettings();}
 function updateDropdowns(){const cats=getCats();const owners=getOwners();document.querySelectorAll('#catInp').forEach(sel=>{const cur=sel.value;sel.innerHTML='<option value="">— Category —</option>'+cats.map(c=>'<option'+(c===cur?' selected':'')+'>'+c+'</option>').join('');});document.querySelectorAll('#ownerInp').forEach(sel=>{const cur=sel.value;sel.innerHTML=owners.map(o=>'<option'+(o===cur?' selected':'')+'>'+o+'</option>').join('');});}
@@ -2388,7 +2393,7 @@ function showAllItems(){
 
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.1.5';
+const CURRENT_VER='v2.1.6';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})
@@ -2413,8 +2418,8 @@ function showUpdateBanner(newVer){
 setInterval(checkForUpdate,3*60*1000); // check every 3 minutes
 
 window.addEventListener('load',()=>{
-  loadConfig();
   show('screenSetup');
+  loadConfig();
   const wait=setInterval(()=>{if(window.google?.accounts?.oauth2){clearInterval(wait);initApp();}},100);
   // Check every minute for 9 AM reminder emails
   setInterval(()=>{if(typeof checkAndSendReminders==='function')checkAndSendReminders();},60000);

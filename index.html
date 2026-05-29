@@ -1,11 +1,4 @@
-<!DOCTYPE html
-  const catVal=(document.getElementById('catInp')||{}).value||'';
-  if(!catVal){
-    const cinp=document.getElementById('catInp');
-    if(cinp){cinp.style.border='2px solid var(--red)';setTimeout(function(){cinp.style.border='';},2000);}
-    alert('Please select a Category before creating.');
-    return;
-  }>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -676,7 +669,7 @@ function renderDashWsSelector(){
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.1.9</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.2.1</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -789,10 +782,7 @@ function renderDashWsSelector(){
         <button onclick="tryRecoverFromCache()" style="background:var(--done);color:#000;border:none;border-radius:5px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:.65rem;cursor:pointer;font-weight:700">Recover Now</button>
         <button onclick="document.getElementById('recoverBanner').style.display='none'" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.9rem;margin-left:auto">×</button>
       </div>
-      <div id="archiveBanner" style="display:none;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:.8rem;color:var(--red)">📦 Archive View — all details expanded. Click ↩ Restore on any item to move it back to Outstanding.</span>
-        <button onclick="setFilter(null,'all');document.querySelectorAll('.fchip').forEach(function(b){b.classList.toggle('fa',b.dataset.f==='all');})" style="background:none;border:1px solid var(--b1);border-radius:5px;padding:3px 10px;font-size:.7rem;color:var(--m1);cursor:pointer;margin-left:auto">← Back to All</button>
-      </div>
+      <div id="archiveBanner" style="display:none;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:.8rem;color:var(--red)">📦 Archive View — all details expanded. Click ↩ Restore to move back to Outstanding.</span><button onclick="setFilter(null,'all')" style="background:none;border:1px solid var(--b1);border-radius:5px;padding:3px 10px;font-size:.7rem;color:var(--m1);cursor:pointer;margin-left:auto">← Back to All</button></div>
       <div class="task-list" id="taskGrid"></div>
         </div><!-- end tracker-main -->
       </div><!-- end tracker-layout -->
@@ -1009,7 +999,20 @@ function taskInPeriod(item,v,o){
 
 /* ══ GOOGLE DRIVE ══════════════════════════════════ */
 function getClientId(){return localStorage.getItem('gClientId')||'';}
-function saveClientId(){const v=document.getElementById('clientIdInput').value.trim();if(!v){alert('Please enter your Client ID');return;}localStorage.setItem('gClientId',v);initApp();}
+function saveClientId(){
+  const v=document.getElementById('clientIdInput').value.trim();
+  if(!v){alert('Please enter your Client ID');return;}
+  localStorage.setItem('gClientId',v);
+  initApp();
+  // After small delay, trigger sign-in popup
+  setTimeout(function(){
+    if(window.tokenClient){
+      tokenClient.requestAccessToken({prompt:'select_account'});
+    } else {
+      show('screenSignin');
+    }
+  },300);
+}
 function showSetup(){show('screenSetup');}
 function initApp(){
   loadConfig();
@@ -1033,6 +1036,10 @@ function initApp(){
     await loadData();
   }});
   show('screenSignin');
+  // Auto-trigger silent sign-in for returning users
+  setTimeout(function(){
+    if(window.tokenClient){tokenClient.requestAccessToken({prompt:''});}
+  },500);
 }
 function requestToken(){tokenClient.requestAccessToken({prompt:'consent'});}
 function signOut(){try{google.accounts.oauth2.revoke(accessToken,()=>{});}catch(e){}accessToken=null;items=[];expanded={};reminders=[];show('screenSignin');}
@@ -1150,12 +1157,7 @@ function setFilter(el,f){
   filter=f;
   document.querySelectorAll('.fchip').forEach(c=>c.classList.toggle('fa',c.dataset.f===f));
   renderTracker();
-  if(f==='archive'){
-    setTimeout(function(){
-      items.filter(function(i){return i.archived;}).forEach(function(i){expanded[i.id]=true;});
-      renderTracker();
-    },80);
-  }
+  if(f==='archive'){setTimeout(function(){items.filter(function(i){return i.archived;}).forEach(function(i){expanded[i.id]=true;});renderTracker();},80);}
 }
 function clearDupError(){document.getElementById('dupError').style.display='none';}
 function updateOwnerDropdown(){const sel=document.getElementById('ownerFilter');const cur=sel.value;const owners=[...new Set(items.map(i=>i.owner).filter(o=>o&&o.trim()))].sort();sel.innerHTML='<option value="">👤 All Owners</option>'+owners.map(o=>`<option value="${esc(o)}" ${cur===o?'selected':''}>${esc(o)}</option>`).join('');}
@@ -1381,6 +1383,15 @@ function delChecklist(itemId,clId){
 function addCLItem(itemId,clId){
   const inp=document.getElementById('clinp_'+itemId+'_'+clId);if(!inp)return;
   const text=inp.value.trim();if(!text)return;
+  var _cat=(document.getElementById('catInp')||{}).value||'';
+  if(!_cat){var _ci=document.getElementById('catInp');if(_ci){_ci.style.border='2px solid var(--red)';setTimeout(function(){_ci.style.border='';},2000);}alert('Please select a Category before creating.');return;}
+  var _cat=(document.getElementById('catInp')||{}).value||'';
+  if(!_cat){
+    var _ci=document.getElementById('catInp');
+    if(_ci){_ci.style.border='2px solid var(--red)';setTimeout(function(){_ci.style.border='';},2000);}
+    alert('Please select a Category before creating.');
+    return;
+  }
   const item=items.find(i=>i.id===itemId);if(!item)return;
   const cl=item.checklists.find(c=>c.id===clId);if(!cl)return;
   cl.items.push({id:uid(),text,done:false,order:cl.items.length});
@@ -1398,7 +1409,10 @@ function toggleCLItem(itemId,clId,ciId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
   const cl=item.checklists.find(c=>c.id===clId);if(!cl)return;
   const ci=cl.items.find(i=>i.id===ciId);if(!ci)return;
-  ci.done=!ci.done;patchCard(item);saveData();refreshDash();
+  ci.done=!ci.done;
+  if(ci.done){const ix=cl.items.findIndex(i=>i.id===ciId);cl.items.splice(ix,1);cl.items.push(ci);}
+  patchCard(item);saveData();refreshDash();
+  if(document.getElementById('viewFollowup')?.style.display!=='none')renderFollowup();
 }
 function delCLItem(itemId,clId,ciId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
@@ -1788,9 +1802,9 @@ function renderTracker(){
   /* C3 — archive filter separates archived from normal views */
   if(filter==='archive'){
     vis=vis.filter(i=>i.archived);
-    const _ab=document.getElementById('archiveBanner');if(_ab)_ab.style.display='';
+    var _ab=document.getElementById('archiveBanner');if(_ab)_ab.style.display='';
   } else {
-    const _ab=document.getElementById('archiveBanner');if(_ab)_ab.style.display='none';
+    var _ab2=document.getElementById('archiveBanner');if(_ab2)_ab2.style.display='none';
     vis=vis.filter(i=>!i.archived); /* hide archived in all other views */
     if(filter==='milestone') vis=vis.filter(i=>i.isMile);
     else if(filter==='adhoc') vis=vis.filter(i=>i.stage===5);
@@ -1824,6 +1838,8 @@ function renderTracker(){
 function addItem(isMile){
   const inp=document.getElementById('addInp');
   const text=inp.value.trim();if(!text)return;
+  var _cat=(document.getElementById('catInp')||{}).value||'';
+  if(!_cat){var _ci=document.getElementById('catInp');if(_ci){_ci.style.border='2px solid var(--red)';setTimeout(function(){_ci.style.border='';},2000);}alert('Please select a Category.');return;}
   const dup=items.find(i=>i.text.toLowerCase()===text.toLowerCase());
   if(dup){document.getElementById('dupError').style.display='flex';inp.focus();return;}
   document.getElementById('dupError').style.display='none';
@@ -2261,331 +2277,37 @@ function renderFollowup(){
   const el=document.getElementById('followupList');if(!el)return;
   try{
     const flagged=[];
-    items.filter(i=>!i.archived).forEach(item=>{
-      (item.checklists||[]).forEach(cl=>{
-        (cl.items||[]).filter(ci=>ci.flagged===true).forEach(ci=>{
+    items.filter(function(i){return !i.archived;}).forEach(function(item){
+      (item.checklists||[]).forEach(function(cl){
+        (cl.items||[]).filter(function(ci){return ci.flagged===true;}).forEach(function(ci){
           flagged.push({item,cl,ci});
         });
       });
     });
-    if(!flagged.length){
-      el.innerHTML='<div style="font-size:.82rem;color:var(--m2);padding:24px 0;font-family:monospace">No flagged items yet — click 🚩 on any checklist item to add it here for follow-up tracking</div>';
-      return;
-    }
-    el.innerHTML=flagged.map(function(x){
-      const item=x.item,cl=x.cl,ci=x.ci;
-      return '<div class="followup-item '+(ci.done?'fi-done':'')+'">'
+    if(!flagged.length){el.innerHTML='<div style="font-size:.82rem;color:var(--m2);padding:24px 0;font-family:monospace">No flagged items yet — click 🚩 on any checklist item</div>';return;}
+    function sortDone(a,b){return (a.ci.done?1:0)-(b.ci.done?1:0);}
+    var personal=flagged.filter(function(x){return (x.item.cat||'').toLowerCase()==='personal';}).sort(sortDone);
+    var work=flagged.filter(function(x){return (x.item.cat||'').toLowerCase()!=='personal';}).sort(sortDone);
+    function buildCard(x){
+      var item=x.item,cl=x.cl,ci=x.ci,done=ci.done;
+      return '<div class="followup-item '+(done?'fi-done':'')+'">'
         +'<div class="fi-flag" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" onclick="toggleCIFlag(this.dataset.iid,this.dataset.cid,this.dataset.ciid)" title="Remove flag">🚩</div>'
         +'<div class="fi-body">'
         +'<div class="fi-task">'+esc(item.text)+' <span class="fi-cl">/ '+esc(cl.name)+'</span></div>'
-        +'<div class="fi-txt '+(ci.done?'fi-struck':'')+'">'+esc(ci.text)+'</div>'
+        +'<div class="fi-txt '+(done?'fi-struck':'')+'">'+esc(ci.text)+'</div>'
         +'<div class="fi-meta">'+esc(item.cat||'')+' · '+esc(item.owner||'')+(item.dueDate?' · Due '+item.dueDate:'')+'</div>'
         +'</div>'
         +'<div class="fi-actions">'
-        +'<div class="fi-done-btn '+(ci.done?'fid-act':'')+'" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" onclick="toggleCLItem(this.dataset.iid,this.dataset.cid,this.dataset.ciid)">'+(ci.done?'✓':'')+'</div>'
+        +'<div class="fi-done-btn '+(done?'fid-act':'')+'" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" onclick="toggleCLItem(this.dataset.iid,this.dataset.cid,this.dataset.ciid)" title="'+(done?'Uncheck':'Mark done')+'">'+(done?'✓':'')+'</div>'
         +'<button class="fi-goto" data-id="'+item.id+'" onclick="gotoItem(this.dataset.id)">↗</button>'
         +'</div></div>';
-    }).join('');
-  }catch(e){console.error('renderFollowup:',e);el.innerHTML='<div style="color:var(--red);padding:10px">Error: '+e.message+'</div>';}
-}
-
-/* ══ C9 LABELS BOARD ══════════════════════════════════ */
-function renderLabelsBoard(){
-  const el=document.getElementById('labelsBoardContent');if(!el)return;
-  try{
-    const labels=getLabels();
-    if(!labels.length){
-      el.innerHTML='<div style="font-size:.82rem;color:var(--m2);padding:24px 0;font-family:monospace">No labels yet — go to ⚙️ Settings to create labels, then assign them to tasks</div>';
-      return;
     }
-    el.innerHTML=labels.map(function(lbl){
-      const tagged=[];
-      items.filter(i=>!i.archived).forEach(function(item){
-        if((item.labels||[]).includes(lbl.id))tagged.push({type:'item',item,text:item.text});
-        (item.checklists||[]).forEach(function(cl){
-          (cl.items||[]).filter(function(ci){return (ci.labels||[]).includes(lbl.id);}).forEach(function(ci){
-            tagged.push({type:'ci',item,cl,ci,text:ci.text});
-          });
-        });
-      });
-      const rows=tagged.map(function(t){
-        const done=t.type==='ci'&&t.ci&&t.ci.done;
-        return '<div class="label-item '+(done?'li-done':'')+'">'
-          +'<span class="li-type">'+(t.type==='item'?(t.item.isMile?'⬟':'📋'):'↳')+'</span>'
-          +'<span class="li-txt '+(done?'li-struck':'')+'">' +esc(t.text)+'</span>'
-          +(t.type==='ci'?'<span class="li-task"> in '+esc(t.item.text)+'</span>':'')
-          +'<button class="fi-goto" data-id="'+t.item.id+'" onclick="gotoItem(this.dataset.id)">↗</button>'
-          +'</div>';
-      }).join('');
-      return '<div class="label-group">'
-        +'<div class="label-group-hdr">'
-        +'<span class="lbl-badge" style="background:'+lbl.color+'20;color:'+lbl.color+';border-color:'+lbl.color+'60">'+esc(lbl.name)+'</span>'
-        +' <span style="font-size:.62rem;color:var(--m1)">'+tagged.length+' items</span>'
-        +'</div>'
-        +(rows||'<div style="font-size:.7rem;color:var(--m2);padding:6px 0">No items with this label yet</div>')
-        +'</div>';
-    }).join('');
-  }catch(e){console.error('renderLabelsBoard:',e);el.innerHTML='<div style="color:var(--red);padding:10px">Error: '+e.message+'</div>';}
-}
-
-/* ══ C8 SETTINGS ══════════════════════════════════════ */
-function renderSettings(){
-  const el=document.getElementById('settingsContent');if(!el)return;
-  try{
-    if(!appConfig)loadConfig();
-    const cfg=appConfig;
-    const cats=getCats();
-    const owners=getOwners();
-    const labels=getLabels();
-    const ejs=cfg.emailjs||{};
-    const catRows=cats.map(function(cat,i){return '<div class="settings-tag-row"><span class="settings-tag">'+esc(cat)+'</span><button class="settings-del-btn" onclick="appConfig.categories.splice('+i+',1);saveConfig();renderSettings();updateDropdowns()">×</button></div>';}).join('');
-    const ownRows=owners.map(function(own,i){return '<div class="settings-tag-row"><span class="settings-tag">'+esc(own)+'</span><button class="settings-del-btn" onclick="appConfig.owners.splice('+i+',1);saveConfig();renderSettings();updateDropdowns()">×</button></div>';}).join('');
-    const lblRows=labels.map(function(lbl,i){return '<div class="settings-tag-row"><span class="lbl-badge" style="background:'+lbl.color+'20;color:'+lbl.color+';border-color:'+lbl.color+'60">'+esc(lbl.name)+'</span><button class="settings-del-btn" onclick="appConfig.labels.splice('+i+',1);saveConfig();renderSettings()">×</button></div>';}).join('');
-    el.innerHTML='<div class="settings-grid">'
-      +'<div class="settings-card"><div class="settings-card-title">🎨 Appearance</div>'
-      +'<div class="settings-row"><span class="settings-label">Theme</span>'
-      +'<div class="toggle-wrap"><span style="font-size:.75rem;color:var(--m1)">Dark</span>'
-      +'<label class="toggle-switch"><input type="checkbox" '+(cfg.theme==='light'?'checked':'')+' onchange="var t=this.checked?String.fromCharCode(108,105,103,104,116):String.fromCharCode(100,97,114,107);applyTheme(t);renderSettings()"/><span class="toggle-slider"></span></label>'
-      +'<span style="font-size:.75rem;color:var(--m1)">Light</span></div></div></div>'
-      +'<div class="settings-card"><div class="settings-card-title">📧 Email Notifications</div>'
-      +'<div class="settings-field"><label>EmailJS Public Key</label><input class="settings-inp" value="'+esc(ejs.key||'')+'" placeholder="Public Key" oninput="if(!appConfig.emailjs)appConfig.emailjs={};appConfig.emailjs.key=this.value;saveConfig()"/></div>'
-      +'<div class="settings-field"><label>Service ID</label><input class="settings-inp" value="'+esc(ejs.svc||'')+'" placeholder="service_xxx" oninput="if(!appConfig.emailjs)appConfig.emailjs={};appConfig.emailjs.svc=this.value;saveConfig()"/></div>'
-      +'<div class="settings-field"><label>Template ID</label><input class="settings-inp" value="'+esc(ejs.tpl||'')+'" placeholder="template_xxx" oninput="if(!appConfig.emailjs)appConfig.emailjs={};appConfig.emailjs.tpl=this.value;saveConfig();initEjs()"/></div>'
-      +'<div class="settings-field"><label>Default Notify</label><select class="settings-inp" onchange="appConfig.notifyDefault=this.value;saveConfig()">'
-      +'<option value="1d" '+(cfg.notifyDefault==='1d'?'selected':'')+'>1 day before</option>'
-      +'<option value="1h" '+(cfg.notifyDefault==='1h'?'selected':'')+'>1 hour before</option>'
-      +'<option value="due" '+(cfg.notifyDefault==='due'?'selected':'')+'>On due date</option>'
-      +'</select></div></div>'
-      +'<div class="settings-card"><div class="settings-card-title">📂 Categories</div>'
-      +catRows
-      +'<div class="settings-add-row"><input class="settings-inp" id="newCatInp" placeholder="New category…" data-key="categories" onkeydown="if(event.keyCode===13)addConfigItem(this.dataset.key,this.id)"/><button class="settings-add-btn" data-key="categories" data-inp="newCatInp" onclick="addConfigItem(this.dataset.key,this.dataset.inp)">+ Add</button></div></div>'
-      +'<div class="settings-card"><div class="settings-card-title">👤 Owners</div>'
-      +ownRows
-      +'<div class="settings-add-row"><input class="settings-inp" id="newOwnInp" placeholder="New owner…" data-key="owners" onkeydown="if(event.keyCode===13)addConfigItem(this.dataset.key,this.id)"/><button class="settings-add-btn" data-key="owners" data-inp="newOwnInp" onclick="addConfigItem(this.dataset.key,this.dataset.inp)">+ Add</button></div></div>'
-      +'<div class="settings-card"><div class="settings-card-title">🏷️ Labels</div>'
-      +lblRows
-      +'<div class="settings-add-row"><input class="settings-inp" id="newLblInp" placeholder="Label name…" style="flex:1"/><input type="color" id="newLblColor" value="#4d9eff" style="width:36px;height:32px;border:none;border-radius:5px;cursor:pointer;padding:0"/><button class="settings-add-btn" onclick="addLabel()">+ Add</button></div></div>'
-      +'<div class="settings-card"><div class="settings-card-title">📊 Data</div>'
-      +'<button class="settings-action-btn" onclick="exportToExcel()">⬇️ Export All Data to Excel</button>'
-      +'<div style="font-size:.62rem;color:var(--m2);margin-top:8px">Downloads .xlsx with all tasks, milestones and checklists</div>'
-      +'</div></div>';
-  }catch(e){console.error('renderSettings:',e);el.innerHTML='<div style="color:var(--red);padding:10px">Settings error: '+e.message+'</div>';}
-}
-
-/* ══ DATA RECOVERY ═════════════════════════════════ */
-function tryRecoverFromCache(){
-  try{
-    const cached=localStorage.getItem('pmtf_v19');
-    if(!cached){alert('No local cache found in this browser.\nTry opening the app in the browser you normally use.');return;}
-    const d=JSON.parse(cached);
-    const cachedItems=d.items||[];
-    const currentIds=new Set(items.map(i=>i.id));
-    const missing=cachedItems.filter(i=>!currentIds.has(i.id));
-    if(!missing.length){
-      alert('Cache has '+cachedItems.length+' items — same as Drive. No extra items found.\n\nTry a different browser where you last used the app.');
-      return;
-    }
-    const names=missing.map(i=>(i.isMile?'⬟ ':'📋 ')+i.text).join('\n');
-    if(confirm('RECOVERY FOUND '+missing.length+' missing items:\n\n'+names+'\n\nClick OK to restore them to your data.')){
-      missing.forEach(i=>items.push(i));
-      saveData();
-      renderTracker();renderSidebar();
-      alert('✓ Restored '+missing.length+' items! They are now visible in your tracker.');
-    }
-  }catch(e){alert('Recovery error: '+e.message);}
-}
-
-/* ══ DATA AUDIT ════════════════════════════════════ */
-function showDataAudit(){
-  const total=items.length;
-  const archived=items.filter(i=>i.archived).length;
-  const active=items.filter(i=>!i.archived).length;
-  const byCat={};
-  items.forEach(i=>{const k=i.cat||'(no category)';byCat[k]=(byCat[k]||0)+1;});
-  const catLines=Object.entries(byCat).map(([k,v])=>k+': '+v+' items').join('\n');
-  const msg='📊 DATA AUDIT\n\n'
-    +'Total items in database: '+total+'\n'
-    +'Active (visible): '+active+'\n'
-    +'Archived: '+archived+'\n'
-    +'Reminders: '+reminders.length+'\n\n'
-    +'By Category:\n'+catLines+'\n\n'
-    +'Click OK to see ALL items bypassing all filters.';
-  if(confirm(msg)){
-    showAllItems();
-  }
-}
-function showAllItems(){
-  setView('tracker');
-  setTimeout(function(){
-    const grid=document.getElementById('taskGrid');if(!grid)return;
-    const all=items.filter(function(i){return !i.isGroup;});
-    let html='<div style="font-family:monospace;font-size:.7rem;color:var(--done);padding:8px 0;margin-bottom:8px;border-bottom:1px solid var(--b1)">'
-      +'DATA AUDIT MODE — showing all '+all.length+' items (no filters) '
-      +'<button onclick="renderTracker()" style="margin-left:12px;background:none;border:1px solid var(--b1);border-radius:4px;color:var(--m1);cursor:pointer;padding:2px 8px;font-size:.65rem">Back to normal</button>'
+    el.innerHTML='<div class="fu-cols">'
+      +'<div class="fu-col"><div class="fu-col-hdr" style="color:var(--gold)">👤 Personal <span class="fu-col-cnt">'+personal.length+'</span></div>'
+      +(personal.length?personal.map(buildCard).join(''):'<div class="fu-empty-col">No flagged personal items</div>')+'</div>'
+      +'<div class="fu-col"><div class="fu-col-hdr" style="color:var(--blue)">💼 Work &amp; Others <span class="fu-col-cnt">'+work.length+'</span></div>'
+      +(work.length?work.map(buildCard).join(''):'<div class="fu-empty-col">No flagged work items</div>')+'</div>'
       +'</div>';
-    all.forEach(function(i){
-      var stageName=(STAGES.find(function(s){return s.n===i.stage;})||{label:'?'}).label;
-      html+='<div style="background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:10px 12px;margin-bottom:5px">'
-        +'<div style="font-weight:700;font-size:.88rem">'+(i.isMile?'&loz; ':'&#9999; ')+esc(i.text)
-        +(i.archived?' <span style="color:var(--red);font-size:.7rem">[ARCHIVED]</span>':'')+'</div>'
-        +'<div style="font-family:monospace;font-size:.62rem;color:var(--m1);margin-top:4px">'
-        +'Cat: '+(i.cat||'none')+' &middot; Stage: '+stageName+' &middot; Owner: '+(i.owner||'none')
-        +(i.dueDate?' &middot; Due: '+i.dueDate:'')+'</div>'
-        +'</div>';
-    });
-    grid.innerHTML=html;
-  },100);
+  }catch(e){console.error('renderFollowup:',e);}
 }
 
-/* ══ C1 GLOBAL SEARCH ════════════════════════════════ */
-function openSearch(){
-  document.getElementById('searchModal')?.remove();
-  const modal=document.createElement('div');
-  modal.id='searchModal';
-  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:flex-start;justify-content:center;padding-top:80px';
-  modal.innerHTML='<div style="background:var(--s1);border:1px solid var(--b2);border-radius:12px;width:min(600px,90vw);max-height:70vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)">'
-    +'<div style="padding:14px 16px;border-bottom:1px solid var(--b1);display:flex;gap:10px;align-items:center">'
-    +'<span style="color:var(--m1);font-size:1rem">🔍</span>'
-    +'<input id="searchInp" placeholder="Search tasks, notes, checklists, comments..." autocomplete="off" style="flex:1;background:none;border:none;outline:none;font-size:.9rem;color:var(--tx);font-family:sans-serif">'
-    +'<button onclick="closeSearch()" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:1.1rem">✕</button>'
-    +'</div>'
-    +'<div id="searchResults" style="overflow-y:auto;padding:8px"></div>'
-    +'<div style="padding:8px 14px;border-top:1px solid var(--b1);font-family:monospace;font-size:.6rem;color:var(--m2)">Press Esc to close · Click result to jump · / to open</div>'
-    +'</div>';
-  modal.onclick=function(e){if(e.target===modal)closeSearch();};
-  document.body.appendChild(modal);
-  const inp=document.getElementById('searchInp');
-  if(inp){inp.focus();inp.oninput=function(){runSearch(this.value);};}
-}
-function closeSearch(){document.getElementById('searchModal')?.remove();}
-function runSearch(q){
-  const el=document.getElementById('searchResults');if(!el)return;
-  q=q.trim().toLowerCase();
-  if(!q){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--m2);font-size:.8rem">Start typing to search...</div>';return;}
-  const results=[];
-  items.filter(i=>!i.archived).forEach(function(item){
-    var score=0;var matches=[];
-    if(item.text&&item.text.toLowerCase().includes(q)){score+=3;matches.push('name');}
-    if(item.notes&&item.notes.toLowerCase().includes(q)){score+=2;matches.push('notes');}
-    if(item.nextAction&&item.nextAction.toLowerCase().includes(q)){score+=2;matches.push('next action');}
-    (item.comments||[]).forEach(function(cm){if(cm.text&&cm.text.toLowerCase().includes(q)){score+=1;matches.push('comment');}});
-    (item.checklists||[]).forEach(function(cl){
-      if(cl.name&&cl.name.toLowerCase().includes(q)){score+=2;matches.push('checklist: '+cl.name);}
-      (cl.items||[]).forEach(function(ci){if(ci.text&&ci.text.toLowerCase().includes(q)){score+=1;matches.push('checklist item');}});
-    });
-    if(score>0)results.push({item,score,matches});
-  });
-  results.sort(function(a,b){return b.score-a.score;});
-  if(!results.length){
-    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--m2);font-size:.8rem">No results for "'+esc(q)+'"</div>';
-    return;
-  }
-  el.innerHTML=results.slice(0,20).map(function(r){
-    const item=r.item;
-    const stageName=(STAGES.find(function(s){return s.n===item.stage;})||{label:'?'}).label;
-    const q2=q.replace(/[.*+?^${}()|\[\]\\]/g,'\\$&');
-    const hi=function(t){try{return t.replace(new RegExp('('+q2+')','gi'),'<mark style="background:var(--gold);color:#000;border-radius:2px;padding:0 2px">$1</mark>');}catch(e){return t;}};
-    const preview=item.notes?item.notes.slice(0,80):'';
-    return '<div class="search-result" data-sid="'+item.id+'" onclick="closeSearch();gotoItem(this.dataset.sid)" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--s3);transition:background .15s" onmouseenter="this.style.background=\'var(--s2)\'" onmouseleave="this.style.background=\'\'">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
-      +'<span style="font-size:.85rem">'+(item.isMile?'⬟':'📋')+'</span>'
-      +'<strong style="font-size:.88rem;flex:1">'+hi(esc(item.text))+'</strong>'
-      +'<span style="font-family:monospace;font-size:.6rem;color:var(--m1)">'+esc(item.cat||'')+' · '+stageName+'</span>'
-      +'</div>'
-      +(preview?'<div style="font-size:.75rem;color:var(--m2);margin-left:22px">'+hi(esc(preview))+'</div>':'')
-      +'<div style="font-size:.6rem;color:var(--m1);margin-left:22px;margin-top:2px">Found in: '+r.matches.slice(0,3).join(', ')+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-/* ══ C4 CHECKLIST TEMPLATES ════════════════════════ */
-function saveClTemplate(itemId,clId){
-  const item=items.find(i=>i.id===itemId);if(!item)return;
-  const cl=item.checklists?.find(c=>c.id===clId);if(!cl)return;
-  const name=prompt('Template name:',cl.name);if(!name)return;
-  if(!appConfig.clTemplates)appConfig.clTemplates=[];
-  appConfig.clTemplates.push({id:uid(),name,items:cl.items.map(ci=>({text:ci.text}))});
-  saveConfig();
-  alert('Template "'+name+'" saved! Apply it from the + List menu.');
-}
-function applyClTemplate(itemId,tplId){
-  const item=items.find(i=>i.id===itemId);if(!item)return;
-  const tpl=(appConfig.clTemplates||[]).find(t=>t.id===tplId);if(!tpl)return;
-  if(!item.checklists)item.checklists=[];
-  const newCl={id:uid(),name:tpl.name,open:true,items:tpl.items.map(ti=>({id:uid(),text:ti.text,done:false,flagged:false,labels:[]}))};
-  item.checklists.push(newCl);
-  patchCard(item);saveData();
-}
-function showTemplateMenu(itemId,btn){
-  document.querySelectorAll('.tpl-menu').forEach(el=>el.remove());
-  const tmpls=appConfig.clTemplates||[];
-  if(!tmpls.length){alert('No templates yet. Save a checklist as template using the 💾 button on any checklist.');return;}
-  const rect=btn.getBoundingClientRect();
-  const menu=document.createElement('div');
-  menu.className='tpl-menu';
-  menu.style.cssText='position:fixed;left:'+rect.left+'px;top:'+(rect.bottom+4)+'px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:6px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.4);min-width:160px';
-  menu.innerHTML='<div style="font-size:.62rem;color:var(--m2);padding:2px 6px 6px;font-family:monospace;text-transform:uppercase">Apply Template</div>'
-    +tmpls.map(function(t){return '<div data-iid="'+itemId+'" data-tid="'+t.id+'" style="padding:6px 8px;border-radius:5px;cursor:pointer;font-size:.8rem" onclick="applyClTemplate(this.dataset.iid,this.dataset.tid);document.querySelectorAll(\'.tpl-menu\').forEach(function(e){e.remove();});">'+esc(t.name)+'</div>';}).join('');
-  document.body.appendChild(menu);
-  setTimeout(function(){document.addEventListener('click',function h(e){if(!menu.contains(e.target)){menu.remove();document.removeEventListener('click',h);}});},50);
-}
-
-/* ══ QUICK ADD + SEARCH SHORTCUTS ══════════════════ */
-document.addEventListener('keydown',function(e){
-  const tag=(e.target.tagName||'').toLowerCase();
-  const isInput=tag==='input'||tag==='textarea'||tag==='select'||e.target.isContentEditable;
-  if(isInput)return;
-  if(e.key==='q'||e.key==='Q'){
-    e.preventDefault();
-    setView('tracker');
-    setTimeout(function(){
-      const inp=document.getElementById('taskInp');
-      if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'center'});}
-    },100);
-  }
-  if(e.key==='/'||e.key==='f'&&e.ctrlKey){
-    e.preventDefault();
-    openSearch();
-  }
-  if(e.key==='Escape'){
-    closeSearch();
-    const inp=document.getElementById('taskInp');
-    if(inp&&document.activeElement===inp){inp.blur();}
-  }
-});
-
-/* ══ BOOT ══════════════════════════════════════════ */
-/* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.1.9';
-function checkForUpdate(){
-  if(!document.getElementById('screenApp')?.classList.contains('show'))return;
-  fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})
-    .then(r=>r.text())
-    .then(html=>{
-      const m=html.match(/ver-badge">([^<]+)<\/span>/);
-      if(m&&m[1]&&m[1]!==CURRENT_VER){showUpdateBanner(m[1]);}
-    }).catch(()=>{});
-}
-let _uTimer=null,_uSecs=10;
-function showUpdateBanner(newVer){
-  if(document.getElementById('updateBanner'))return;
-  const b=document.createElement('div');
-  b.id='updateBanner';
-  b.style='position:fixed;bottom:20px;right:20px;background:var(--done);color:#000;padding:12px 20px;border-radius:8px;font-family:DM Mono,monospace;font-size:.78rem;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);cursor:pointer;';
-  _uSecs=10;
-  const update=()=>{b.textContent=`🆕 ${newVer} available — refreshing in ${_uSecs}s (click to refresh now)`;};
-  update();document.body.appendChild(b);
-  b.onclick=()=>location.reload(true);
-  _uTimer=setInterval(()=>{_uSecs--;update();if(_uSecs<=0){clearInterval(_uTimer);location.reload(true);}},1000);
-}
-setInterval(checkForUpdate,3*60*1000); // check every 3 minutes
-
-window.addEventListener('load',()=>{
-  loadConfig();
-  const wait=setInterval(()=>{if(window.google?.accounts?.oauth2){clearInterval(wait);initApp();}},100);
-  // Check every minute for 9 AM reminder emails
-  setInterval(()=>{if(typeof checkAndSendReminders==='function')checkAndSendReminders();},60000);
-});
-</script>
-</body>
-</html>

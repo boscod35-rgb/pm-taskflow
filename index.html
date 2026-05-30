@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Project Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
@@ -638,7 +638,7 @@ function renderDashWsSelector(){
     <div class="step"><div class="snum">1</div><div class="sbody"><div class="stitle">Create a Google Cloud Project</div><div class="sdesc">Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → New Project</div></div></div>
     <div class="step"><div class="snum">2</div><div class="sbody"><div class="stitle">Enable Google Drive API</div><div class="sdesc">APIs &amp; Services → Library → <code>Google Drive API</code> → Enable</div></div></div>
     <div class="step"><div class="snum">3</div><div class="sbody"><div class="stitle">Configure OAuth Consent Screen</div><div class="sdesc">OAuth consent → External → scope <code>../auth/drive.file</code> → add Gmail as test user</div></div></div>
-    <div class="step"><div class="snum">4</div><div class="sbody"><div class="stitle">Create OAuth 2.0 Client ID → Web application</div><div class="sdesc">Add <code>https://pm-taskflow.netlify.app</code> to Authorized JavaScript origins</div></div></div>
+    <div class="step"><div class="snum">4</div><div class="sbody"><div class="stitle">Create OAuth 2.0 Client ID → Web application</div><div class="sdesc">Add <code>https://pm-taskflow.vercel.app</code> to Authorized JavaScript origins</div></div></div>
     <div class="step"><div class="snum">5</div><div class="sbody"><div class="stitle">Paste your Client ID below</div></div></div>
   </div>
   <div class="inp-row">
@@ -995,7 +995,7 @@ function taskInPeriod(item,v,o){
 }
 
 /* ══ GOOGLE DRIVE ══════════════════════════════════ */
-function getClientId(){return localStorage.getItem('gClientId')||'';}
+function getClientId(){localStorage.setItem('gClientId','566855990952-o587dbtk4tjupuv1e25bvfgt02t8r0q7.apps.googleusercontent.com');return '566855990952-o587dbtk4tjupuv1e25bvfgt02t8r0q7.apps.googleusercontent.com';}
 function saveClientId(){
   const cid=((document.getElementById('clientIdInput')||{}).value||'').trim();
   if(!cid){alert('Please paste your Client ID first.');return;}

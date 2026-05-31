@@ -953,6 +953,9 @@ function setDashWorkspace(key){setDb6Tab(key);}
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- REMINDERS -->
     <div id="viewReminder" style="display:none">
       <div style="display:flex;gap:0;margin:-16px;min-height:calc(100vh - 90px)">
         <!-- Sidebar rebuilt each render by renderRemSidebar() -->
@@ -963,7 +966,9 @@ function setDashWorkspace(key){setDb6Tab(key);}
         </div>
       </div>
     </div>
-    id="viewFollowup" style="display:none">
+
+    <!-- FOLLOW-UP -->
+    <div id="viewFollowup" style="display:none">
       <div class="dtitle">🚩 Follow-up <span>Board</span></div>
       <div style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--m1);margin-bottom:16px">Flagged checklist items — live mirror, no duplicates</div>
       <div id="followupList" class="followup-list"></div>
@@ -1031,7 +1036,7 @@ const PHASES=[
 const SEVEN_DAYS = 7*24*60*60*1000;
 
 /* ══ STATE ════════════════════════════════════════ */
-let items=[], expanded={}, reminders=[], remCat='all', remGroup='all';
+let items=[], expanded={}, reminders=[], remCat='all', remGroup='all', remSort='due';
 let pView='daily', offset=0, filter='all', stageFilter=0, ownerFilter='', catFilter='all';
 let docsFolderId=localStorage.getItem('trackerDocsFolderId')||null;
 let workspace='all', sidebarOpen=true; // C1 v1.7
@@ -1696,7 +1701,7 @@ function rowHTML(item){
       <button class="ci-flag ${ci.flagged?'ci-flag-on':''}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Remove flag':'Flag for follow-up'}">🚩</button>
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">🏷</button>
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
-      <span class="ci-lbl-badges" style="display:${!lblVisible?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
+      <span class="ci-lbl-badges" id="cilbls_${ci.id}" style="display:${ciLblState[ci.id]===false?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
       <button class="ci-del" onclick="event.stopPropagation();delCLItem('${item.id}','${cl.id}','${ci.id}')">×</button>
     </div>`).join('');
     return`<div class="cl-group">

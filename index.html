@@ -553,11 +553,6 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ri-del:hover{color:var(--red)!important;}
 
 /* C2 v1.7 — dashboard workspace selector */
-function refreshDash(){const vd=document.getElementById('viewDash');if(vd&&vd.style.display!=='none')renderDash();}
-// setDashTab replaced by setDb6Tab in v2.6
-
-function setDashWorkspace(key){setDb6Tab(key);}
-// renderDashWsSelector removed v2.6
 /* DASHBOARD */
 .dash-tabs{display:flex;gap:6px;margin-bottom:18px;}
 .dash-tab{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.07em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--b1);background:var(--s1);color:var(--m1);border-radius:7px;cursor:pointer;transition:all .2s;}
@@ -727,6 +722,37 @@ function setDashWorkspace(key){setDb6Tab(key);}
 .db6-trend-lbl{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--m2);}
 /* Stage filter active indicator on tracker */
 .db6-ps.db6-ps-act .db6-ps-name{opacity:1;}
+
+/* Follow-up board two-column layout */
+.fu-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:640px){.fu-cols{grid-template-columns:1fr;}}
+.fu-col{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px;}
+.fu-col-hdr{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.fu-col-cnt{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--m2);}
+.fu-empty-col{font-size:.75rem;color:var(--m2);padding:10px 0;}
+
+/* Reminder sidebar group headers */
+.rem-grp-hdr{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--m2);padding:10px 11px 3px;margin-top:4px;}
+.rc-cnt{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--m2);margin-left:auto;}
+
+/* Workspace sidebar layout */
+.ws-sidebar{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;gap:0;transition:width .25s;}
+.ws-sidebar.collapsed{width:48px;}
+.ws-sidebar.collapsed .ws-name,.ws-sidebar.collapsed .ws-cnt,.ws-sidebar.collapsed .ws-top-label{display:none;}
+.ws-top{display:flex;align-items:center;padding:10px 10px 6px;border-bottom:1px solid var(--b1);}
+.ws-top-label{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.07em;text-transform:uppercase;color:var(--m2);flex:1;}
+.ws-toggle{background:none;border:none;color:var(--m2);cursor:pointer;font-size:.7rem;padding:2px 4px;border-radius:3px;transition:color .15s;}
+.ws-toggle:hover{color:var(--tx);}
+.ws-list{display:flex;flex-direction:column;padding:6px 6px;}
+.ws-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;cursor:pointer;transition:all .15s;}
+.ws-item:hover{background:var(--s2);}
+.ws-item.ws-act{background:var(--s3);color:var(--tx);}
+.ws-ico{font-size:.9rem;flex-shrink:0;}
+.ws-name{flex:1;font-family:'DM Sans',sans-serif;font-size:.8rem;}
+.ws-cnt{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--m2);}
+.tracker-layout{display:flex;gap:0;min-height:calc(100vh - 100px);}
+.tracker-main{flex:1;padding:16px;min-width:0;}
+.pipe-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);padding:0 6px;flex-shrink:0;display:none;}
 
 </style>
 </head>
@@ -953,21 +979,36 @@ function setDashWorkspace(key){setDb6Tab(key);}
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- REMINDERS -->
+    </div><!-- end db6-wrap -->
+    </div><!-- end viewDash -->
     <div id="viewReminder" style="display:none">
       <div style="display:flex;gap:0;margin:-16px;min-height:calc(100vh - 90px)">
         <!-- Sidebar rebuilt each render by renderRemSidebar() -->
         <div class="rem-sidebar" id="remSidebar"></div>
         <div style="flex:1;padding:16px;overflow-y:auto;min-width:0">
           <div class="rem-title" id="remTitle">Reminders</div>
+          <!-- Add reminder form -->
+          <div class="rem-add-row" id="remAddForm">
+            <input class="rem-add-inp" id="remAddInp" placeholder="New reminder…" onkeydown="if(event.key==='Enter')addReminder()"/>
+            <div class="rem-add-opts">
+              <input class="rem-add-date" id="remAddDate" type="date"/>
+              <input class="rem-add-time" id="remAddTime" type="time"/>
+              <select class="rem-add-pri" id="remAddPri">
+                <option value="normal">Normal</option>
+                <option value="important">⭐ Important</option>
+              </select>
+              <select class="rem-notify-sel" id="remNotify">
+                <option value="1d">1 day before</option>
+                <option value="1h">1 hour before</option>
+                <option value="due">On due date</option>
+              </select>
+              <button class="rem-add-btn" onclick="addReminder()">+ Add</button>
+            </div>
+          </div>
           <div class="rem-items" id="remList"></div>
         </div>
       </div>
     </div>
-
-    <!-- FOLLOW-UP -->
     <div id="viewFollowup" style="display:none">
       <div class="dtitle">🚩 Follow-up <span>Board</span></div>
       <div style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--m1);margin-bottom:16px">Flagged checklist items — live mirror, no duplicates</div>
@@ -1036,8 +1077,9 @@ const PHASES=[
 const SEVEN_DAYS = 7*24*60*60*1000;
 
 /* ══ STATE ════════════════════════════════════════ */
-let items=[], expanded={}, reminders=[], remCat='all', remGroup='all', remSort='due';
+let items=[], expanded={}, reminders=[], remCat='all', remGroup='all';
 let pView='daily', offset=0, filter='all', stageFilter=0, ownerFilter='', catFilter='all';
+let remSort='newest'; // v2.5 reminder sort state
 let docsFolderId=localStorage.getItem('trackerDocsFolderId')||null;
 let workspace='all', sidebarOpen=true; // C1 v1.7
 let dashCatView='work'; // C2 v1.7 — dashboard workspace selector
@@ -1476,11 +1518,9 @@ function delChecklist(itemId,clId){
 function addCLItem(itemId,clId){
   const inp=document.getElementById('clinp_'+itemId+'_'+clId);if(!inp)return;
   const text=inp.value.trim();if(!text)return;
-  var _cat=((document.getElementById('catInp')||{}).value||'').trim();
-  if(!_cat){var _ci2=document.getElementById('catInp');if(_ci2){_ci2.style.border='2px solid var(--red)';setTimeout(function(){_ci2.style.border='';},2000);}alert('Please select a Category before creating.');return;}
   const item=items.find(i=>i.id===itemId);if(!item)return;
   const cl=item.checklists.find(c=>c.id===clId);if(!cl)return;
-  cl.items.push({id:uid(),text,done:false,order:cl.items.length});
+  cl.items.push({id:uid(),text,done:false,flagged:false,labels:[],order:cl.items.length});
   inp.value='';patchCard(item);saveData();refreshDash();
 }
 function toggleCIFlag(itemId,clId,ciId){
@@ -1656,6 +1696,7 @@ function rowHTML(item){
   const ownerStr=item.owner?` · 👤 ${esc(item.owner)}`:'';
   const totalCI=checklists.reduce((s,c)=>s+(c.items?.length||0),0);
   const doneCI=checklists.reduce((s,c)=>s+(c.items?.filter(i=>i.done).length||0),0);
+  const lblVisible=true; // default labels visible; toggled per-item via ciLblState
 
   // Stage selector
   const stageSel=STAGES.map(s=>`<div class="ss-btn ${item.stage===s.n?'ss-act':''}"
@@ -1701,7 +1742,7 @@ function rowHTML(item){
       <button class="ci-flag ${ci.flagged?'ci-flag-on':''}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Remove flag':'Flag for follow-up'}">🚩</button>
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">🏷</button>
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
-      <span class="ci-lbl-badges" id="cilbls_${ci.id}" style="display:${ciLblState[ci.id]===false?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
+      <span class="ci-lbl-badges" style="display:${!lblVisible?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
       <button class="ci-del" onclick="event.stopPropagation();delCLItem('${item.id}','${cl.id}','${ci.id}')">×</button>
     </div>`).join('');
     return`<div class="cl-group">
@@ -2000,7 +2041,13 @@ function delItem(id){if(!confirm('Remove this item?'))return;items=items.filter(
 function patchCard(item){if(!item)return;const el=document.getElementById('card_'+item.id);if(!el){renderTracker();return;}const tmp=document.createElement('div');tmp.innerHTML=rowHTML(item);el.replaceWith(tmp.firstElementChild);renderPipeline();}
 
 /* ══ REMINDERS ═════════════════════════════════════ */
-function setRemCat(el,cat){remCat=cat;document.querySelectorAll('.rem-cat-btn').forEach(b=>b.classList.remove('rc-act'));el.classList.add('rc-act');renderReminders();}
+function setRemCat(el,cat){
+  // el may be a DOM element or a cat string (when called from sidebar without element)
+  if(typeof el==='string'){cat=el;el=null;}
+  remCat=cat;
+  if(el){document.querySelectorAll('.rem-cat-btn').forEach(b=>b.classList.remove('rc-act'));el.classList.add('rc-act');}
+  renderReminders();
+}
 function setRemGroup(grp){remGroup=grp;renderReminders();}
 
 /* C1 — save dueTime alongside dueDate */
@@ -2154,7 +2201,7 @@ function renderReminders(){
       +'<button class="rem-sort-btn'+(remSort==='newest'?' rs-act':'')+'" onclick="remSort=\'newest\';renderReminders()">Newest</button>'
       +'<button class="rem-sort-btn'+(remSort==='week'?' rs-act':'')+'" onclick="remSort=\'week\';renderReminders()">Week</button>'
       +'<button class="rem-sort-btn'+(remSort==='month'?' rs-act':'')+'" onclick="remSort=\'month\';renderReminders()">Month</button>'
-      +'<button class="rem-sort-btn'+(remSort==='newest'?'':' rs-act')+'" onclick="if(confirm(\'Add reminder?\'))openAddReminderModal&&openAddReminderModal()" style="margin-left:auto;background:var(--blue);color:#fff;border-color:var(--blue)">\u2295 Add</button>'
+      +'<button class="rem-sort-btn" onclick="document.getElementById(\'remAddInp\')?.focus();document.getElementById(\'remAddForm\')?.scrollIntoView({behavior:\'smooth\'})" style="margin-left:auto;background:var(--blue);color:#fff;border-color:var(--blue)">\u2295 Add</button>'
       +'</div>';
 
     if(!vis.length){
@@ -2452,6 +2499,8 @@ function renderDash(){
 }
 
 /* v2.6 — Dashboard tab switching */
+function refreshDash(){const vd=document.getElementById('viewDash');if(vd&&vd.style.display!=='none')renderDash();}
+function setDashWorkspace(key){setDb6Tab(key);}
 function setDb6Tab(tab){
   dashCatView=tab;
   document.querySelectorAll('.db6-tab').forEach(b=>{

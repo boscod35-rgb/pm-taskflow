@@ -273,7 +273,7 @@ function setWorkspace(key){
   // Auto-set category dropdown to match workspace so new tasks go to right place
   const catInp=document.getElementById('catInp');
   if(catInp){
-    const wsMap={work:'Work',personal:'Personal',finance:'Finance',health:'Health',learning:'Learning'};
+    const wsMap={work:'Work',personal:'Personal',finance:'Finance',health:'Health',learning:'Learning',project:'Project'};
     catInp.value=wsMap[key]||'';
   }
   renderSidebar();
@@ -550,24 +550,11 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ri-del:hover{color:var(--red)!important;}
 
 /* C2 v1.7 — dashboard workspace selector */
-function refreshDash(){if(document.getElementById('viewDash')?.style.display!=='none')renderDash();}
-function setDashTab(tab){
-  dashCatView=tab;
-  document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('dt-act'));
-  const btn=document.getElementById(tab==='work'?'dashTabWork':'dashTabPersonal');
-  if(btn)btn.classList.add('dt-act');
-  renderDash();
-}
+function refreshDash(){const vd=document.getElementById('viewDash');if(vd&&vd.style.display!=='none')renderDash();}
+// setDashTab replaced by setDb6Tab in v2.6
 
-function setDashWorkspace(key){
-  dashCatView=key;
-  renderDash();
-}
-function renderDashWsSelector(){
-  const row=document.getElementById('dashWsRow');if(!row)return;
-  row.innerHTML=WORKSPACES.map(ws=>`<button class="dws-btn ${dashCatView===ws.key?'act':''}"
-    onclick="setDashWorkspace('${ws.key}')">${ws.icon} ${ws.label}</button>`).join('');
-}
+function setDashWorkspace(key){setDb6Tab(key);}
+// renderDashWsSelector removed v2.6
 /* DASHBOARD */
 .dash-tabs{display:flex;gap:6px;margin-bottom:18px;}
 .dash-tab{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.07em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--b1);background:var(--s1);color:var(--m1);border-radius:7px;cursor:pointer;transition:all .2s;}
@@ -624,6 +611,120 @@ function renderDashWsSelector(){
 .tbar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
 .tbar-b{width:100%;border-radius:4px 4px 0 0;min-height:2px;}
 .tbar-l{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--m2);}
+
+/* v2.5 — Checklist description */
+.cl-desc-box{padding:6px 10px 8px;border-top:1px solid var(--b1);background:var(--s1);}
+.cl-desc-lbl{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);margin-bottom:3px;}
+.cl-desc-ta{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:.76rem;color:var(--tx);outline:none;resize:none;min-height:36px;transition:border-color .2s;}
+.cl-desc-ta:focus{border-color:var(--blue);}
+.cl-desc-ta::placeholder{color:var(--m2);}
+/* v2.5 — Label toggle button */
+.lbl-toggle-btn{padding:2px 8px;border:1px solid var(--b1);border-radius:4px;background:none;color:var(--m1);font-family:'DM Mono',monospace;font-size:.55rem;cursor:pointer;transition:all .15s;letter-spacing:.03em;}
+.lbl-toggle-btn:hover{border-color:var(--blue);color:var(--blue);}
+.lbl-toggle-btn.lbl-on{background:var(--blue-d);border-color:rgba(77,158,255,.4);color:var(--blue);}
+/* v2.5 — Reminder sort */
+.rem-sort-row{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.rem-sort-btn{padding:4px 10px;border:1px solid var(--b1);border-radius:5px;background:none;color:var(--m1);font-family:'DM Mono',monospace;font-size:.58rem;cursor:pointer;transition:all .15s;}
+.rem-sort-btn:hover{border-color:var(--b2);color:var(--tx);}
+.rem-sort-btn.rs-act{background:var(--s3);border-color:var(--b2);color:var(--tx);}
+.rem-group-hdr-week{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);padding:8px 0 4px;margin-top:6px;border-bottom:1px solid var(--b1);margin-bottom:6px;}
+/* v2.5 — Reminder active/inactive */
+.ri-chk-toggle{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--b2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;transition:all .2s;}
+.ri-chk-toggle.rit-on{background:var(--blue-d);border-color:var(--blue);color:var(--blue);}
+.ri-chk-toggle.rit-off{background:var(--s2);border-color:var(--m2);color:var(--m2);opacity:.6;}
+.rem-item.ri-inactive{opacity:.45;}
+.rem-item.ri-inactive .ri-txt{text-decoration:line-through;color:var(--m1);}
+
+
+/* ══ v2.6 NEW DASHBOARD ═══════════════════════════════════════════════════ */
+.db6-wrap{display:flex;flex-direction:column;gap:0;padding:0;}
+/* Category tabs */
+.db6-tabs{display:flex;gap:4px;padding:14px 16px 0;flex-wrap:wrap;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:86px;z-index:10;}
+.db6-tab{padding:8px 16px;border:1px solid var(--b1);border-bottom:none;border-radius:7px 7px 0 0;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;background:var(--s2);color:var(--m1);transition:all .2s;margin-bottom:-1px;}
+.db6-tab:hover{color:var(--tx);}
+.db6-tab.db6-act{background:var(--bg);border-color:var(--b2);color:var(--tx);font-weight:600;}
+.db6-tab.db6-work.db6-act{border-top:2px solid var(--blue);color:var(--blue);}
+.db6-tab.db6-personal.db6-act{border-top:2px solid var(--gold);color:var(--gold);}
+.db6-tab.db6-project.db6-act{border-top:2px solid var(--done);color:var(--done);}
+.db6-tab.db6-all.db6-act{border-top:2px solid var(--m1);color:var(--tx);}
+.db6-cnt{margin-left:5px;font-size:.56rem;opacity:.7;}
+/* Main content */
+.db6-body{padding:14px 16px;display:flex;flex-direction:column;gap:14px;}
+/* Section titles */
+.db6-sect{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--m2);margin-bottom:7px;display:flex;align-items:center;gap:7px;}
+.db6-sect::after{content:'';flex:1;height:1px;background:var(--b1);}
+/* KPI strip — horizontal scroll */
+.db6-kpi-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.db6-kpi-strip::-webkit-scrollbar{display:none;}
+.db6-kpi{flex-shrink:0;background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:11px 14px;min-width:100px;cursor:default;transition:border-color .2s;}
+.db6-kpi:hover{border-color:var(--b2);}
+.db6-kpi.db6-kpi-click{cursor:pointer;}
+.db6-kpi.db6-kpi-click:hover{border-color:currentColor;}
+.db6-kv{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;line-height:1;margin-bottom:3px;}
+.db6-kl{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.05em;text-transform:uppercase;color:var(--m1);}
+.db6-ks{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m2);margin-top:3px;}
+/* Pipeline row */
+.db6-pipe{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;}
+.db6-pipe::-webkit-scrollbar{display:none;}
+.db6-ps{flex-shrink:0;min-width:72px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;transition:all .2s;}
+.db6-ps:hover{border-color:currentColor;}
+.db6-ps.db6-ps-act{background:var(--s2);}
+.db6-ps-name{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.04em;text-transform:uppercase;line-height:1.3;margin-bottom:5px;}
+.db6-ps-cnt{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;}
+.db6-ps-bar{height:3px;border-radius:99px;margin-top:5px;transition:width .4s;}
+/* Two-column grid */
+.db6-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:600px){.db6-grid2{grid-template-columns:1fr;}}
+/* Three-column grid */
+.db6-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media(max-width:700px){.db6-grid3{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.db6-grid3{grid-template-columns:1fr;}}
+/* Card */
+.db6-card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px;}
+/* Upcoming list */
+.db6-up-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--s3);font-size:.8rem;}
+.db6-up-item:last-child{border-bottom:none;}
+.db6-up-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.db6-up-due{font-family:'DM Mono',monospace;font-size:.6rem;flex-shrink:0;}
+/* Owner workload */
+.db6-ow-row{margin-bottom:8px;}
+.db6-ow-top{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.db6-ow-name{font-size:.8rem;font-weight:600;min-width:52px;}
+.db6-ow-bar-wrap{flex:1;height:8px;background:var(--s3);border-radius:4px;overflow:hidden;}
+.db6-ow-bar{height:100%;border-radius:4px;transition:width .5s;}
+.db6-ow-cnt{font-family:'DM Mono',monospace;font-size:.62rem;font-weight:700;min-width:20px;text-align:right;}
+.db6-ow-sub{font-size:.6rem;color:var(--m2);font-family:'DM Mono',monospace;margin-left:58px;}
+/* Priority bar */
+.db6-pri{display:flex;height:24px;border-radius:6px;overflow:hidden;gap:2px;margin-top:6px;}
+.db6-pri-seg{display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.58rem;font-weight:600;min-width:30px;transition:flex .4s;}
+/* PM Phases */
+.db6-ph-row{margin-bottom:6px;}
+.db6-ph-top{display:flex;justify-content:space-between;margin-bottom:2px;}
+.db6-ph-name{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--m1);}
+.db6-ph-val{font-family:'DM Mono',monospace;font-size:.58rem;}
+.db6-ph-bar-wrap{height:5px;background:var(--s3);border-radius:99px;overflow:hidden;}
+.db6-ph-bar{height:100%;border-radius:99px;transition:width .4s;}
+/* Category grid */
+.db6-cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.db6-cat-item{background:var(--s2);border-radius:7px;padding:8px 10px;border-left:3px solid;}
+.db6-cat-name{font-family:'DM Mono',monospace;font-size:.54rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.db6-cat-cnt{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;margin-bottom:1px;}
+.db6-cat-pct{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m2);}
+/* Period summary */
+.db6-period-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+@media(max-width:600px){.db6-period-grid{grid-template-columns:repeat(2,1fr);}}
+.db6-period{background:var(--s2);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--b1);}
+.db6-period-label{font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.04em;color:var(--m2);margin-bottom:6px;}
+.db6-period-cnt{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:1px;}
+.db6-period-sub{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m1);}
+/* 7-day trend */
+.db6-trend{display:flex;align-items:flex-end;gap:4px;height:56px;}
+.db6-trend-bar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.db6-trend-bar{width:100%;border-radius:4px 4px 0 0;min-height:3px;transition:height .4s;}
+.db6-trend-lbl{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--m2);}
+/* Stage filter active indicator on tracker */
+.db6-ps.db6-ps-act .db6-ps-name{opacity:1;}
+
 </style>
 </head>
 <body>
@@ -669,7 +770,7 @@ function renderDashWsSelector(){
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.2.1</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.6</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -753,6 +854,7 @@ function renderDashWsSelector(){
             <option value="">Category</option>
             <option>Work</option><option>Health</option>
             <option>Personal</option><option>Finance</option><option>Learning</option>
+          <option value="Project">Project</option>
           </select>
           <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
           <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
@@ -790,29 +892,64 @@ function renderDashWsSelector(){
 
     <!-- DASHBOARD -->
     <div id="viewDash" style="display:none">
-      <div class="dtitle">Performance <span>Dashboard</span></div>
-      <div class="dash-tabs">
-        <button class="dash-tab dt-work dt-act" id="dashTabWork" onclick="setDashTab('work')">💼 Work</button>
-        <button class="dash-tab dt-personal" id="dashTabPersonal" onclick="setDashTab('personal')">👤 Personal &amp; Other</button>
+      <div class="db6-wrap">
+        <!-- Category tabs -->
+        <div class="db6-tabs" id="db6Tabs">
+          <button class="db6-tab db6-all db6-act" id="db6TabAll"  onclick="setDb6Tab('all')">📊 All<span class="db6-cnt" id="db6CntAll"></span></button>
+          <button class="db6-tab db6-work"         id="db6TabWork" onclick="setDb6Tab('work')">💼 Work<span class="db6-cnt" id="db6CntWork"></span></button>
+          <button class="db6-tab db6-personal"     id="db6TabPersonal" onclick="setDb6Tab('personal')">👤 Personal<span class="db6-cnt" id="db6CntPersonal"></span></button>
+          <button class="db6-tab db6-project"      id="db6TabProject" onclick="setDb6Tab('project')">📁 Project<span class="db6-cnt" id="db6CntProject"></span></button>
+        </div>
+        <!-- Dashboard body -->
+        <div class="db6-body">
+          <!-- KPI strip -->
+          <div>
+            <div class="db6-sect">Key Metrics</div>
+            <div class="db6-kpi-strip" id="db6KPIs"></div>
+          </div>
+          <!-- Pipeline -->
+          <div>
+            <div class="db6-sect">Pipeline by Stage <span style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--m2)">(tap to filter tracker)</span></div>
+            <div class="db6-pipe" id="db6Pipe"></div>
+          </div>
+          <!-- Period summary -->
+          <div>
+            <div class="db6-sect">Period Summary</div>
+            <div class="db6-period-grid" id="db6Periods"></div>
+          </div>
+          <!-- Upcoming + Owner workload -->
+          <div class="db6-grid2">
+            <div class="db6-card">
+              <div class="db6-sect">Upcoming Due — Next 7 Days</div>
+              <div id="db6Upcoming"></div>
+            </div>
+            <div class="db6-card">
+              <div class="db6-sect">Owner Workload</div>
+              <div id="db6Owners"></div>
+            </div>
+          </div>
+          <!-- Priority + PM Phases + Categories -->
+          <div class="db6-grid3">
+            <div class="db6-card">
+              <div class="db6-sect">Priority</div>
+              <div id="db6Pri"></div>
+            </div>
+            <div class="db6-card">
+              <div class="db6-sect">PM Phases</div>
+              <div id="db6Phases"></div>
+            </div>
+            <div class="db6-card">
+              <div class="db6-sect">Categories</div>
+              <div class="db6-cat-grid" id="db6Cats"></div>
+            </div>
+          </div>
+          <!-- 7-day trend -->
+          <div class="db6-card">
+            <div class="db6-sect">7-Day Task Volume</div>
+            <div class="db6-trend" id="db6Trend"></div>
+          </div>
+        </div>
       </div>
-      <div class="kpi-grid" id="dashKPIs"></div>
-      <div class="dsec" style="margin-bottom:14px"><div class="dsec-title">👥 Owner Workload</div><div id="ownerWorkload"></div></div>
-      <div class="dsec">
-        <div class="dsect">📅 Upcoming Due Dates — Next 7 Days</div>
-        <div class="upcoming-list" id="upcomingList"></div>
-      </div>
-      <div class="dsec">
-        <div class="dsect">Period Summary</div>
-        <div class="dperiods" id="dashPeriods"></div>
-      </div>
-      <div class="dsec"><div class="dsect">Pipeline — Tasks by Stage</div><div class="pipe-dash" id="pipeDash"></div></div>
-      <div class="dsec"><div class="dsect">Priority Breakdown</div><div class="pri-row" id="priBreak"></div></div>
-      <div class="dsec"><div class="dsect">PM Phase Completion</div><div class="ph-dash-grid" id="phaseBreak"></div></div>
-      <div class="dsec"><div class="dsect">Category Breakdown</div><div class="cat-dash-grid" id="catBreak"></div></div>
-      <div class="dsec"><div class="dsect">Task Volume — Last 7 Days</div><div class="trend" id="trendBars"></div></div>
-    </div>
-
-    <!-- REMINDERS -->
     <div id="viewReminder" style="display:none">
       <div style="display:flex;gap:0;margin:-16px;min-height:calc(100vh - 90px)">
         <div class="rem-sidebar">
@@ -889,7 +1026,7 @@ const WORKSPACES=[
   {key:'finance',  label:'Finance',   icon:'💰', cats:['Finance']},
   {key:'health',   label:'Health',    icon:'🏃', cats:['Health']},
   {key:'learning', label:'Learning',  icon:'📚', cats:['Learning']},
-  {key:'unknown',  label:'Unknown',   icon:'❓', cats:['Unknown']},
+  {key:'project',  label:'Project',   icon:'📁', cats:['Project']},
 ];
 const STAGES=[
   {n:1,label:'Incoming',   short:'Incoming',    col:'#60a5fa'},
@@ -912,7 +1049,7 @@ function migrateLabels(item){
 function migrateChecklists(item){
   if(item.checklists)return; // already migrated
   if(item.activities&&item.activities.length>0){
-    item.checklists=[{id:uid(),name:'Tasks',open:true,items:item.activities.map((a,i)=>({...a,order:i}))}];
+    item.checklists=[{id:uid(),name:'Tasks',open:true,items:item.activities.map((a,i)=>({...a,order:i})),description:''}];
   }else{
     item.checklists=[];
   }
@@ -1061,6 +1198,8 @@ async function loadData(){
   // Show cached data instantly while Drive loads
   if(lsLoad()){
     try{items.forEach(migratePhases);items.forEach(migrateChecklists);items.forEach(migrateLabels);
+        // v2.5: ensure description on all checklists
+        items.forEach(it=>(it.checklists||[]).forEach(cl=>{if(!('description' in cl))cl.description='';}));
     items.forEach(function(it){
       if(!it.cat||it.cat==='')it.cat='Unknown';
       // Fix: items with isGroup:true but no children should be treated as normal tasks
@@ -1185,7 +1324,7 @@ function setWorkspace(key){
   // Auto-set category dropdown to match workspace so new tasks go to right place
   const catInp=document.getElementById('catInp');
   if(catInp){
-    const wsMap={work:'Work',personal:'Personal',finance:'Finance',health:'Health',learning:'Learning'};
+    const wsMap={work:'Work',personal:'Personal',finance:'Finance',health:'Health',learning:'Learning',project:'Project'};
     catInp.value=wsMap[key]||'';
   }
   renderSidebar();
@@ -1309,21 +1448,23 @@ async function handleCommentPaste(itemId,e){
 function addWeekChecklists(itemId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
   if(!item.checklists)item.checklists=[];
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayNames=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const today=new Date();
   const dow=today.getDay(); // 0=Sun
-  const monday=new Date(today);
-  monday.setDate(today.getDate()-(dow===0?6:dow-1));
+  // Calculate NEXT Monday
+  const daysToNextMon=dow===0?1:8-dow;
+  const nextMonday=new Date(today);
+  nextMonday.setDate(today.getDate()+daysToNextMon);
   let added=0;
   for(let i=0;i<7;i++){
-    const d=new Date(monday);d.setDate(monday.getDate()+i);
-    const name=(d.getMonth()+1)+'/'+d.getDate()+' – '+days[i];
+    const d=new Date(nextMonday);d.setDate(nextMonday.getDate()+i);
+    const name=(d.getMonth()+1)+'/'+(d.getDate())+' – '+dayNames[i];
     if(!item.checklists.find(cl=>cl.name===name)){
-      item.checklists.push({id:uid(),name,open:true,items:[]});added++;
+      item.checklists.push({id:uid(),name,open:true,items:[],description:''});added++;
     }
   }
   if(added>0){patchCard(item);saveData();}
-  else alert('Week checklists already exist for this week.');
+  else alert('Next week checklists already exist.');
 }
 function moveChecklist(itemId,clId,dir){
   const item=items.find(i=>i.id===itemId);if(!item||!item.checklists)return;
@@ -1347,7 +1488,7 @@ function addChecklist(itemId){
   const name=inp.value.trim()||'Checklist '+(((items.find(i=>i.id===itemId)?.checklists)||[]).length+1);
   const item=items.find(i=>i.id===itemId);if(!item)return;
   if(!item.checklists)item.checklists=[];
-  item.checklists.push({id:uid(),name,open:true,items:[]});
+  item.checklists.push({id:uid(),name,open:true,items:[],description:''});
   patchCard(item);saveData();refreshDash();
 }
 function toggleChecklist(itemId,clId){
@@ -1530,6 +1671,7 @@ function ringHTML(p,isMile,isDone,isArchived){
 /* ROW HTML */
 function rowHTML(item){
   const ph=item.phases||{};
+  const lblVisible=labelVisState[item.id]!==false; // default true
   const p=calcPct(ph);
   const days=ageDays(item);
   const isExp=!!expanded[item.id];
@@ -1588,7 +1730,7 @@ function rowHTML(item){
         title="Double-click to edit">${esc(ci.text)}</span>
       <button class="ci-flag ${ci.flagged?'ci-flag-on':''}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Remove flag':'Flag for follow-up'}">🚩</button>
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">🏷</button>
-      ${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}
+      <span class="ci-lbl-badges" style="display:${!lblVisible?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
       <button class="ci-del" onclick="event.stopPropagation();delCLItem('${item.id}','${cl.id}','${ci.id}')">×</button>
     </div>`).join('');
     return`<div class="cl-group">
@@ -1599,6 +1741,14 @@ function rowHTML(item){
         <span class="cl-group-name" ondblclick="event.stopPropagation();renameChecklist('${item.id}','${cl.id}',this)" title="Double-click to rename">${esc(cl.name)}</span>
         <span class="cl-group-stats">${cdone}/${ctotal} done</span>
         <button class="cl-group-del" onclick="event.stopPropagation();delChecklist('${item.id}','${cl.id}')">×</button>
+      </div>
+      <div class="cl-desc-box">
+        <div class="cl-desc-lbl">Description</div>
+        <textarea class="cl-desc-ta" rows="1"
+          placeholder="Add context or goals for this checklist..."
+          onclick="event.stopPropagation()"
+          oninput="event.stopPropagation();updateClDesc('${item.id}','${cl.id}',this)"
+        >${esc(cl.description||'')}</textarea>
       </div>
       ${isOpen?`<div class="cl-group-body">
         ${ciItems}
@@ -1653,14 +1803,13 @@ function rowHTML(item){
       <div class="cl-sec">
         <div class="cl-hd">
           <span class="cl-title">📋 Checklists ${totalCI?`(${doneCI}/${totalCI} done)`:''}</span>
+          <button class="lbl-toggle-btn ${lblVisible?'lbl-on':''}" onclick="event.stopPropagation();toggleItemLabels('${item.id}',this)" title="Show/Hide labels">🏷 Labels ${lblVisible?'ON':'OFF'}</button>
         </div>
         ${clGroupsHTML}
         <div class="ci-add-row open" style="margin-top:6px">
           <input class="ci-inp" id="cl_new_name_${item.id}" placeholder="New checklist name…" maxlength="60"
             onkeydown="if(event.key==='Enter'){event.stopPropagation();addChecklist('${item.id}');}"/>
           <button class="ci-add" onclick="event.stopPropagation();addChecklist('${item.id}')">+ List</button>
-          <button class="ci-add" onclick="event.stopPropagation();showTemplateMenu('${item.id}',this)" style="background:rgba(192,132,252,.1);color:var(--c7);border-color:rgba(192,132,252,.3)">📋 Template</button>
-          <button class="ci-add" onclick="event.stopPropagation();saveClTemplate('${item.id}',item.checklists?.[0]?.id)" style="background:rgba(34,211,165,.1);color:var(--done);border-color:rgba(34,211,165,.3)" title="Save first checklist as template">💾 Save Tpl</button>
           <button class="ci-add" onclick="event.stopPropagation();addWeekChecklists('${item.id}')" title="Auto-create Mon-Sun checklists for this week" style="background:rgba(240,180,41,.15);color:var(--gold);border-color:rgba(240,180,41,.3)">📅 Week</button>
         </div>
       </div>
@@ -1917,7 +2066,17 @@ function syncTaskReminder(item){
   });
   saveData();renderReminders();
 }
-function toggleReminder(id){const r=reminders.find(r=>r.id===id);if(!r)return;r.done=!r.done;renderReminders();saveData();}
+function toggleReminder(id){
+  const r=reminders.find(r=>r.id===id);if(!r)return;
+  // toggle active on/off (default active=true)
+  r.active=(r.active===false)?true:false;
+  renderReminders();saveData();
+}
+function doneReminder(id){
+  const r=reminders.find(r=>r.id===id);if(!r)return;
+  r.done=!r.done;if(r.done)r.active=false;else r.active=true;
+  renderReminders();saveData();
+}
 function toggleRemImportant(id){const r=reminders.find(r=>r.id===id);if(!r)return;r.priority=r.priority==='important'?'normal':'important';renderReminders();saveData();}
 function updateReminderNotify(id,val){const r=reminders.find(r=>r.id===id);if(r){r.notifyBefore=val;saveData();}}
 function delReminder(id){if(!confirm('Delete this reminder?'))return;reminders=reminders.filter(r=>r.id!==id);renderReminders();saveData();}
@@ -1929,17 +2088,18 @@ function fmtTime(t){if(!t)return'';const[h,m]=t.split(':').map(Number);const amp
 
 function renderReminders(){
   const today=todayStr();
-  // Filter by group (work/personal)
   const grpFilter=r=>{
-    if(remGroup==='all')return true; // All shows every reminder
+    if(remGroup==='all')return true;
     if(remGroup==='work')return r.category==='work'||!r.category;
     return r.category==='personal';
   };
   const grpRems=reminders.filter(grpFilter);
-  const active=grpRems.filter(r=>!r.done);
-  const done=grpRems.filter(r=>r.done);
-  // Update sidebar counts for both groups
-  // Update All count
+  // Active = active!==false; Inactive = active===false; Done = done===true
+  const activeRems=grpRems.filter(r=>!r.done&&r.active!==false);
+  const inactiveRems=grpRems.filter(r=>!r.done&&r.active===false);
+  const doneRems=grpRems.filter(r=>r.done);
+
+  // Update sidebar counts
   const _allActEl=document.getElementById('rcAllAll');
   if(_allActEl)_allActEl.textContent=reminders.filter(r=>!r.done).length;
   ['work','personal'].forEach(grp=>{
@@ -1953,24 +2113,65 @@ function renderReminders(){
       else el.textContent=gr.filter(r=>r.done).length;
     });
   });
+
   const remTitleEl=document.getElementById('remTitle');
   if(remTitleEl)remTitleEl.textContent=(remGroup==='work'?'💼 Work':'👤 Personal')+' — '+(remCat.charAt(0).toUpperCase()+remCat.slice(1));
+
   let vis=[];
-  if(remCat==='all') vis=[...active];
-  else if(remCat==='today') vis=active.filter(r=>r.dueDate===today);
-  else if(remCat==='important') vis=active.filter(r=>r.priority==='important');
-  else if(remCat==='completed') vis=[...done];
+  if(remCat==='all') vis=[...activeRems,...inactiveRems];
+  else if(remCat==='today') vis=activeRems.filter(r=>r.dueDate===today);
+  else if(remCat==='important') vis=activeRems.filter(r=>r.priority==='important');
+  else if(remCat==='completed') vis=[...doneRems];
 
-  const el=document.getElementById('remList');
-  if(!vis.length){el.innerHTML=`<div class="empty"><div class="eico">${remCat==='completed'?'✓':'🔔'}</div><div class="etitle">${remCat==='completed'?'No completed reminders':'Nothing here'}</div><div class="esub">All clear!</div></div>`;return;}
+  const el=document.getElementById('remList');if(!el)return;
 
-  el.innerHTML=vis.map(r=>{
+  // Sort toolbar HTML
+  const sortBar=`<div class="rem-sort-row">
+    <span style="font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m2);align-self:center">Sort:</span>
+    <button class="rem-sort-btn ${remSort==='newest'?'rs-act':''}" onclick="remSort='newest';renderReminders()">Newest</button>
+    <button class="rem-sort-btn ${remSort==='week'?'rs-act':''}" onclick="remSort='week';renderReminders()">Week</button>
+    <button class="rem-sort-btn ${remSort==='month'?'rs-act':''}" onclick="remSort='month';renderReminders()">Month</button>
+  </div>`;
+
+  if(!vis.length){
+    el.innerHTML=sortBar+`<div class="empty"><div class="eico">${remCat==='completed'?'✓':'🔔'}</div><div class="etitle">${remCat==='completed'?'No completed reminders':'Nothing here'}</div><div class="esub">All clear!</div></div>`;
+    return;
+  }
+
+  // Apply sort
+  if(remSort==='newest'){
+    vis.sort((a,b)=>b.created-a.created);
+  } else if(remSort==='week'){
+    vis.sort((a,b)=>(a.dueDate||'9999')+(a.created)>(b.dueDate||'9999')+(b.created)?1:-1);
+  } else if(remSort==='month'){
+    vis.sort((a,b)=>(a.dueDate||'9999')>(b.dueDate||'9999')?1:-1);
+  }
+
+  // Group rendering helper
+  function getWeekLabel(dateStr){
+    if(!dateStr)return'No date';
+    const d=new Date(dateStr+'T12:00:00');
+    const dow=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));
+    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+    const fmt=dt=>`${dt.getMonth()+1}/${dt.getDate()}`;
+    return`Week of ${fmt(mon)} – ${fmt(sun)}`;
+  }
+  function getMonthLabel(dateStr){
+    if(!dateStr)return'No date';
+    const d=new Date(dateStr+'T12:00:00');
+    return d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  }
+
+  // Build items HTML with optional group headers
+  function buildCard(r){
     const dc=remDueClass(r.dueDate);
     const dueLabel=r.dueDate?(r.dueDate===today?'Today':r.dueDate):'';
-    const timeLabel=r.dueTime?` · ${fmtTime(r.dueTime)}`:''; /* C1 — show time */
-    const notifyLabel={'1d':'1 day before','1h':'1 hour before','due':'On due date'}[r.notifyBefore||'1d'];
-    return`<div class="rem-item ${r.done?'ri-done':''}" style="animation:fadeUp .15s ease both">
-      <div class="ri-chk" onclick="toggleReminder('${r.id}')">${r.done?'✓':''}</div>
+    const timeLabel=r.dueTime?` · ${fmtTime(r.dueTime)}`:'';
+    const isActive=r.active!==false;
+    return`<div class="rem-item ${r.done?'ri-done':''} ${!isActive?'ri-inactive':''}" style="animation:fadeUp .15s ease both">
+      <div class="ri-chk-toggle ${isActive?'rit-on':'rit-off'}" onclick="toggleReminder('${r.id}')" title="${isActive?'Active — click to pause':'Inactive — click to activate'}">
+        ${isActive?'●':'○'}
+      </div>
       <div class="ri-body">
         <div class="ri-txt">${esc(r.text)}${r.linkedItemId?` <span class="rem-linked-tag">${r.linkedType||'Task'}</span>`:''}</div>
         <div class="ri-meta">
@@ -1984,9 +2185,28 @@ function renderReminders(){
         </div>
       </div>
       <span class="ri-flag" onclick="toggleRemImportant('${r.id}')" title="${r.priority==='important'?'Remove':'Mark important'}">${r.priority==='important'?'⭐':'☆'}</span>
+      <button class="ri-del" onclick="doneReminder('${r.id}')" title="Mark done" style="color:${r.done?'var(--done)':'var(--m2)'}">✓</button>
       <button class="ri-del" onclick="delReminder('${r.id}')">🗑</button>
     </div>`;
-  }).join('');
+  }
+
+  let html=sortBar;
+  if(remSort==='week'||remSort==='month'){
+    // Group by week or month
+    const groups={};const order=[];
+    vis.forEach(r=>{
+      const key=remSort==='week'?getWeekLabel(r.dueDate):getMonthLabel(r.dueDate);
+      if(!groups[key]){groups[key]=[];order.push(key);}
+      groups[key].push(r);
+    });
+    order.forEach(key=>{
+      html+=`<div class="rem-group-hdr-week">${key} <span style="color:var(--m2)">(${groups[key].length})</span></div>`;
+      html+=groups[key].map(buildCard).join('');
+    });
+  } else {
+    html+=vis.map(buildCard).join('');
+  }
+  el.innerHTML=html;
 }
 
 /* ══ DASHBOARD ═════════════════════════════════════ */
@@ -1999,191 +2219,236 @@ function renderDash(){
   const today=todayStr();
   const next7=new Date();next7.setDate(next7.getDate()+7);
   const next7Str=next7.toISOString().slice(0,10);
-
-  // Determine which items to show based on active tab
-  const isWork=(dashCatView==='work');
-  const workCats=['Work'];
-  const persoCats=['Personal','Finance','Health','Learning'];
-  const filterCats=isWork?workCats:persoCats;
   const allActive=items.filter(i=>!i.archived);
-  const tabItems=allActive.filter(i=>filterCats.some(cat=>cat.toLowerCase()===(i.cat||'').toLowerCase()));
 
-  // Split tasks and milestones
+  // Determine filter cats from dashCatView
+  const catMap={
+    all:null,
+    work:['Work'],
+    personal:['Personal','Finance','Health','Learning'],
+    project:['Project']
+  };
+  const filterCats=catMap[dashCatView]||null;
+  const tabItems=filterCats?allActive.filter(i=>filterCats.some(c=>c.toLowerCase()===(i.cat||'').toLowerCase())):allActive;
+
+  // Update tab counts
+  Object.keys(catMap).forEach(k=>{
+    const cats=catMap[k];
+    const cnt=cats?allActive.filter(i=>cats.some(c=>c.toLowerCase()===(i.cat||'').toLowerCase())).length:allActive.length;
+    const el=document.getElementById('db6Cnt'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(el)el.textContent=cnt?` (${cnt})`:'';
+  });
+
+  // Core metrics
   const tasks=tabItems.filter(i=>!i.isMile);
   const miles=tabItems.filter(i=>i.isMile);
-  const closedTasks=tasks.filter(i=>i.stage===8).length;
-  const closedMiles=miles.filter(i=>i.stage===8).length;
-  const overdueTasks=tasks.filter(i=>i.dueDate&&i.dueDate<today&&i.stage!==8).length;
-  const overdueMiles=miles.filter(i=>i.dueDate&&i.dueDate<today&&i.stage!==8).length;
-  const totalOverdue=overdueTasks+overdueMiles;
-  const compRate=tabItems.length?Math.round((closedTasks+closedMiles)/tabItems.length*100):0;
+  const open=tabItems.filter(i=>i.stage!==8).length;
+  const closed=tabItems.filter(i=>i.stage===8).length;
+  const overdue=tabItems.filter(i=>i.dueDate&&i.dueDate<today&&i.stage!==8).length;
+  const hiPri=tabItems.filter(i=>i.priority==='high'&&i.stage!==8).length;
+  const compRate=tabItems.length?Math.round(closed/tabItems.length*100):0;
   const avgPh=tabItems.length?Math.round(tabItems.reduce((s,i)=>s+calcPct(i.phases||{}),0)/tabItems.length):0;
 
-  // ── KPI Cards ──────────────────────────────────────────────────────────
-  const kpiEl=document.getElementById('dashKPIs');
-  if(kpiEl) kpiEl.innerHTML=[
-    {v:tasks.length, l:'Total Tasks',      s:closedTasks+' closed · '+(tasks.length-closedTasks)+' open', col:'var(--blue)', fn:''},
-    {v:miles.length, l:'Milestones',       s:closedMiles+' closed · '+(miles.length-closedMiles)+' open', col:'var(--gold)', fn:''},
-    {v:compRate+'%', l:'Completion Rate',  s:tabItems.length+' total items',                               col:'var(--done)', fn:''},
-    {v:totalOverdue, l:'Overdue',          s:overdueTasks+' tasks · '+overdueMiles+' milestones',          col:totalOverdue>0?'var(--red)':'var(--m1)', fn:"setView('tracker')"},
-    {v:avgPh+'%',   l:'Avg PM Progress',   s:'across all phases',                                          col:'var(--c7)', fn:''},
-    {v:tabItems.filter(i=>i.priority==='high'&&i.stage!==8).length, l:'High Priority Open', s:'needs attention', col:'var(--phi)', fn:"setView('tracker')"},
-  ].map(k=>'<div class="kpi-card" style="border-left-color:'+k.col+(k.fn?';cursor:pointer':'')+'"'+(k.fn?' onclick="'+k.fn+'"':'')+' title="'+(k.fn?'Click to view in tracker':'')+'">'
-    +'<div class="kpi-val" style="color:'+k.col+'">'+k.v+'</div>'
-    +'<div class="kpi-lbl">'+k.l+'</div>'
-    +'<div class="kpi-sub">'+k.s+'</div>'
-    +'</div>').join('');
-
-  // ── Upcoming Due Dates ─────────────────────────────────────────────────
-  const upcoming=tabItems
-    .filter(i=>i.dueDate&&i.dueDate>=today&&i.dueDate<=next7Str&&i.stage!==8)
-    .sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
-  const upEl=document.getElementById('upcomingList');
-  if(upEl) upEl.innerHTML=upcoming.length
-    ?upcoming.map(i=>{
-      const isToday=i.dueDate===today;
-      const diff=Math.ceil((new Date(i.dueDate+'T12:00:00')-new Date())/86400000);
-      const daysLabel=isToday?'Today':diff===1?'Tomorrow':`In ${diff} days`;
-      return`<div class="upcoming-item">
-        <span>${i.isMile?'⬟':'📋'}</span>
-        <span style="flex:1;font-size:.84rem"><strong>${esc(i.text)}</strong></span>
-        <span style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--m1)">${esc(i.cat||'')}</span>
-        <span class="upcoming-due" style="color:${isToday?'var(--gold)':diff<=2?'var(--red)':'var(--m1)'}">${daysLabel}</span>
-      </div>`;
-    }).join('')
-    :`<div style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--m2);padding:10px 4px">No upcoming due dates in the next 7 days ✓</div>`;
-
-  // ── Period Summary Cards ───────────────────────────────────────────────
-  const periods=[
-    {label:'Today',      v:'daily',   o:0},
-    {label:'This Week',  v:'weekly',  o:0},
-    {label:'This Month', v:'monthly', o:0},
-    {label:'This Year',  v:'yearly',  o:0},
-  ];
-  // Owner Workload
-  const _owEl=document.getElementById('ownerWorkload');
-  if(_owEl){
-    const _today=todayStr();
-    const _allOpen=tab.filter(i=>i.stage!==8);
-    const _owners=getOwners();let _maxLoad=1;
-    const _owData=_owners.map(own=>{
-      const owItems=_allOpen.filter(i=>(i.owner||'').toLowerCase()===own.toLowerCase());
-      const hi=owItems.filter(i=>i.priority==='high').length;
-      const ov=owItems.filter(i=>i.dueDate&&i.dueDate<_today).length;
-      if(owItems.length>_maxLoad)_maxLoad=owItems.length;
-      return {name:own,total:owItems.length,hi,ov};
-    }).filter(o=>o.total>0);
-    _owEl.innerHTML=_owData.length?_owData.map(o=>{
-      const pct=Math.round(o.total/_maxLoad*100);
-      const col=pct>75?'var(--red)':pct>40?'var(--gold)':'var(--done)';
-      return '<div style="margin-bottom:10px">'
-        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
-        +'<span style="font-size:.8rem;font-weight:700;min-width:60px">'+esc(o.name)+'</span>'
-        +'<div style="flex:1;height:8px;background:var(--s3);border-radius:4px;overflow:hidden">'
-        +'<div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:4px;transition:width .4s"></div></div>'
-        +'<span style="font-size:.75rem;color:'+col+';font-weight:700">'+o.total+'</span></div>'
-        +'<div style="font-size:.6rem;color:var(--m2);margin-left:68px">'
-        +(o.hi?'<span style="color:var(--phi)">'+o.hi+' high</span> · ':'')
-        +(o.ov?'<span style="color:var(--red)">'+o.ov+' overdue</span>':'✓ on track')
-        +'</div></div>';
-    }).join(''):'<div style="font-size:.75rem;color:var(--m2)">No assignments in this view</div>';
-  }
-  const perEl=document.getElementById('dashPeriods');
-  if(perEl) perEl.innerHTML=periods.map(p=>{
-    const its=tabItems.filter(i=>taskInPeriod(i,p.v,p.o));
-    const d=its.filter(i=>i.stage===8).length;
-    const pct=its.length?Math.round(d/its.length*100):0;
-    const hi=its.filter(i=>i.priority==='high').length;
-    return`<div class="dcard">
-      <div class="dchd"><span class="dcp">${p.label}</span><span class="dcr">${pct}% done</span></div>
-      <div class="dcbody">
-        <div class="dmg">
-          <div class="dm"><div class="dmv" style="color:var(--blue)">${its.length}</div><div class="dml">Items</div></div>
-          <div class="dm"><div class="dmv" style="color:var(--done)">${d}</div><div class="dml">Closed</div></div>
-          <div class="dm"><div class="dmv" style="color:var(--gold)">${its.filter(i=>i.isMile).length}</div><div class="dml">Milestones</div></div>
-          <div class="dm"><div class="dmv" style="color:var(--phi)">${hi}</div><div class="dml">High Pri</div></div>
-        </div>
-        ${miniBar('Completion',pct,'var(--done)')}
-      </div>
-    </div>`;
-  }).join('');
-
-  // ── Stage Pipeline ─────────────────────────────────────────────────────
-  const pipeEl=document.getElementById('pipeDash');
-  if(pipeEl) pipeEl.innerHTML=STAGES.map(s=>{
-    const cnt=tabItems.filter(i=>i.stage===s.n).length;
-    const pct=tabItems.length?Math.round(cnt/tabItems.length*100):0;
-    return`<div class="pdstage">
-      <div class="pdstage-name" style="color:${s.col}">${s.label}</div>
-      <div class="pdstage-cnt" style="color:${s.col}">${cnt}</div>
-      <div class="pdstage-pct">${pct}%</div>
-      <div class="pdstage-bar" style="background:${s.col};opacity:${Math.max(pct/100,.08)}"></div>
-    </div>`;
-  }).join('');
-
-  // ── Priority ───────────────────────────────────────────────────────────
-  const hi=tabItems.filter(i=>i.priority==='high').length;
-  const md=tabItems.filter(i=>(i.priority||'medium')==='medium').length;
-  const lo=tabItems.filter(i=>i.priority==='low').length;
-  const priEl=document.getElementById('priBreak');
-  if(priEl) priEl.innerHTML=`
-    <div class="pri-seg" style="flex:${Math.max(hi,1)};background:rgba(248,113,113,.2);color:var(--phi)">HIGH ${hi}</div>
-    <div class="pri-seg" style="flex:${Math.max(md,1)};background:rgba(240,180,41,.2);color:var(--pmd)">MED ${md}</div>
-    <div class="pri-seg" style="flex:${Math.max(lo,1)};background:rgba(34,211,165,.2);color:var(--plo)">LOW ${lo}</div>`;
-
-  // ── PM Phase Completion ────────────────────────────────────────────────
-  const phEl=document.getElementById('phaseBreak');
-  if(phEl) phEl.innerHTML=PHASES.map(phx=>{
-    const tot=tabItems.length;
-    const avg=tot?Math.round(tabItems.reduce((s,i)=>s+(Number(i.phases?.[phx.key])||0),0)/tot):0;
-    const pct=Math.round(avg/phx.wt*100);
-    return`<div class="ph-dash-card">
-      <div class="ph-dash-name" style="color:${phx.col}">${phx.label}</div>
-      <div class="ph-dash-pct" style="color:${phx.col}">${avg}/${phx.wt}%</div>
-      <div class="ph-dash-cnt">${pct}% avg</div>
-      <div class="ph-dash-bar" style="background:${phx.col};opacity:${Math.max(pct/100,.1)}"></div>
-    </div>`;
-  }).join('');
-
-  // ── Category Breakdown ─────────────────────────────────────────────────
-  const catGroups=isWork
-    ?[{key:'Work',label:'💼 Work',col:'#4d9eff',cats:['Work']}]
-    :[
-      {key:'Personal',label:'👤 Personal',col:'#f0b429',cats:['Personal']},
-      {key:'Finance', label:'💰 Finance', col:'#34d399',cats:['Finance']},
-      {key:'Health',  label:'🏃 Health',  col:'#f97316',cats:['Health']},
-      {key:'Learning',label:'📚 Learning',col:'#c084fc',cats:['Learning']},
+  // ── KPI Strip ──────────────────────────────────────────────────────────
+  const kpiEl=document.getElementById('db6KPIs');
+  if(kpiEl){
+    const kpis=[
+      {v:tabItems.length, l:'Total',       s:`${tasks.length} tasks · ${miles.length} milestones`, col:'var(--tx)',      fn:''},
+      {v:open,            l:'Open',         s:`${tabItems.length-open} closed`,                     col:'var(--blue)',    fn:"setView('tracker')"},
+      {v:closed,          l:'Closed',       s:`${compRate}% completion rate`,                       col:'var(--done)',    fn:"setView('tracker')"},
+      {v:overdue,         l:'Overdue',      s:'need attention',                                     col:overdue>0?'var(--red)':'var(--m1)', fn:"setView('tracker')"},
+      {v:hiPri,           l:'High Pri',     s:'open items',                                         col:'var(--phi)',     fn:"setView('tracker')"},
+      {v:avgPh+'%',       l:'Avg Progress', s:'across PM phases',                                   col:'var(--c7)',      fn:''},
+      {v:miles.length,    l:'Milestones',   s:`${miles.filter(i=>i.stage===8).length} closed`,      col:'var(--gold)',    fn:''},
+      {v:tabItems.filter(i=>i.dueDate&&i.dueDate>=today&&i.dueDate<=next7Str&&i.stage!==8).length,
+                          l:'Due This Week', s:'next 7 days',                                       col:'var(--c5)',      fn:''},
     ];
-  const catEl=document.getElementById('catBreak');
-  if(catEl) catEl.innerHTML=catGroups.map(cg=>{
-    const its=allActive.filter(i=>cg.cats.includes(i.cat));
-    const done=its.filter(i=>i.stage===8).length;
-    const pct=its.length?Math.round(done/its.length*100):0;
-    return`<div class="cat-dc">
-      <div class="cat-dc-name" style="color:${cg.col}">${cg.label}</div>
-      <div class="cat-dc-cnt" style="color:${cg.col}">${its.length}</div>
-      <div class="cat-dc-pct">${pct}% done</div>
-      <div class="cat-dc-bar" style="background:${cg.col};opacity:${Math.max(pct/100,.1)}"></div>
+    kpiEl.innerHTML=kpis.map(k=>`
+      <div class="db6-kpi ${k.fn?'db6-kpi-click':''}" style="border-left:3px solid ${k.col}" ${k.fn?`onclick="${k.fn}"`:''} title="${k.fn?'Click to view in tracker':''}">
+        <div class="db6-kv" style="color:${k.col}">${k.v}</div>
+        <div class="db6-kl">${k.l}</div>
+        <div class="db6-ks">${k.s}</div>
+      </div>`).join('');
+  }
+
+  // ── Pipeline ───────────────────────────────────────────────────────────
+  const pipeEl=document.getElementById('db6Pipe');
+  if(pipeEl){
+    const tot=tabItems.length||1;
+    pipeEl.innerHTML=STAGES.map(s=>{
+      const cnt=tabItems.filter(i=>i.stage===s.n).length;
+      const pct=Math.round(cnt/tot*100);
+      const isAct=stageFilter===s.n;
+      return`<div class="db6-ps ${isAct?'db6-ps-act':''}" style="color:${s.col}" onclick="setView('tracker');setFilterByStage(${s.n})">
+        <div class="db6-ps-name" style="color:${s.col}">${s.short}</div>
+        <div class="db6-ps-cnt" style="color:${s.col}">${cnt}</div>
+        <div class="db6-ps-bar" style="background:${s.col};width:${Math.max(pct,4)}%"></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Period Summary ──────────────────────────────────────────────────────
+  const perEl=document.getElementById('db6Periods');
+  if(perEl){
+    const periods=[
+      {label:'Today',      v:'daily',   o:0},
+      {label:'This Week',  v:'weekly',  o:0},
+      {label:'This Month', v:'monthly', o:0},
+      {label:'This Year',  v:'yearly',  o:0},
+    ];
+    perEl.innerHTML=periods.map(p=>{
+      const its=tabItems.filter(i=>taskInPeriod(i,p.v,p.o));
+      const d=its.filter(i=>i.stage===8).length;
+      const pct=its.length?Math.round(d/its.length*100):0;
+      return`<div class="db6-period">
+        <div class="db6-period-label">${p.label}</div>
+        <div class="db6-period-cnt" style="color:${its.length?'var(--tx)':'var(--m2)'}">${its.length}</div>
+        <div class="db6-period-sub">${d}/${its.length} done · ${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Upcoming Due ───────────────────────────────────────────────────────
+  const upEl=document.getElementById('db6Upcoming');
+  if(upEl){
+    const upcoming=tabItems.filter(i=>i.dueDate&&i.dueDate>=today&&i.dueDate<=next7Str&&i.stage!==8)
+      .sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,8);
+    if(!upcoming.length){
+      upEl.innerHTML='<div style="font-size:.75rem;color:var(--m2);padding:8px 0">No items due in the next 7 days ✓</div>';
+    } else {
+      upEl.innerHTML=upcoming.map(i=>{
+        const isToday=i.dueDate===today;
+        const diff=Math.ceil((new Date(i.dueDate+'T12:00:00')-new Date())/86400000);
+        const dLabel=isToday?'Today':diff===1?'Tomorrow':`${diff}d`;
+        const col=isToday?'var(--gold)':diff<=2?'var(--red)':'var(--m1)';
+        return`<div class="db6-up-item">
+          <span style="font-size:.82rem">${i.isMile?'⬟':'📋'}</span>
+          <span class="db6-up-name" title="${esc(i.text)}">${esc(i.text)}</span>
+          <span class="db6-up-due" style="color:${col}">${dLabel}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Owner Workload ─────────────────────────────────────────────────────
+  const owEl=document.getElementById('db6Owners');
+  if(owEl){
+    const openItems=tabItems.filter(i=>i.stage!==8);
+    const owners=getOwners();
+    let maxLoad=1;
+    const owData=owners.map(own=>{
+      const oi=openItems.filter(i=>(i.owner||'').toLowerCase()===own.toLowerCase());
+      const hi=oi.filter(i=>i.priority==='high').length;
+      const ov=oi.filter(i=>i.dueDate&&i.dueDate<today).length;
+      if(oi.length>maxLoad)maxLoad=oi.length;
+      return{name:own,total:oi.length,hi,ov};
+    }).filter(o=>o.total>0);
+    if(!owData.length){
+      owEl.innerHTML='<div style="font-size:.75rem;color:var(--m2)">No assignments in this view</div>';
+    } else {
+      owEl.innerHTML=owData.map(o=>{
+        const pct=Math.round(o.total/maxLoad*100);
+        const col=pct>75?'var(--red)':pct>40?'var(--gold)':'var(--done)';
+        return`<div class="db6-ow-row">
+          <div class="db6-ow-top">
+            <span class="db6-ow-name">${esc(o.name)}</span>
+            <div class="db6-ow-bar-wrap"><div class="db6-ow-bar" style="width:${pct}%;background:${col}"></div></div>
+            <span class="db6-ow-cnt" style="color:${col}">${o.total}</span>
+          </div>
+          ${o.hi||o.ov?`<div class="db6-ow-sub">${o.hi?`<span style="color:var(--phi)">${o.hi} high</span> `:''}${o.ov?`<span style="color:var(--red)">${o.ov} overdue</span>`:'✓ on track'}</div>`:''}
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Priority breakdown ─────────────────────────────────────────────────
+  const priEl=document.getElementById('db6Pri');
+  if(priEl){
+    const hi=tabItems.filter(i=>i.priority==='high').length;
+    const md=tabItems.filter(i=>(i.priority||'medium')==='medium').length;
+    const lo=tabItems.filter(i=>i.priority==='low').length;
+    const tot2=hi+md+lo||1;
+    const priLegend=`<div style="display:flex;gap:8px;margin-top:7px;flex-wrap:wrap">
+      <span style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--phi)">■ HIGH ${hi}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--pmd)">■ MED ${md}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--plo)">■ LOW ${lo}</span>
     </div>`;
-  }).join('');
+    priEl.innerHTML=`<div class="db6-pri">
+      <div class="db6-pri-seg" style="flex:${Math.max(hi,.5)};background:rgba(248,113,113,.2);color:var(--phi)">${hi||''}</div>
+      <div class="db6-pri-seg" style="flex:${Math.max(md,.5)};background:rgba(240,180,41,.2);color:var(--pmd)">${md||''}</div>
+      <div class="db6-pri-seg" style="flex:${Math.max(lo,.5)};background:rgba(34,211,165,.2);color:var(--plo)">${lo||''}</div>
+    </div>${priLegend}`;
+  }
+
+  // ── PM Phases ──────────────────────────────────────────────────────────
+  const phEl=document.getElementById('db6Phases');
+  if(phEl){
+    const tot=tabItems.length||1;
+    phEl.innerHTML=PHASES.map(phx=>{
+      const avg=Math.round(tabItems.reduce((s,i)=>s+(Number(i.phases?.[phx.key])||0),0)/tot);
+      const pct=Math.round(avg/phx.wt*100);
+      return`<div class="db6-ph-row">
+        <div class="db6-ph-top">
+          <span class="db6-ph-name" style="color:${phx.col}">${phx.abbr}</span>
+          <span class="db6-ph-val" style="color:${phx.col}">${avg}/${phx.wt}%</span>
+        </div>
+        <div class="db6-ph-bar-wrap"><div class="db6-ph-bar" style="width:${pct}%;background:${phx.col}"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Categories ─────────────────────────────────────────────────────────
+  const catEl=document.getElementById('db6Cats');
+  if(catEl){
+    const catDefs=[
+      {k:'Work',     col:'#4d9eff'},
+      {k:'Personal', col:'#f0b429'},
+      {k:'Finance',  col:'#34d399'},
+      {k:'Health',   col:'#f97316'},
+      {k:'Learning', col:'#c084fc'},
+      {k:'Project',  col:'#22d3a5'},
+    ];
+    const visibleCats=filterCats?catDefs.filter(cd=>filterCats.includes(cd.k)):catDefs;
+    catEl.innerHTML=visibleCats.map(cd=>{
+      const its=allActive.filter(i=>(i.cat||'').toLowerCase()===cd.k.toLowerCase());
+      const done=its.filter(i=>i.stage===8).length;
+      const pct=its.length?Math.round(done/its.length*100):0;
+      return`<div class="db6-cat-item" style="border-left-color:${cd.col}">
+        <div class="db6-cat-name" style="color:${cd.col}">${cd.k}</div>
+        <div class="db6-cat-cnt">${its.length}</div>
+        <div class="db6-cat-pct">${pct}% done</div>
+      </div>`;
+    }).join('');
+  }
 
   // ── 7-Day Trend ────────────────────────────────────────────────────────
-  const trendEl=document.getElementById('trendBars');
+  const trendEl=document.getElementById('db6Trend');
   if(trendEl){
     const dayNames=['S','M','T','W','T','F','S'];
     const tdow=new Date().getDay();
     const mx=Math.max(1,...Array.from({length:7},(_,i)=>tabItems.filter(it=>it.period===pKey('daily',-6+i)).length));
     trendEl.innerHTML=Array.from({length:7},(_,i)=>{
       const off=-6+i,dk=pKey('daily',off);
-      const its=tabItems.filter(it=>it.period===dk);
-      const h=its.length?Math.round(its.length/mx*100):0;
+      const cnt=tabItems.filter(it=>it.period===dk).length;
+      const h=Math.round(cnt/mx*100);
       const dow=(tdow+off%7+7)%7;
-      return`<div class="tbar-w" title="${its.length} items on ${dk}">
-        <div class="tbar-b" style="height:${Math.max(h,2)}%;background:${off===0?'var(--gold)':'var(--blue)'};opacity:${off===0?1:.6};min-height:${its.length?4:2}px"></div>
-        <div class="tbar-l">${dayNames[dow]}</div>
+      const isToday=off===0;
+      return`<div class="db6-trend-bar-w" title="${cnt} items on ${dk}">
+        <div class="db6-trend-bar" style="height:${Math.max(h,4)}%;background:${isToday?'var(--gold)':'var(--blue)'};opacity:${isToday?1:.6};width:100%"></div>
+        <div class="db6-trend-lbl" style="color:${isToday?'var(--gold)':'var(--m2)'}">${dayNames[dow]}</div>
       </div>`;
     }).join('');
   }
+}
+
+/* v2.6 — Dashboard tab switching */
+function setDb6Tab(tab){
+  dashCatView=tab;
+  document.querySelectorAll('.db6-tab').forEach(b=>{
+    b.classList.remove('db6-act');
+    if(b.id==='db6Tab'+tab.charAt(0).toUpperCase()+tab.slice(1))b.classList.add('db6-act');
+  });
+  renderDash();
 }
 
 
@@ -2216,7 +2481,7 @@ function checkAndSendReminders(){
   const today=todayStr();
   let changed=false;
   reminders.forEach(r=>{
-    if(r.done||!r.dueDate)return;
+    if(r.done||r.active===false||!r.dueDate)return;
     const due=new Date(r.dueDate+'T12:00:00');
     const dayBefore=new Date(due);dayBefore.setDate(due.getDate()-1);
     const dayBeforeStr=dayBefore.toISOString().slice(0,10);
@@ -2551,9 +2816,34 @@ function runSearch(q){
       +'</div>';
   }).join('');
 }
+/* v2.5 — Label visibility state per item */
+var labelVisState={};  // {itemId: true/false}
+function toggleItemLabels(itemId,btn){
+  labelVisState[itemId]=!(labelVisState[itemId]!==false);
+  // toggle all label badges in this card
+  const card=document.getElementById('card_'+itemId);
+  if(!card)return;
+  const show=labelVisState[itemId]!==false;
+  card.querySelectorAll('.lbl-badge.row-lbl,.ci-lbl-badges').forEach(el=>el.style.display=show?'':'none');
+  if(btn){
+    btn.className='lbl-toggle-btn '+(show?'lbl-on':'');
+    btn.textContent='🏷 Labels '+(show?'ON':'OFF');
+  }
+}
+
+/* v2.5 — Update checklist description */
+function updateClDesc(itemId,clId,ta){
+  const item=items.find(i=>i.id===itemId);if(!item)return;
+  const cl=(item.checklists||[]).find(c=>c.id===clId);if(!cl)return;
+  cl.description=ta.value;
+  // auto-resize
+  ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';
+  saveData();
+}
+
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.2.1';
+const CURRENT_VER='v2.6';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

@@ -433,14 +433,16 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .fi-goto{background:none;border:1px solid var(--b1);border-radius:4px;color:var(--m1);cursor:pointer;font-size:.7rem;padding:2px 5px;transition:all .15s;}
 .fi-goto:hover{border-color:var(--blue);color:var(--blue);}
 /* C3: FLAG BUTTON */
-.ci-flag{background:none;border:none;cursor:pointer;font-size:.7rem;padding:1px 3px;opacity:.25;transition:opacity .15s;}
-.ci-lbl-eye{background:none;border:none;cursor:pointer;font-size:.68rem;padding:1px 3px;border-radius:3px;color:var(--m2);opacity:.5;}
+.ci-flag{background:none;border:none;cursor:pointer;font-size:.78rem;padding:1px 3px;opacity:.7;transition:opacity .15s;}
+.ci-lbl-eye{background:none;border:none;cursor:pointer;font-size:.74rem;padding:1px 3px;border-radius:3px;color:var(--m2);opacity:.75;}
 .ci-lbl-eye:hover{opacity:1;background:var(--b2);}
-.ci-lbl-eye.lbl-hidden{opacity:.3;text-decoration:line-through;}
-.ci-lbl-btn{background:none;border:none;cursor:pointer;font-size:.68rem;padding:1px 3px;opacity:.3;transition:opacity .15s;}
-.ci-lbl-btn:hover{opacity:.9;}
+.ci-lbl-eye.lbl-hidden{opacity:.45;text-decoration:line-through;}
+.ci-lbl-btn{background:none;border:none;cursor:pointer;font-size:.74rem;padding:1px 3px;opacity:.8;transition:opacity .15s;}
+.ci-lbl-btn:hover{opacity:1;}
+.ci-move-btn{background:none;border:none;cursor:pointer;font-size:.8rem;padding:1px 4px;opacity:.7;color:var(--blue);transition:opacity .15s;}
+.ci-move-btn:hover{opacity:1;}
 .ci-lbl-picker{position:fixed;}
-.ci-flag:hover{opacity:.75;}
+.ci-flag:hover{opacity:1;}
 .ci-flag.ci-flag-on{opacity:1;}
 /* C6: ARCHIVE PANEL */
 .pipe-arch-btn{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.05em;text-transform:uppercase;padding:6px 10px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:7px;color:rgba(248,113,113,.7);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;}
@@ -480,6 +482,9 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .label-group{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:10px;}
 .label-group-hdr{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--b1);}
 .label-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--s3);font-size:.8rem;}
+.li-chk{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--b2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.62rem;transition:all .15s;}
+.li-chk:hover{border-color:var(--done);}
+.li-chk.lic-on{background:var(--done);border-color:var(--done);color:#000;font-weight:700;}
 .label-item:last-child{border:none;}
 .label-item.li-done{opacity:.6;}
 .li-type{flex-shrink:0;font-size:.85rem;}
@@ -1742,6 +1747,7 @@ function rowHTML(item){
       <button class="ci-flag ${ci.flagged?'ci-flag-on':''}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Remove flag':'Flag for follow-up'}">🚩</button>
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">🏷</button>
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
+      <button class="ci-move-btn" onclick="event.stopPropagation();showMoveCIMenu('${item.id}','${cl.id}','${ci.id}',this)" title="Move to another checklist">↪</button>
       <span class="ci-lbl-badges" style="display:${!lblVisible?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
       <button class="ci-del" onclick="event.stopPropagation();delCLItem('${item.id}','${cl.id}','${ci.id}')">×</button>
     </div>`).join('');
@@ -1854,6 +1860,24 @@ function rowHTML(item){
           onclick="event.stopPropagation()"
           onchange="event.stopPropagation();updateField('${item.id}','dueDate',this.value);renderTracker();"
           style="max-width:180px"/>
+      </div>
+      <div class="det-sec" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:130px">
+          <div class="det-lbl">Category</div>
+          <select class="rf-inp" onclick="event.stopPropagation()"
+            onchange="event.stopPropagation();changeCategory('${item.id}',this.value)" style="width:100%">
+            ${getCats().map(c=>`<option value="${esc(c)}" ${item.cat===c?'selected':''}>${esc(c)}</option>`).join('')}
+            ${getCats().some(c=>c===item.cat)?'':`<option value="${esc(item.cat||'')}" selected>${esc(item.cat||'Unknown')}</option>`}
+          </select>
+        </div>
+        <div style="flex:1;min-width:110px">
+          <div class="det-lbl">Owner</div>
+          <select class="rf-inp" onclick="event.stopPropagation()"
+            onchange="event.stopPropagation();updateField('${item.id}','owner',this.value);renderTracker();" style="width:100%">
+            ${getOwners().map(o=>`<option value="${esc(o)}" ${item.owner===o?'selected':''}>${esc(o)}</option>`).join('')}
+            ${getOwners().some(o=>o===item.owner)?'':`<option value="${esc(item.owner||'')}" selected>${esc(item.owner||'—')}</option>`}
+          </select>
+        </div>
       </div>
       <div class="meta-stamp">📅 ${created}${ownerStr}${dueStr}${item.cat?` · ${esc(item.cat)}`:''}</div>
       ${item.stage===8&&!item.archived?`<button class="arch-btn" style="margin-top:10px" onclick="event.stopPropagation();archiveItem('${item.id}')">📦 Archive now</button>`:''}
@@ -2013,6 +2037,13 @@ function setStage(id,n){
   patchCard(item);saveData();refreshDash();
   if(n===8)setTimeout(()=>{const c=document.getElementById('card_'+id);if(c)c.classList.add('flash');},30);
 }
+/* Toggle a task between closed (stage 8) and reopened (Outstanding) — used by Labels board checkbox */
+function toggleItemDone(id){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  if(item.stage===8){item.stage=7;item.closedAt=null;}
+  else{item.stage=8;PHASES.forEach(p=>item.phases[p.key]=p.wt);item.closedAt=Date.now();}
+  patchCard(item);saveData();refreshDash();
+}
 
 /* C5 — set phase value with max limit */
 function setPhaseVal(id,key,rawVal){
@@ -2033,6 +2064,17 @@ function updateField(id,field,val){
   item[field]=val;
   if(field==='dueDate')syncTaskReminder(item);
   saveData();
+}
+/* Move a task from one category to another (e.g. Personal → Project) */
+function changeCategory(id,newCat){
+  const item=items.find(i=>i.id===id);if(!item)return;
+  item.cat=newCat;
+  // keep linked reminder grouping in sync
+  if(typeof syncTaskReminder==='function'&&item.dueDate)syncTaskReminder(item);
+  saveData();
+  renderTracker();renderSidebar();refreshDash();
+  // keep the card expanded and visible after re-render
+  setTimeout(()=>{const c=document.getElementById('card_'+id);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.classList.add('flash');}},60);
 }
 function addActivity(itemId){const inp=document.getElementById('ciinp_'+itemId);if(!inp)return;const text=inp.value.trim();if(!text)return;const item=items.find(i=>i.id===itemId);if(!item)return;item.activities.push({id:uid(),text,done:false});inp.value='';patchCard(item);saveData();refreshDash();}
 function toggleAct(itemId,actId){const item=items.find(i=>i.id===itemId);if(!item)return;const act=item.activities.find(a=>a.id===actId);if(!act)return;act.done=!act.done;patchCard(item);saveData();refreshDash();}
@@ -2604,6 +2646,47 @@ function showCILabelPicker(itemId,clId,ciId,btn){
   setTimeout(()=>document.addEventListener('click',function h(){picker.remove();document.removeEventListener('click',h);},true),10);
 }
 function toggleCILabel(itemId,clId,ciId,labelId){const item=items.find(i=>i.id===itemId);if(!item)return;const cl=item.checklists?.find(c=>c.id===clId);if(!cl)return;const ci=cl.items?.find(i=>i.id===ciId);if(!ci)return;if(!ci.labels)ci.labels=[];const ix=ci.labels.indexOf(labelId);if(ix===-1)ci.labels.push(labelId);else ci.labels.splice(ix,1);patchCard(item);saveData();}
+/* Move a checklist item to another checklist (menu-based, touch-friendly) */
+function showMoveCIMenu(itemId,clId,ciId,btn){
+  document.querySelectorAll('.ci-move-menu').forEach(el=>el.remove());
+  const item=items.find(i=>i.id===itemId);if(!item)return;
+  const targets=(item.checklists||[]).filter(c=>c.id!==clId);
+  if(!targets.length){alert('No other checklist to move to — add another checklist first.');return;}
+  const menu=document.createElement('div');
+  menu.className='ci-move-menu';
+  menu.style.cssText='position:fixed;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:6px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:170px;max-height:240px;overflow-y:auto';
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-family:DM Mono,monospace;font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);padding:3px 6px 6px';
+  hdr.textContent='Move to checklist';
+  menu.appendChild(hdr);
+  targets.forEach(function(t){
+    const div=document.createElement('div');
+    div.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;cursor:pointer;font-size:.78rem';
+    div.textContent='↪ '+t.name;
+    div.onmouseenter=function(){this.style.background='var(--s3)';};
+    div.onmouseleave=function(){this.style.background='';};
+    div.onclick=function(){moveCIToChecklist(itemId,clId,ciId,t.id);document.querySelectorAll('.ci-move-menu').forEach(e=>e.remove());};
+    menu.appendChild(div);
+  });
+  const rect=btn.getBoundingClientRect();
+  document.body.appendChild(menu);
+  const pw=menu.offsetWidth||180, ph=menu.offsetHeight||200;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const left=Math.max(8,Math.min(rect.left, vw-pw-8));
+  const top=vh-rect.bottom>ph+8 ? rect.bottom+4 : rect.top-ph-4;
+  menu.style.left=left+'px';menu.style.top=Math.max(8,top)+'px';
+  setTimeout(()=>document.addEventListener('click',function h(){menu.remove();document.removeEventListener('click',h);},true),10);
+}
+function moveCIToChecklist(itemId,srcClId,ciId,dstClId){
+  const item=items.find(i=>i.id===itemId);if(!item)return;
+  const srcCl=item.checklists?.find(c=>c.id===srcClId);
+  const dstCl=item.checklists?.find(c=>c.id===dstClId);
+  if(!srcCl||!dstCl)return;
+  const ix=srcCl.items.findIndex(i=>i.id===ciId);if(ix===-1)return;
+  const[moved]=srcCl.items.splice(ix,1);
+  dstCl.items.push(moved);
+  patchCard(item);saveData();refreshDash();
+}
 function addConfigItem(key,inputId){const inp=document.getElementById(inputId);if(!inp)return;const val=inp.value.trim();if(!val)return;if(!appConfig[key])appConfig[key]=[];if(appConfig[key].includes(val))return;appConfig[key].push(val);saveConfig();inp.value='';renderSettings();updateDropdowns();}
 function addLabel(){const inp=document.getElementById('newLblInp');const col=document.getElementById('newLblColor');if(!inp)return;const name=inp.value.trim();if(!name)return;if(!appConfig.labels)appConfig.labels=[];appConfig.labels.push({id:uid(),name,color:col?.value||'#4d9eff'});saveConfig();inp.value='';renderSettings();}
 function updateDropdowns(){const cats=getCats();const owners=getOwners();document.querySelectorAll('#catInp').forEach(sel=>{const cur=sel.value;sel.innerHTML='<option value="">— Category —</option>'+cats.map(c=>'<option'+(c===cur?' selected':'')+'>'+c+'</option>').join('');});document.querySelectorAll('#ownerInp').forEach(sel=>{const cur=sel.value;sel.innerHTML=owners.map(o=>'<option'+(o===cur?' selected':'')+'>'+o+'</option>').join('');});}
@@ -2668,8 +2751,15 @@ function renderLabelsBoard(){
         });
       });
       const rows=tagged.map(function(t){
-        const done=t.type==='ci'&&t.ci&&t.ci.done;
+        const done=t.type==='ci'?(t.ci&&t.ci.done):(t.item.stage===8);
+        var chk;
+        if(t.type==='ci'){
+          chk='<div class="li-chk '+(done?'lic-on':'')+'" data-iid="'+t.item.id+'" data-cid="'+t.cl.id+'" data-ciid="'+t.ci.id+'" onclick="event.stopPropagation();toggleCLItem(this.dataset.iid,this.dataset.cid,this.dataset.ciid);renderLabelsBoard()" title="Mark done">'+(done?'✓':'')+'</div>';
+        } else {
+          chk='<div class="li-chk '+(done?'lic-on':'')+'" data-iid="'+t.item.id+'" onclick="event.stopPropagation();toggleItemDone(this.dataset.iid);renderLabelsBoard()" title="Mark task closed">'+(done?'✓':'')+'</div>';
+        }
         return '<div class="label-item '+(done?'li-done':'')+'">'
+          +chk
           +'<span class="li-type">'+(t.type==='item'?(t.item.isMile?'⬟':'📋'):'↳')+'</span>'
           +'<span class="li-txt '+(done?'li-struck':'')+'">' +esc(t.text)+'</span>'
           +(t.type==='ci'?'<span class="li-task"> in '+esc(t.item.text)+'</span>':'')

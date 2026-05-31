@@ -434,6 +434,9 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .fi-goto:hover{border-color:var(--blue);color:var(--blue);}
 /* C3: FLAG BUTTON */
 .ci-flag{background:none;border:none;cursor:pointer;font-size:.7rem;padding:1px 3px;opacity:.25;transition:opacity .15s;}
+.ci-lbl-eye{background:none;border:none;cursor:pointer;font-size:.68rem;padding:1px 3px;border-radius:3px;color:var(--m2);opacity:.5;}
+.ci-lbl-eye:hover{opacity:1;background:var(--b2);}
+.ci-lbl-eye.lbl-hidden{opacity:.3;text-decoration:line-through;}
 .ci-lbl-btn{background:none;border:none;cursor:pointer;font-size:.68rem;padding:1px 3px;opacity:.3;transition:opacity .15s;}
 .ci-lbl-btn:hover{opacity:.9;}
 .ci-lbl-picker{position:fixed;}
@@ -770,7 +773,7 @@ function setDashWorkspace(key){setDb6Tab(key);}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.6</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -952,52 +955,15 @@ function setDashWorkspace(key){setDb6Tab(key);}
       </div>
     <div id="viewReminder" style="display:none">
       <div style="display:flex;gap:0;margin:-16px;min-height:calc(100vh - 90px)">
-        <div class="rem-sidebar">
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:.85rem;color:var(--m1);padding:4px 11px 10px;">🔔 Reminders</div>
-          <!-- All group -->
-          <button class="rem-cat-btn ${remGroup==='all'&&remCat==='all'?'rc-act':''}" onclick="setRemGroup('all');setRemCat(this,'all')" style="font-weight:700"><span class="rc-ico">📋</span><span class="rc-lbl">All Reminders</span><span class="rc-cnt" id="rcAllAll">0</span></button>
-          <!-- Work group -->
-          <div class="rem-group-hdr" onclick="setRemGroup('work')" style="cursor:pointer">💼 Work</div>
-          <button class="rem-cat-btn ${remGroup==='work'&&remCat==='all'?'rc-act':''}" onclick="setRemGroup('work');setRemCat(this,'all')"><span class="rc-ico">📋</span><span class="rc-lbl">All</span><span class="rc-cnt" id="rcAllWork">0</span></button>
-          <button class="rem-cat-btn ${remGroup==='work'&&remCat==='today'?'rc-act':''}" onclick="setRemGroup('work');setRemCat(this,'today')"><span class="rc-ico">☀️</span><span class="rc-lbl">Today</span><span class="rc-cnt" id="rcTodayWork">0</span></button>
-          <button class="rem-cat-btn ${remGroup==='work'&&remCat==='important'?'rc-act':''}" onclick="setRemGroup('work');setRemCat(this,'important')"><span class="rc-ico">⭐</span><span class="rc-lbl">Important</span><span class="rc-cnt" id="rcImportantWork">0</span></button>
-          <button class="rem-cat-btn ${remGroup==='work'&&remCat==='completed'?'rc-act':''}" onclick="setRemGroup('work');setRemCat(this,'completed')"><span class="rc-ico">✓</span><span class="rc-lbl">Completed</span><span class="rc-cnt" id="rcCompletedWork">0</span></button>
-          <!-- Personal group -->
-          <div class="rem-group-hdr" onclick="setRemGroup('personal')" style="cursor:pointer;margin-top:8px;border-top:1px solid var(--b1);padding-top:12px;">👤 Personal</div>
-          <button class="rem-cat-btn ${remGroup==='personal'&&remCat==='all'?'rc-act':''}" onclick="setRemGroup('personal');setRemCat(this,'all')"><span class="rc-ico">📋</span><span class="rc-lbl">All</span><span class="rc-cnt" id="rcAllPersonal">0</span></button>
-          <button class="rem-cat-btn ${remGroup==='personal'&&remCat==='today'?'rc-act':''}" onclick="setRemGroup('personal');setRemCat(this,'today')"><span class="rc-ico">☀️</span><span class="rc-lbl">Today</span><span class="rc-cnt" id="rcTodayPersonal">0</span></button>
-          <button class="rem-cat-btn ${remGroup==='personal'&&remCat==='important'?'rc-act':''}" onclick="setRemGroup('personal');setRemCat(this,'important')"><span class="rc-ico">⭐</span><span class="rc-lbl">Important</span><span class="rc-cnt" id="rcImportantPersonal">0</span></button>
-          <button class="rem-cat-btn ${remGroup==='personal'&&remCat==='completed'?'rc-act':''}" onclick="setRemGroup('personal');setRemCat(this,'completed')"><span class="rc-ico">✓</span><span class="rc-lbl">Completed</span><span class="rc-cnt" id="rcCompletedPersonal">0</span></button>
-        </div>
-        <div class="rem-list-panel">
-          <div class="rem-title" id="remTitle">All</div>
-          <div class="rem-add-row">
-            <span style="color:var(--c7);font-size:1.1rem;flex-shrink:0">+</span>
-            <input class="rem-add-inp" id="remAddInp" placeholder="Add a reminder…" maxlength="200" onkeydown="if(event.key==='Enter')addReminder()"/>
-            <div class="rem-add-opts">
-              <input class="rem-add-date" type="date" id="remAddDate"/>
-              <!-- C1 — time picker -->
-              <input class="rem-add-time" type="time" id="remAddTime"/>
-              <select class="rem-notify-sel" id="remNotify">
-                <option value="1d">1 day before</option>
-                <option value="1h">1 hour before</option>
-                <option value="due">On due date</option>
-              </select>
-              <select class="rem-add-pri" id="remAddPri">
-                <option value="normal">Normal</option>
-                <option value="important">⭐ Important</option>
-              </select>
-              <button class="rem-add-btn" onclick="addReminder()">Add</button>
-            </div>
-          </div>
-          <!-- C3 — EmailJS settings inline in reminders -->
-          <!-- Email settings → ⚙️ Settings page -->
+        <!-- Sidebar rebuilt each render by renderRemSidebar() -->
+        <div class="rem-sidebar" id="remSidebar"></div>
+        <div style="flex:1;padding:16px;overflow-y:auto;min-width:0">
+          <div class="rem-title" id="remTitle">Reminders</div>
           <div class="rem-items" id="remList"></div>
         </div>
       </div>
     </div>
-    <!-- C3: FOLLOW-UP BOARD -->
-    <div id="viewFollowup" style="display:none">
+    id="viewFollowup" style="display:none">
       <div class="dtitle">🚩 Follow-up <span>Board</span></div>
       <div style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--m1);margin-bottom:16px">Flagged checklist items — live mirror, no duplicates</div>
       <div id="followupList" class="followup-list"></div>
@@ -1671,7 +1637,6 @@ function ringHTML(p,isMile,isDone,isArchived){
 /* ROW HTML */
 function rowHTML(item){
   const ph=item.phases||{};
-  const lblVisible=labelVisState[item.id]!==false; // default true
   const p=calcPct(ph);
   const days=ageDays(item);
   const isExp=!!expanded[item.id];
@@ -1730,6 +1695,7 @@ function rowHTML(item){
         title="Double-click to edit">${esc(ci.text)}</span>
       <button class="ci-flag ${ci.flagged?'ci-flag-on':''}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Remove flag':'Flag for follow-up'}">🚩</button>
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">🏷</button>
+      <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
       <span class="ci-lbl-badges" style="display:${!lblVisible?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
       <button class="ci-del" onclick="event.stopPropagation();delCLItem('${item.id}','${cl.id}','${ci.id}')">×</button>
     </div>`).join('');
@@ -1803,7 +1769,6 @@ function rowHTML(item){
       <div class="cl-sec">
         <div class="cl-hd">
           <span class="cl-title">📋 Checklists ${totalCI?`(${doneCI}/${totalCI} done)`:''}</span>
-          <button class="lbl-toggle-btn ${lblVisible?'lbl-on':''}" onclick="event.stopPropagation();toggleItemLabels('${item.id}',this)" title="Show/Hide labels">🏷 Labels ${lblVisible?'ON':'OFF'}</button>
         </div>
         ${clGroupsHTML}
         <div class="ci-add-row open" style="margin-top:6px">
@@ -2086,128 +2051,168 @@ function remDueClass(due){if(!due)return'';const d=new Date(due+'T23:59:59');if(
 /* C1 — format time display */
 function fmtTime(t){if(!t)return'';const[h,m]=t.split(':').map(Number);const ampm=h>=12?'PM':'AM';const h12=h%12||12;return`${h12}:${String(m).padStart(2,'0')} ${ampm}`;}
 
-function renderReminders(){
-  const today=todayStr();
-  const grpFilter=r=>{
-    if(remGroup==='all')return true;
-    if(remGroup==='work')return r.category==='work'||!r.category;
-    return r.category==='personal';
-  };
-  const grpRems=reminders.filter(grpFilter);
-  // Active = active!==false; Inactive = active===false; Done = done===true
-  const activeRems=grpRems.filter(r=>!r.done&&r.active!==false);
-  const inactiveRems=grpRems.filter(r=>!r.done&&r.active===false);
-  const doneRems=grpRems.filter(r=>r.done);
 
-  // Update sidebar counts
-  const _allActEl=document.getElementById('rcAllAll');
-  if(_allActEl)_allActEl.textContent=reminders.filter(r=>!r.done).length;
-  ['work','personal'].forEach(grp=>{
-    const gr=reminders.filter(r=>grp==='work'?(r.category==='work'||!r.category):(r.category==='personal'));
-    const sfx=grp.charAt(0).toUpperCase()+grp.slice(1);
-    ['All','Today','Important','Completed'].forEach(cat=>{
-      const el=document.getElementById(`rc${cat}${sfx}`);if(!el)return;
-      if(cat==='All')el.textContent=gr.filter(r=>!r.done).length;
-      else if(cat==='Today')el.textContent=gr.filter(r=>!r.done&&r.dueDate===today).length;
-      else if(cat==='Important')el.textContent=gr.filter(r=>!r.done&&r.priority==='important').length;
-      else el.textContent=gr.filter(r=>r.done).length;
-    });
-  });
-
-  const remTitleEl=document.getElementById('remTitle');
-  if(remTitleEl)remTitleEl.textContent=(remGroup==='work'?'💼 Work':'👤 Personal')+' — '+(remCat.charAt(0).toUpperCase()+remCat.slice(1));
-
-  let vis=[];
-  if(remCat==='all') vis=[...activeRems,...inactiveRems];
-  else if(remCat==='today') vis=activeRems.filter(r=>r.dueDate===today);
-  else if(remCat==='important') vis=activeRems.filter(r=>r.priority==='important');
-  else if(remCat==='completed') vis=[...doneRems];
-
-  const el=document.getElementById('remList');if(!el)return;
-
-  // Sort toolbar HTML
-  const sortBar=`<div class="rem-sort-row">
-    <span style="font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m2);align-self:center">Sort:</span>
-    <button class="rem-sort-btn ${remSort==='newest'?'rs-act':''}" onclick="remSort='newest';renderReminders()">Newest</button>
-    <button class="rem-sort-btn ${remSort==='week'?'rs-act':''}" onclick="remSort='week';renderReminders()">Week</button>
-    <button class="rem-sort-btn ${remSort==='month'?'rs-act':''}" onclick="remSort='month';renderReminders()">Month</button>
-  </div>`;
-
-  if(!vis.length){
-    el.innerHTML=sortBar+`<div class="empty"><div class="eico">${remCat==='completed'?'✓':'🔔'}</div><div class="etitle">${remCat==='completed'?'No completed reminders':'Nothing here'}</div><div class="esub">All clear!</div></div>`;
-    return;
-  }
-
-  // Apply sort
-  if(remSort==='newest'){
-    vis.sort((a,b)=>b.created-a.created);
-  } else if(remSort==='week'){
-    vis.sort((a,b)=>(a.dueDate||'9999')+(a.created)>(b.dueDate||'9999')+(b.created)?1:-1);
-  } else if(remSort==='month'){
-    vis.sort((a,b)=>(a.dueDate||'9999')>(b.dueDate||'9999')?1:-1);
-  }
-
-  // Group rendering helper
-  function getWeekLabel(dateStr){
-    if(!dateStr)return'No date';
-    const d=new Date(dateStr+'T12:00:00');
-    const dow=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));
-    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
-    const fmt=dt=>`${dt.getMonth()+1}/${dt.getDate()}`;
-    return`Week of ${fmt(mon)} – ${fmt(sun)}`;
-  }
-  function getMonthLabel(dateStr){
-    if(!dateStr)return'No date';
-    const d=new Date(dateStr+'T12:00:00');
-    return d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  }
-
-  // Build items HTML with optional group headers
-  function buildCard(r){
-    const dc=remDueClass(r.dueDate);
-    const dueLabel=r.dueDate?(r.dueDate===today?'Today':r.dueDate):'';
-    const timeLabel=r.dueTime?` · ${fmtTime(r.dueTime)}`:'';
-    const isActive=r.active!==false;
-    return`<div class="rem-item ${r.done?'ri-done':''} ${!isActive?'ri-inactive':''}" style="animation:fadeUp .15s ease both">
-      <div class="ri-chk-toggle ${isActive?'rit-on':'rit-off'}" onclick="toggleReminder('${r.id}')" title="${isActive?'Active — click to pause':'Inactive — click to activate'}">
-        ${isActive?'●':'○'}
-      </div>
-      <div class="ri-body">
-        <div class="ri-txt">${esc(r.text)}${r.linkedItemId?` <span class="rem-linked-tag">${r.linkedType||'Task'}</span>`:''}</div>
-        <div class="ri-meta">
-          ${dueLabel?`<span class="ri-due ${dc}">📅 ${esc(dueLabel)}${timeLabel}</span>`:''}
-          ${r.priority==='important'?'<span style="color:var(--gold)">⭐ Important</span>':''}
-          ${!r.done?`<select class="rem-notify-sel" style="margin-left:4px" onchange="updateReminderNotify('${r.id}',this.value)">
-            <option value="1d" ${(r.notifyBefore||'1d')==='1d'?'selected':''}>1 day before</option>
-            <option value="1h" ${r.notifyBefore==='1h'?'selected':''}>1 hour before</option>
-            <option value="due" ${r.notifyBefore==='due'?'selected':''}>On due date</option>
-          </select>`:''}
-        </div>
-      </div>
-      <span class="ri-flag" onclick="toggleRemImportant('${r.id}')" title="${r.priority==='important'?'Remove':'Mark important'}">${r.priority==='important'?'⭐':'☆'}</span>
-      <button class="ri-del" onclick="doneReminder('${r.id}')" title="Mark done" style="color:${r.done?'var(--done)':'var(--m2)'}">✓</button>
-      <button class="ri-del" onclick="delReminder('${r.id}')">🗑</button>
-    </div>`;
-  }
-
-  let html=sortBar;
-  if(remSort==='week'||remSort==='month'){
-    // Group by week or month
-    const groups={};const order=[];
-    vis.forEach(r=>{
-      const key=remSort==='week'?getWeekLabel(r.dueDate):getMonthLabel(r.dueDate);
-      if(!groups[key]){groups[key]=[];order.push(key);}
-      groups[key].push(r);
-    });
-    order.forEach(key=>{
-      html+=`<div class="rem-group-hdr-week">${key} <span style="color:var(--m2)">(${groups[key].length})</span></div>`;
-      html+=groups[key].map(buildCard).join('');
-    });
-  } else {
-    html+=vis.map(buildCard).join('');
-  }
-  el.innerHTML=html;
+/* ── v2.7 Reminder helpers ──────────────────────────────────────────────── */
+function remWeekLabel(dateStr){
+  if(!dateStr)return 'No date';
+  var d=new Date(dateStr+'T12:00:00');
+  var dow=d.getDay();
+  var mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));
+  var sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  var fmt=function(dt){return(dt.getMonth()+1)+'/'+dt.getDate();};
+  return 'Week of '+fmt(mon)+' \u2013 '+fmt(sun);
 }
+function remMonthLabel(dateStr){
+  if(!dateStr)return 'No date';
+  var d=new Date(dateStr+'T12:00:00');
+  return d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+}
+
+function renderRemSidebar(){
+  var el=document.getElementById('remSidebar');
+  if(!el)return;
+  function btn(grp,cat,label){
+    var act=(remGroup===grp&&remCat===cat)?'rc-act':'';
+    return '<button class="rem-cat-btn '+act+'" onclick="setRemGroup(\''+grp+'\');setRemCat(\''+cat+'\')">'+label+'</button>';
+  }
+  function cnt(grp,cat){
+    var today=todayStr();
+    var gr=reminders.filter(function(r){
+      if(grp==='all')return true;
+      if(grp==='work')return r.category==='work'||!r.category;
+      return r.category==='personal';
+    });
+    if(cat==='all')return gr.filter(function(r){return!r.done;}).length;
+    if(cat==='today')return gr.filter(function(r){return!r.done&&r.dueDate===today;}).length;
+    if(cat==='important')return gr.filter(function(r){return!r.done&&r.priority==='important';}).length;
+    return gr.filter(function(r){return r.done;}).length;
+  }
+  el.innerHTML=
+    '<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:.85rem;color:var(--m1);padding:4px 11px 10px">\uD83D\uDD14 Reminders</div>'
+    +'<div class="rem-grp-hdr">All</div>'
+    +btn('all','all','\uD83D\uDCCB All <span class="rc-cnt">'+cnt('all','all')+'</span>')
+    +'<div class="rem-grp-hdr">Work</div>'
+    +btn('work','all','All <span class="rc-cnt">'+cnt('work','all')+'</span>')
+    +btn('work','today','Today <span class="rc-cnt">'+cnt('work','today')+'</span>')
+    +btn('work','important','\u2B50 Important <span class="rc-cnt">'+cnt('work','important')+'</span>')
+    +btn('work','completed','Completed <span class="rc-cnt">'+cnt('work','completed')+'</span>')
+    +'<div class="rem-grp-hdr">Personal</div>'
+    +btn('personal','all','All <span class="rc-cnt">'+cnt('personal','all')+'</span>')
+    +btn('personal','today','Today <span class="rc-cnt">'+cnt('personal','today')+'</span>')
+    +btn('personal','important','\u2B50 Important <span class="rc-cnt">'+cnt('personal','important')+'</span>')
+    +btn('personal','completed','Completed <span class="rc-cnt">'+cnt('personal','completed')+'</span>');
+}
+
+function renderReminders(){
+  try{
+    renderRemSidebar();
+    var today=todayStr();
+    var grpFilter=function(r){
+      if(remGroup==='all')return true;
+      if(remGroup==='work')return r.category==='work'||!r.category;
+      return r.category==='personal';
+    };
+    var grpRems=reminders.filter(grpFilter);
+    var activeRems=grpRems.filter(function(r){return !r.done&&r.active!==false;});
+    var inactiveRems=grpRems.filter(function(r){return !r.done&&r.active===false;});
+    var doneRems=grpRems.filter(function(r){return r.done;});
+
+    var remTitleEl=document.getElementById('remTitle');
+    if(remTitleEl){
+      var grpLabel=remGroup==='all'?'All':remGroup==='work'?'\uD83D\uDCBC Work':'\uD83D\uDC64 Personal';
+      var catLabel=remCat.charAt(0).toUpperCase()+remCat.slice(1);
+      remTitleEl.textContent=grpLabel+' \u2014 '+catLabel;
+    }
+
+    var vis=[];
+    if(remCat==='all')vis=activeRems.concat(inactiveRems);
+    else if(remCat==='today')vis=activeRems.filter(function(r){return r.dueDate===today;});
+    else if(remCat==='important')vis=activeRems.filter(function(r){return r.priority==='important';});
+    else if(remCat==='completed')vis=doneRems.slice();
+
+    var el=document.getElementById('remList');
+    if(!el)return;
+
+    // Sort
+    if(remSort==='newest'){
+      vis.sort(function(a,b){return(b.created||0)-(a.created||0);});
+    } else {
+      vis.sort(function(a,b){
+        var da=a.dueDate||'9999';var db=b.dueDate||'9999';
+        return da>db?1:da<db?-1:0;
+      });
+    }
+
+    // Sort toolbar
+    var sortBar='<div class="rem-sort-row">'
+      +'<span style="font-family:\'DM Mono\',monospace;font-size:.56rem;color:var(--m2);align-self:center">Sort:</span>'
+      +'<button class="rem-sort-btn'+(remSort==='newest'?' rs-act':'')+'" onclick="remSort=\'newest\';renderReminders()">Newest</button>'
+      +'<button class="rem-sort-btn'+(remSort==='week'?' rs-act':'')+'" onclick="remSort=\'week\';renderReminders()">Week</button>'
+      +'<button class="rem-sort-btn'+(remSort==='month'?' rs-act':'')+'" onclick="remSort=\'month\';renderReminders()">Month</button>'
+      +'<button class="rem-sort-btn'+(remSort==='newest'?'':' rs-act')+'" onclick="if(confirm(\'Add reminder?\'))openAddReminderModal&&openAddReminderModal()" style="margin-left:auto;background:var(--blue);color:#fff;border-color:var(--blue)">\u2295 Add</button>'
+      +'</div>';
+
+    if(!vis.length){
+      el.innerHTML=sortBar+'<div class="empty"><div class="eico">'+(remCat==='completed'?'&#10003;':'&#128276;')+'</div>'
+        +'<div class="etitle">'+(remCat==='completed'?'No completed reminders':'Nothing here')+'</div>'
+        +'<div class="esub">All clear!</div></div>';
+      return;
+    }
+
+    function remCard(r){
+      var dc=remDueClass(r.dueDate);
+      var dueLabel=r.dueDate?(r.dueDate===today?'Today':r.dueDate):'';
+      var timeLabel=r.dueTime?' \u00B7 '+fmtTime(r.dueTime):'';
+      var isActive=r.active!==false;
+      var notifySel='';
+      if(!r.done){
+        var n1=(r.notifyBefore||'1d')==='1d'?'selected':'';
+        var n2=r.notifyBefore==='1h'?'selected':'';
+        var n3=r.notifyBefore==='due'?'selected':'';
+        notifySel='<select class="rem-notify-sel" style="margin-left:4px" onchange="updateReminderNotify(\''+r.id+'\',this.value)">'
+          +'<option value="1d" '+n1+'>1 day before</option>'
+          +'<option value="1h" '+n2+'>1 hour before</option>'
+          +'<option value="due" '+n3+'>On due date</option>'
+          +'</select>';
+      }
+      return '<div class="rem-item'+(r.done?' ri-done':'')+(!isActive?' ri-inactive':'')+'" style="animation:fadeUp .15s ease both">'
+        +'<div class="ri-chk-toggle '+(isActive?'rit-on':'rit-off')+'" onclick="toggleReminder(\''+r.id+'\')" title="'+(isActive?'Active \u2014 click to pause':'Paused \u2014 click to activate')+'">'+(isActive?'&#9679;':'&#9675;')+'</div>'
+        +'<div class="ri-body">'
+        +'<div class="ri-txt">'+esc(r.text)+(r.linkedItemId?'<span class="rem-linked-tag">'+(r.linkedType||'Task')+'</span>':'')+'</div>'
+        +'<div class="ri-meta">'
+        +(dueLabel?'<span class="ri-due '+dc+'">&#128197; '+esc(dueLabel)+timeLabel+'</span>':'')
+        +(r.priority==='important'?'<span style="color:var(--gold)">&#11088; Important</span>':'')
+        +notifySel
+        +'</div></div>'
+        +'<span class="ri-flag" onclick="toggleRemImportant(\''+r.id+'\')" title="'+(r.priority==='important'?'Remove important':'Mark important')+'">'+(r.priority==='important'?'&#11088;':'&#9734;')+'</span>'
+        +'<button class="ri-del" onclick="doneReminder(\''+r.id+'\')" title="Mark done" style="color:'+(r.done?'var(--done)':'var(--m2)')+'">&#10003;</button>'
+        +'<button class="ri-del" onclick="delReminder(\''+r.id+'\')">&#128465;</button>'
+        +'</div>';
+    }
+
+    var html=sortBar;
+    if(remSort==='week'||remSort==='month'){
+      var groups={};var order=[];
+      vis.forEach(function(r){
+        var key=remSort==='week'?remWeekLabel(r.dueDate):remMonthLabel(r.dueDate);
+        if(!groups[key]){groups[key]=[];order.push(key);}
+        groups[key].push(r);
+      });
+      order.forEach(function(key){
+        html+='<div class="rem-group-hdr-week">'+key+' <span style="color:var(--m2)">('+groups[key].length+')</span></div>';
+        groups[key].forEach(function(r){html+=remCard(r);});
+      });
+    } else {
+      vis.forEach(function(r){html+=remCard(r);});
+    }
+    el.innerHTML=html;
+  }catch(e){
+    console.error('renderReminders error:',e);
+    var el2=document.getElementById('remList');
+    if(el2)el2.innerHTML='<div style="color:var(--red);padding:12px;font-size:.8rem">Reminder render error: '+esc(e.message)+'</div>';
+  }
+}
+
 
 /* ══ DASHBOARD ═════════════════════════════════════ */
 function statsFor(v,o,catView){
@@ -2520,7 +2525,7 @@ function showCILabelPicker(itemId,clId,ciId,btn){
   if(!ci.labels)ci.labels=[];
   const picker=document.createElement('div');
   picker.className='ci-lbl-picker';
-  picker.style='position:absolute;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:6px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.4);min-width:150px';
+  picker.style.cssText='position:fixed;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:6px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:160px;max-height:220px;overflow-y:auto';
   const rows=labels.map(function(lbl){
     const on=ci.labels.includes(lbl.id);
     const div=document.createElement('div');
@@ -2534,9 +2539,13 @@ function showCILabelPicker(itemId,clId,ciId,btn){
   rows.forEach(function(r){picker.appendChild(r);});
   // Position near button
   const rect=btn.getBoundingClientRect();
-  picker.style.left=rect.left+'px';
-  picker.style.top=(rect.bottom+4)+'px';
   document.body.appendChild(picker);
+  const pw=picker.offsetWidth||170, ph=picker.offsetHeight||200;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const left=Math.max(8,Math.min(rect.left, vw-pw-8));
+  const top=vh-rect.bottom>ph+8 ? rect.bottom+4 : rect.top-ph-4;
+  picker.style.left=left+'px';
+  picker.style.top=Math.max(8,top)+'px';
   // Close on outside click
   setTimeout(()=>document.addEventListener('click',function h(){picker.remove();document.removeEventListener('click',h);},true),10);
 }
@@ -2818,18 +2827,16 @@ function runSearch(q){
 }
 /* v2.5 — Label visibility state per item */
 var labelVisState={};  // {itemId: true/false}
-function toggleItemLabels(itemId,btn){
-  labelVisState[itemId]=!(labelVisState[itemId]!==false);
-  // toggle all label badges in this card
-  const card=document.getElementById('card_'+itemId);
-  if(!card)return;
-  const show=labelVisState[itemId]!==false;
-  card.querySelectorAll('.lbl-badge.row-lbl,.ci-lbl-badges').forEach(el=>el.style.display=show?'':'none');
-  if(btn){
-    btn.className='lbl-toggle-btn '+(show?'lbl-on':'');
-    btn.textContent='🏷 Labels '+(show?'ON':'OFF');
-  }
+var ciLblState={};
+function ciLblVisible(id){return ciLblState[id]!==false;}
+function toggleCILabels(ciId){
+  ciLblState[ciId]=!ciLblVisible(ciId);
+  var b=document.getElementById('cilbls_'+ciId);
+  if(b)b.style.display=ciLblVisible(ciId)?'inline':'none';
+  var e=document.getElementById('lbleye_'+ciId);
+  if(e){e.textContent=ciLblVisible(ciId)?'👁':'🚫';e.classList.toggle('lbl-hidden',!ciLblVisible(ciId));}
 }
+function toggleItemLabels(){}
 
 /* v2.5 — Update checklist description */
 function updateClDesc(itemId,clId,ta){
@@ -2843,7 +2850,7 @@ function updateClDesc(itemId,clId,ta){
 
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.6';
+const CURRENT_VER='v2.7';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})
@@ -2874,6 +2881,8 @@ document.addEventListener('keydown',function(e){
   if(e.key==='/'){e.preventDefault();openSearch();}
   if(e.key==='Escape'){closeSearch();}
 });
+function renderAll(){try{renderTracker();}catch(e){}}
+
 window.addEventListener('load',()=>{
   loadConfig();
   const wait=setInterval(()=>{if(window.google?.accounts?.oauth2){clearInterval(wait);initApp();}},100);

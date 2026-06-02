@@ -22,7 +22,11 @@
   --c5:#f97316;--c6:#f87171;--c7:#c084fc;--c8:#34d399;
   --phi:#f87171;--pmd:#f0b429;--plo:#22d3a5;
 }
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+body{font-family:'DM Sans',sans-serif;background:
+    radial-gradient(1400px 700px at 100% -5%, rgba(77,158,255,.05), transparent 60%),
+    radial-gradient(1100px 600px at 0% 105%, rgba(167,139,250,.045), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;color:var(--tx);min-height:100vh;}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--s1)}::-webkit-scrollbar-thumb{background:var(--b1);border-radius:3px}
 .screen{display:none;min-height:100vh;}
 .screen.show{display:flex;flex-direction:column;}
@@ -65,7 +69,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .signin-err{margin-top:14px;padding:9px 13px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:7px;font-size:.76rem;color:var(--red);display:none;}
 
 /* HEADER */
-header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 20px;position:sticky;top:0;z-index:200;}
+header{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 88%,transparent));border-bottom:1px solid var(--b1);padding:0 clamp(20px,4vw,64px);position:sticky;top:0;z-index:200;backdrop-filter:blur(10px);}
 .hdr-top{display:flex;align-items:center;gap:10px;height:50px;}
 .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;letter-spacing:-.02em;display:flex;align-items:center;gap:7px;}
 .ver-badge{font-family:'DM Mono',monospace;font-size:.55rem;font-weight:500;letter-spacing:.06em;padding:2px 7px;background:var(--gold-d);border:1px solid rgba(240,180,41,.3);border-radius:99px;color:var(--gold);}
@@ -96,7 +100,7 @@ header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 20px;pos
 .pnav:hover{background:var(--b1);color:var(--tx);}
 .pnav.now{color:var(--gold);border-color:rgba(240,180,41,.3);}
 .plbl{font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;color:var(--tx);margin-left:6px;}
-.main-content{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:16px;}
+.main-content{flex:1;max-width:1680px;width:100%;margin:0 auto;padding:20px clamp(20px,4vw,64px);}
 
 /* PIPELINE */
 .pipeline{display:flex;flex-wrap:nowrap;gap:3px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;}
@@ -141,17 +145,17 @@ header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 20px;pos
 .ssort option{background:var(--s1);}
 
 /* LIST */
-.task-list{display:flex;flex-direction:column;gap:5px;}
-.list-row{background:var(--s1);border:1px solid var(--b1);border-radius:8px;overflow:hidden;transition:border-color .2s;}
-.list-row:hover{border-color:var(--b2);}
+.task-list{display:flex;flex-direction:column;gap:7px;}
+.list-row{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 96%,#000));border:1px solid var(--b1);border-radius:11px;overflow:hidden;transition:border-color .2s,box-shadow .2s,transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.list-row:hover{border-color:var(--b2);box-shadow:0 4px 18px rgba(0,0,0,.28);transform:translateY(-1px);}
 .list-row.lm{border-color:rgba(240,180,41,.25);}
-.list-row.lm:hover{border-color:rgba(240,180,41,.5);box-shadow:0 1px 12px var(--gold-g);}
+.list-row.lm:hover{border-color:rgba(240,180,41,.5);box-shadow:0 4px 20px var(--gold-g);}
 .list-row.lclosed{opacity:.6;}
 .list-row.larchived{opacity:.4;border-style:dashed;}
 .list-row.ladhoc{border-left:3px solid var(--c5);}
 .list-row.lissue{border-left:3px solid var(--c6);}
-.list-row.lselected{border-color:var(--blue);}
-.list-row.lm.lselected{border-color:var(--gold);}
+.list-row.lselected{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),0 6px 24px rgba(77,158,255,.15);}
+.list-row.lm.lselected{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 6px 24px var(--gold-g);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @keyframes goldPulse{0%{box-shadow:0 0 0 0 rgba(240,180,41,.7)}70%{box-shadow:0 0 0 14px rgba(240,180,41,0)}100%{box-shadow:0 0 0 0 rgba(240,180,41,0)}}
 .list-row.flash{animation:goldPulse .8s ease;}
@@ -836,7 +840,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.8</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.9</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -3219,7 +3223,7 @@ function updateClDesc(itemId,clId,ta){
 
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.8';
+const CURRENT_VER='v2.7.9';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

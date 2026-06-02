@@ -815,7 +815,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.3</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.4</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -2916,8 +2916,69 @@ function renderSettings(){
       +'<div class="settings-card"><div class="settings-card-title">📊 Data</div>'
       +'<button class="settings-action-btn" onclick="exportToExcel()">⬇️ Export All Data to Excel</button>'
       +'<div style="font-size:.62rem;color:var(--m2);margin-top:8px">Downloads .xlsx with all tasks, milestones and checklists</div>'
+      +'</div>'
+      +'<div class="settings-card" style="grid-column:1/-1"><div class="settings-card-title">🩺 Category Diagnostic &amp; Repair</div>'
+      +buildCatDiagnostic()
       +'</div></div>';
   }catch(e){console.error('renderSettings:',e);el.innerHTML='<div style="color:var(--red);padding:10px">Settings error: '+e.message+'</div>';}
+}
+
+/* v2.7.3 — Category diagnostic: shows exactly how every item's category is stored,
+   so nothing is hidden, plus a bulk-move tool to correct mis-categorised items. */
+function buildCatDiagnostic(){
+  const live=items.filter(i=>!i.isGroup);
+  const counts={};
+  live.forEach(function(i){
+    const key=(i.cat===undefined||i.cat===null||i.cat==='')?'(no category)':i.cat;
+    if(!counts[key])counts[key]={count:0,archived:0,sample:[]};
+    counts[key].count++;
+    if(i.archived)counts[key].archived++;
+    if(counts[key].sample.length<5)counts[key].sample.push((i.isMile?'⬟ ':'📋 ')+i.text);
+  });
+  const knownCats=getCats();
+  let rows='';
+  Object.keys(counts).sort().forEach(function(k){
+    const c=counts[k];
+    const isKnown=k==='(no category)'?false:knownCats.some(function(x){return (x||'').toLowerCase()===k.toLowerCase();});
+    const warn=isKnown?'':' ⚠️';
+    rows+='<div style="padding:8px 10px;border:1px solid var(--b1);border-radius:7px;margin-bottom:6px;background:var(--s1)">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      +'<span style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:.82rem">'+esc(k)+warn+'</span>'
+      +'<span style="font-family:\'DM Mono\',monospace;font-size:.62rem;color:var(--m2);background:var(--s2);border-radius:99px;padding:1px 8px">'+c.count+' item'+(c.count!==1?'s':'')+(c.archived?' · '+c.archived+' archived':'')+'</span>'
+      +'</div>'
+      +'<div style="font-size:.66rem;color:var(--m2);margin-top:4px">'+c.sample.map(esc).join(' · ')+(c.count>c.sample.length?' …':'')+'</div>'
+      +'</div>';
+  });
+  if(!rows)rows='<div style="font-size:.72rem;color:var(--m2)">No items yet.</div>';
+  // Build move tool dropdowns
+  const allCatValues=Object.keys(counts);
+  const fromOpts=allCatValues.map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+' ('+counts[k].count+')</option>';}).join('');
+  const toOpts=knownCats.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
+  return '<div style="font-size:.7rem;color:var(--m1);margin-bottom:10px">This shows how every task\'s category is actually stored. ⚠️ marks a category value that isn\'t in your category list. Your data is never deleted — use the tool below to move items into the right category.</div>'
+    +rows
+    +'<div style="margin-top:12px;padding:10px;border:1px solid var(--b2);border-radius:8px;background:var(--s2)">'
+    +'<div style="font-family:\'DM Mono\',monospace;font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;color:var(--m2);margin-bottom:8px">Bulk move items between categories</div>'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+    +'<span style="font-size:.72rem">Move all from</span>'
+    +'<select class="settings-inp" id="bulkFromCat" style="width:auto;min-width:140px">'+fromOpts+'</select>'
+    +'<span style="font-size:.72rem">→ to</span>'
+    +'<select class="settings-inp" id="bulkToCat" style="width:auto;min-width:120px">'+toOpts+'</select>'
+    +'<button class="settings-add-btn" onclick="bulkMoveCategory()">Move</button>'
+    +'</div></div>';
+}
+function bulkMoveCategory(){
+  const fromEl=document.getElementById('bulkFromCat'),toEl=document.getElementById('bulkToCat');
+  if(!fromEl||!toEl)return;
+  const from=fromEl.value, to=toEl.value;
+  const matchNoCount=function(i){const key=(i.cat===undefined||i.cat===null||i.cat==='')?'(no category)':i.cat;return key===from;};
+  const affected=items.filter(i=>!i.isGroup&&matchNoCount(i));
+  if(!affected.length){alert('No items found in "'+from+'".');return;}
+  if(!confirm('Move '+affected.length+' item'+(affected.length!==1?'s':'')+' from "'+from+'" to "'+to+'"?\n\nThis only changes the category — no data is deleted.'))return;
+  affected.forEach(function(i){i.cat=to;});
+  saveData();
+  renderTracker();renderSidebar();if(typeof refreshDash==='function')refreshDash();
+  renderSettings();
+  alert('Moved '+affected.length+' item'+(affected.length!==1?'s':'')+' to "'+to+'". Check the '+to+' workspace.');
 }
 
 /* ══ DATA RECOVERY ═════════════════════════════════ */
@@ -3093,7 +3154,7 @@ function updateClDesc(itemId,clId,ta){
 
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.3';
+const CURRENT_VER='v2.7.4';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

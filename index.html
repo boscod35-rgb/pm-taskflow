@@ -441,8 +441,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ci-lbl-eye{background:var(--s3);border:1px solid var(--b1);cursor:pointer;font-size:.72rem;padding:2px 5px;border-radius:4px;color:var(--m1);opacity:1;transition:all .15s;}
 .ci-lbl-eye:hover{color:var(--tx);background:var(--b2);}
 .ci-lbl-eye.lbl-hidden{opacity:.55;text-decoration:line-through;}
-.ci-lbl-btn{display:inline-flex;align-items:center;gap:3px;background:var(--blue-d);border:1px solid rgba(77,158,255,.4);cursor:pointer;font-size:.7rem;padding:2px 7px;border-radius:5px;color:var(--blue);opacity:1;transition:all .15s;white-space:nowrap;}
-.ci-lbl-btn::after{content:'Label';font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.04em;}
+.ci-lbl-btn{display:inline-flex;align-items:center;justify-content:center;background:var(--blue-d);border:1px solid rgba(77,158,255,.4);cursor:pointer;font-family:'DM Mono',monospace;font-weight:600;font-size:.72rem;width:20px;height:20px;padding:0;border-radius:5px;color:var(--blue);opacity:1;transition:all .15s;}
 .ci-lbl-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
 .ci-move-btn{background:var(--s3);border:1px solid var(--b1);cursor:pointer;font-size:.82rem;padding:2px 6px;border-radius:5px;opacity:1;color:var(--blue);transition:all .15s;}
 .ci-move-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
@@ -816,7 +815,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.2</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.3</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -841,6 +840,8 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
       <button class="ptab"     data-p="weekly"  onclick="setPView(this,'weekly')">Weekly</button>
       <button class="ptab"     data-p="monthly" onclick="setPView(this,'monthly')">Monthly</button>
       <button class="ptab"     data-p="yearly"  onclick="setPView(this,'yearly')">Yearly</button>
+      <div class="psep"></div>
+      <button class="ptab" id="pfilterToggle" onclick="togglePeriodFilter()" title="When ON, the tracker shows only items in the selected period">📅 Filter: Off</button>
       <div class="psep"></div>
       <div class="plbl" id="plbl"></div>
     </div>
@@ -1105,6 +1106,7 @@ const SEVEN_DAYS = 7*24*60*60*1000;
 /* ══ STATE ════════════════════════════════════════ */
 let items=[], expanded={}, reminders=[], remCat='all', remGroup='all';
 let pView='daily', offset=0, filter='all', stageFilter=0, ownerFilter='', catFilter='all';
+let periodFilterOn=false; // v2.7.3 — period filtering is opt-in; off = show all items
 let remSort='newest'; // v2.5 reminder sort state
 let docsFolderId=localStorage.getItem('trackerDocsFolderId')||null;
 let workspace='all', sidebarOpen=true; // C1 v1.7
@@ -1113,9 +1115,14 @@ let dragSrc=null; // for drag-to-reorder
 let folderId=localStorage.getItem('trackerFolderId')||null;
 let fileId=localStorage.getItem('trackerFileId')||null;
 let tokenClient, accessToken, tokenExpiry=0, saveTimer=null;
-const DEFAULT_CONFIG={theme:'dark',categories:['Work','Personal','Finance','Health','Learning'],owners:['Don','San','Nivin','Common'],notifyDefault:'1d',labels:[]};
+const DEFAULT_CONFIG={theme:'dark',categories:['Work','Personal','Finance','Health','Learning','Project'],owners:['Don','San','Nivin','Common'],notifyDefault:'1d',labels:[]};
 let appConfig={...DEFAULT_CONFIG};
-function loadConfig(){try{const s=JSON.parse(localStorage.getItem('pmtf_cfg')||'{}');appConfig={...DEFAULT_CONFIG,...s};if(!appConfig.emailjs)appConfig.emailjs={key:localStorage.getItem('ejs_key')||'',svc:localStorage.getItem('ejs_svc')||'',tpl:localStorage.getItem('ejs_tpl')||''};applyTheme(appConfig.theme||'dark');}catch(e){appConfig={...DEFAULT_CONFIG};}}
+function loadConfig(){try{const s=JSON.parse(localStorage.getItem('pmtf_cfg')||'{}');appConfig={...DEFAULT_CONFIG,...s};if(!appConfig.emailjs)appConfig.emailjs={key:localStorage.getItem('ejs_key')||'',svc:localStorage.getItem('ejs_svc')||'',tpl:localStorage.getItem('ejs_tpl')||''};
+  // Ensure default categories (e.g. Project) exist even for older saved configs
+  if(!Array.isArray(appConfig.categories))appConfig.categories=[...DEFAULT_CONFIG.categories];
+  DEFAULT_CONFIG.categories.forEach(function(c){if(!appConfig.categories.some(function(x){return (x||'').toLowerCase()===c.toLowerCase();}))appConfig.categories.push(c);});
+  saveConfig();
+  applyTheme(appConfig.theme||'dark');}catch(e){appConfig={...DEFAULT_CONFIG};}}
 function saveConfig(){try{localStorage.setItem('pmtf_cfg',JSON.stringify(appConfig));}catch(e){}}
 function applyTheme(t){const r=document.documentElement;if(t==='light'){r.style.setProperty('--bg','#f0f0f3');r.style.setProperty('--s1','#ffffff');r.style.setProperty('--s2','#f5f5f8');r.style.setProperty('--s3','#ebebee');r.style.setProperty('--tx','#111118');r.style.setProperty('--m1','#555565');r.style.setProperty('--m2','#888898');r.style.setProperty('--b1','#dddde8');r.style.setProperty('--b2','#ccccda');}else{r.style.removeProperty('--bg');r.style.removeProperty('--s1');r.style.removeProperty('--s2');r.style.removeProperty('--s3');r.style.removeProperty('--tx');r.style.removeProperty('--m1');r.style.removeProperty('--m2');r.style.removeProperty('--b1');r.style.removeProperty('--b2');}appConfig.theme=t;saveConfig();}
 function getCats(){return appConfig.categories||DEFAULT_CONFIG.categories;}
@@ -1128,6 +1135,17 @@ function lsLoad(){try{const d=JSON.parse(localStorage.getItem('pmtf_v19')||'{}')
 const uid       = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const esc       = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const curP      = ()=>pKey(pView,offset);
+/* v2.7.3 — a daily-format (YYYY-MM-DD) anchor date for the period the user is currently
+   viewing. Stored as item.period so period filtering matches consistently across Daily/
+   Weekly/Monthly/Yearly views. */
+function periodAnchorDate(){
+  const d=new Date();
+  if(pView==='daily'){d.setDate(d.getDate()+offset);}
+  else if(pView==='weekly'){const day=d.getDay();d.setDate(d.getDate()-((day+6)%7)+offset*7);}
+  else if(pView==='monthly'){d.setDate(1);d.setMonth(d.getMonth()+offset);}
+  else if(pView==='yearly'){d.setMonth(0,1);d.setFullYear(d.getFullYear()+offset);}
+  return d.toISOString().slice(0,10);
+}
 const todayStr  = ()=>new Date().toISOString().slice(0,10);
 const stageOf   = item=>STAGES.find(s=>s.n===item.stage)||STAGES[0];
 const ageDays   = item=>Math.floor((Date.now()-item.created)/86400000);
@@ -1167,6 +1185,27 @@ function taskInPeriod(item,v,o){
   if(v==='weekly'){if(!p.match(/^\d{4}-\d{2}-\d{2}$/))return false;const d=new Date(p+'T12:00:00'),now=new Date();const day=now.getDay(),mon=new Date(now);mon.setDate(now.getDate()-((day+6)%7)+o*7);mon.setHours(0,0,0,0);const sun=new Date(mon);sun.setDate(mon.getDate()+7);return d>=mon&&d<sun;}
   if(v==='monthly'){const mk=pKey('monthly',o);return p.startsWith(mk+'-')||p===mk;}
   if(v==='yearly'){const yr=pKey('yearly',o);return p.startsWith(yr+'-')||p.startsWith('W'+yr)||p===yr;}
+  return false;
+}
+/* v2.7.3 — true if the item's assigned period OR its due date falls within the active window.
+   Falls back to the item's created date if it has neither, so nothing silently disappears. */
+function dateInPeriod(dateStr,v,o){
+  if(!dateStr||!/^\d{4}-\d{2}-\d{2}$/.test(dateStr))return false;
+  if(v==='daily')return dateStr===pKey('daily',o);
+  if(v==='weekly'){const d=new Date(dateStr+'T12:00:00'),now=new Date();const day=now.getDay(),mon=new Date(now);mon.setDate(now.getDate()-((day+6)%7)+o*7);mon.setHours(0,0,0,0);const sun=new Date(mon);sun.setDate(mon.getDate()+7);return d>=mon&&d<sun;}
+  if(v==='monthly')return dateStr.startsWith(pKey('monthly',o)+'-');
+  if(v==='yearly')return dateStr.startsWith(pKey('yearly',o)+'-');
+  return false;
+}
+function taskInPeriodOrDue(item,v,o){
+  if(taskInPeriod(item,v,o))return true;
+  if(item.dueDate&&dateInPeriod(item.dueDate,v,o))return true;
+  // Fallback: match on created date when no usable period/due is set
+  const hasPeriod=item.period&&/^\d{4}/.test(item.period);
+  if(!hasPeriod&&!item.dueDate&&item.created){
+    const cd=new Date(item.created).toISOString().slice(0,10);
+    if(dateInPeriod(cd,v,o))return true;
+  }
   return false;
 }
 
@@ -1314,6 +1353,12 @@ function setView(v){
   if(v==='settings'){if(_stt)renderSettings();}
 }
 function setPView(el,v){pView=v;offset=0;document.querySelectorAll('.ptab').forEach(t=>t.classList.toggle('act',t.dataset.p===v));updatePLabel();renderTracker();}
+function togglePeriodFilter(){
+  periodFilterOn=!periodFilterOn;
+  const b=document.getElementById('pfilterToggle');
+  if(b){b.textContent='📅 Filter: '+(periodFilterOn?'On':'Off');b.classList.toggle('act',periodFilterOn);}
+  renderTracker();
+}
 function addOffset(d){offset+=d;updatePLabel();renderTracker();}
 function resetOffset(){offset=0;updatePLabel();renderTracker();}
 function updatePLabel(){document.getElementById('plbl').textContent=pLabel(pView,offset);}
@@ -1766,7 +1811,7 @@ function rowHTML(item){
         ondblclick="event.stopPropagation();editCLItem('${item.id}','${cl.id}','${ci.id}')"
         title="Double-click to edit">${esc(ci.text)}</span>
       <button class="ci-flag ${ci.flagged?'ci-flag-on':''}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Remove flag':'Flag for follow-up'}">🚩</button>
-      <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">🏷</button>
+      <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">L</button>
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
       <button class="ci-move-btn" onclick="event.stopPropagation();showMoveCIMenu('${item.id}','${cl.id}','${ci.id}',this)" title="Move to another checklist">↪</button>
       <span class="ci-lbl-badges" style="display:${!lblVisible?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
@@ -1997,6 +2042,14 @@ function renderTracker(){
   else if(catFilter==='learning') vis=vis.filter(i=>i.cat==='Learning');
   if(ownerFilter) vis=vis.filter(i=>i.owner===ownerFilter);
 
+  // v2.7.3 — filter by active period (Daily/Weekly/Monthly/Yearly), ONLY when the
+  // user has turned on period filtering. Off by default so the tracker shows all
+  // items (original behavior) and nothing disappears unexpectedly.
+  // Archive view always ignores the period so archived items remain reachable.
+  if(periodFilterOn && filter!=='archive'){
+    vis=vis.filter(i=>taskInPeriodOrDue(i,pView,offset));
+  }
+
   const sort=document.getElementById('sortSel').value;
   if(sort==='oldest') vis.sort((a,b)=>a.created-b.created);
   else if(sort==='newest') vis.sort((a,b)=>b.created-a.created);
@@ -2006,7 +2059,7 @@ function renderTracker(){
 
   document.getElementById('taskGrid').innerHTML=vis.length
     ?vis.map(rowHTML).join('')
-    :`<div class="empty"><div class="eico">${filter==='archive'?'📦':'○'}</div><div class="etitle">${filter==='archive'?'No archived items':'Nothing here'}</div><div class="esub">${filter==='archive'?'Closed tasks auto-archive after 7 days':'Add a task or milestone above'}</div></div>`;
+    :`<div class="empty"><div class="eico">${filter==='archive'?'📦':(periodFilterOn?'📅':'○')}</div><div class="etitle">${filter==='archive'?'No archived items':(periodFilterOn?'Nothing in '+pLabel(pView,offset):'Nothing here')}</div><div class="esub">${filter==='archive'?'Closed tasks auto-archive after 7 days':(periodFilterOn?'No tasks for this period. Use ◀ ▶ to change it, toggle 📅 off to see all, or add a task.':'Add a task or milestone above')}</div></div>`;
 }
 
 /* ══ ACTIONS ═══════════════════════════════════════ */
@@ -2023,7 +2076,7 @@ function addItem(isMile){
     owner:document.getElementById('ownerInp').value||'Don',
     dueDate:document.getElementById('dueInp').value||'',
     cat:document.getElementById('catInp').value||'',
-    period:curP(),created:Date.now(),done:false,archived:false,closedAt:null,
+    period:periodAnchorDate(),created:Date.now(),done:false,archived:false,closedAt:null,
     phases:newPhases(),nextAction:'',notes:'',files:[],comments:[],checklists:[]};
   items.unshift(item);expanded[item.id]=true;
   inp.value='';
@@ -3040,7 +3093,7 @@ function updateClDesc(itemId,clId,ta){
 
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.2';
+const CURRENT_VER='v2.7.3';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

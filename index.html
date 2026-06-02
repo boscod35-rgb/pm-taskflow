@@ -434,10 +434,12 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .fi-done-btn.fid-act{background:var(--done);border-color:var(--done);color:#000;font-weight:700;}
 .fi-goto{background:none;border:1px solid var(--b1);border-radius:4px;color:var(--m1);cursor:pointer;font-size:.7rem;padding:2px 5px;transition:all .15s;}
 .fi-goto:hover{border-color:var(--blue);color:var(--blue);}
-/* C3: FLAG BUTTON */
-.ci-flag{background:none;border:none;cursor:pointer;font-size:.82rem;padding:2px 4px;border-radius:4px;opacity:1;transition:all .15s;}
+/* C3: FLAG BUTTON — red when flagged, blue when not (v2.7.8) */
+.ci-flag{background:none;border:none;cursor:pointer;font-size:.95rem;line-height:1;padding:2px 5px;border-radius:4px;opacity:1;transition:all .15s;}
 .ci-flag:hover{background:var(--b2);}
-.ci-flag.ci-flag-on{opacity:1;}
+.ci-flag.ci-flag-on{color:var(--red);}
+.ci-flag.ci-flag-off{color:var(--blue);opacity:.7;}
+.ci-flag.ci-flag-off:hover{opacity:1;}
 .ci-lbl-eye{background:var(--s3);border:1px solid var(--b1);cursor:pointer;font-size:.72rem;padding:2px 5px;border-radius:4px;color:var(--m1);opacity:1;transition:all .15s;}
 .ci-lbl-eye:hover{color:var(--tx);background:var(--b2);}
 .ci-lbl-eye.lbl-hidden{opacity:.55;text-decoration:line-through;}
@@ -834,7 +836,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.7</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.8</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1317,8 +1319,10 @@ async function loadData(){
       if(resp.ok){
         const d=await resp.json();
         items=d.items||[];expanded={};reminders=d.reminders||[];
-        const _KC=['Work','Personal','Finance','Health','Learning'];
-        items.forEach(it=>{if(!it.cat||!_KC.some(k=>k.toLowerCase()===(it.cat||'').toLowerCase()))it.cat='Personal';});
+        const _KC=getCats().concat(['Work','Personal','Finance','Health','Learning','Project']);
+        items.forEach(it=>{if(it.cat&&_KC.some(k=>k.toLowerCase()===(it.cat||'').toLowerCase()))return; if(!it.cat)it.cat='Personal';});
+        // v2.7.8 — correct linked-reminder groups from their parent task's category
+        (reminders||[]).forEach(function(r){if(r.linkedItemId){const pit=items.find(function(x){return x.id===r.linkedItemId;});if(pit)r.category=remGroupForCat(pit.cat);}});
         try{items.forEach(migratePhases);items.forEach(migrateChecklists);items.forEach(migrateLabels);
     items.forEach(function(it){
       if(!it.cat||it.cat==='')it.cat='Unknown';
@@ -1413,7 +1417,7 @@ function renderSidebar(){
   const sb=document.getElementById('wsList');if(!sb)return;
   sb.innerHTML=WORKSPACES.map(ws=>{
     const cats=ws.cats;
-    const cnt=items.filter(i=>!i.archived&&(cats?cats.includes(i.cat):true)).length;
+    const cnt=items.filter(i=>!i.archived&&(cats?cats.some(c=>c.toLowerCase()===(i.cat||'').toLowerCase()):true)).length;
     const isAct=workspace===ws.key;
     return`<div class="ws-item ${isAct?'ws-act':''} ws-${ws.key}" onclick="setWorkspace('${ws.key}')">
       <span class="ws-ico">${ws.icon}</span>
@@ -1885,7 +1889,7 @@ function rowHTML(item){
         ondblclick="event.stopPropagation();editCLItem('${item.id}','${cl.id}','${ci.id}')"
         title="Double-click to edit">${esc(ci.text)}</span>
       <button class="ci-sub-toggle ${subOpen?'cst-on':''}" onclick="event.stopPropagation();toggleSubChecklist('${item.id}','${cl.id}','${ci.id}')" title="${subOpen?'Hide sub-checklist':'Add / show sub-checklist'}">⊞${subs.length?`<span class="cst-cnt">${subDone}/${subs.length}</span>`:''}</button>
-      <button class="ci-flag ${ci.flagged?'ci-flag-on':''}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Remove flag':'Flag for follow-up'}">🚩</button>
+      <button class="ci-flag ${ci.flagged?'ci-flag-on':'ci-flag-off'}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Flagged — click to remove':'Flag for follow-up'}">⚑</button>
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">L</button>
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
       <button class="ci-move-btn" onclick="event.stopPropagation();showMoveCIMenu('${item.id}','${cl.id}','${ci.id}',this)" title="Move to another checklist">↪</button>
@@ -2090,7 +2094,7 @@ function renderTracker(){
   if(workspace==='all'||!wsCats){
     vis=[...items].filter(i=>!i.isGroup); // All shows every non-group item
   } else if(workspace==='unknown'){
-    const _knownCats=['Work','Personal','Finance','Health','Learning'];
+    const _knownCats=getCats().concat(['Work','Personal','Finance','Health','Learning','Project']);
     vis=[...items].filter(i=>!i.cat||!_knownCats.some(k=>k.toLowerCase()===(i.cat||'').toLowerCase()));
   } else {
     vis=[...items].filter(i=>wsCats.some(wc=>wc.toLowerCase()===(i.cat||'').toLowerCase()));
@@ -2260,6 +2264,13 @@ function addReminder(){
   renderReminders();saveData();
 }
 
+/* v2.7.8 — map a task category to a reminder group.
+   Personal & Health are personal; Work, Finance, Learning, Project (and any custom) are work. */
+function remGroupForCat(cat){
+  const c=(cat||'').toLowerCase();
+  if(c==='personal'||c==='health')return 'personal';
+  return 'work';
+}
 /* Auto-link reminder when task/milestone due date is set */
 function syncTaskReminder(item){
   reminders=reminders.filter(r=>r.linkedItemId!==item.id);
@@ -2268,7 +2279,7 @@ function syncTaskReminder(item){
     id:uid(),text:item.text,done:false,
     linkedItemId:item.id,
     linkedType:item.isMile?'Milestone':'Task',
-    category:['Work'].includes(item.cat)?'work':'personal',
+    category:remGroupForCat(item.cat),
     priority:item.priority==='high'?'important':'normal',
     dueDate:item.dueDate,dueTime:'',
     notifyBefore:'1d',lastEmailDate:'',created:Date.now()
@@ -3208,7 +3219,7 @@ function updateClDesc(itemId,clId,ta){
 
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.7';
+const CURRENT_VER='v2.7.8';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

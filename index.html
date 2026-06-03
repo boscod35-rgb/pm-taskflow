@@ -370,7 +370,42 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .comment-item:hover .comment-del{color:var(--m2);}
 .comment-del:hover{color:var(--red)!important;}
 /* C1 v1.7 — workspace sidebar */
-.tracker-layout{display:flex;gap:0;margin:-16px;min-height:calc(100vh - 90px);align-items:flex-start;}
+.tracker-layout{display:grid;grid-template-columns:260px minmax(380px,1.1fr) minmax(440px,1.05fr);gap:0;margin:-16px 0!important;min-height:calc(100vh - 90px);align-items:stretch;}
+.tracker-layout.no-detail{grid-template-columns:260px 0 1fr;}
+/* center detail pane */
+.detail-pane{border-right:1px solid var(--b1);border-left:1px solid var(--b1);background:var(--bg);min-width:0;display:flex;flex-direction:column;position:sticky;top:86px;max-height:calc(100vh - 86px);overflow:hidden;}
+.detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--m2);}
+.de-ico{font-size:2rem;margin-bottom:12px;opacity:.6;}
+.de-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--m1);margin-bottom:6px;}
+.de-sub{font-size:.78rem;max-width:240px;line-height:1.5;}
+.detail-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--b1);background:var(--s1);}
+.dh-ico{font-size:1.05rem;color:var(--gold);flex-shrink:0;}
+.dh-title{flex:1;font-family:'Syne',sans-serif;font-weight:700;font-size:1.02rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dh-stage{font-family:'DM Mono',monospace;font-size:.62rem;flex-shrink:0;}
+.dh-rename,.dh-close{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:30px;height:30px;color:var(--m1);cursor:pointer;flex-shrink:0;font-size:.82rem;}
+.dh-rename:hover,.dh-close:hover{color:var(--tx);border-color:var(--b2);}
+.detail-scroll{flex:1;overflow-y:auto;padding:0;scrollbar-width:thin;}
+/* detail pane: stack det-pane columns vertically since the pane itself is a column */
+.detail-scroll .det-pane{grid-template-columns:1fr!important;display:grid;border-top:none;}
+.detail-scroll .det-left{border-right:none;border-bottom:1px solid var(--b1);}
+/* left control column */
+.side-create{border-top:1px solid var(--b1);padding-bottom:10px;}
+.side-create .add-area{padding:6px 10px;}
+.side-create .add-row2{flex-wrap:wrap;gap:6px;}
+.side-create .add-row2 .fld-sel,.side-create .add-row2 .fld-date{flex:1;min-width:88px;}
+.side-create .abtn{flex:1;min-width:80px;}
+.side-create .frow{flex-wrap:wrap;padding:4px 10px;gap:5px;}
+.side-create .frow .owner-filter,.side-create .frow .ssort{flex:1;min-width:110px;}
+/* 3-pane tracker uses full width */
+#viewTracker{width:100%;overflow:hidden;}
+.tracker-main{padding:14px 16px;min-width:0;overflow:hidden;}
+.tracker-main .pipeline{overflow-x:auto;}
+.tracker-layout .ws-sidebar{position:static;max-height:none;min-height:0;width:auto;}
+/* right list pane: keep titles tidy, contain pipeline */
+.tracker-main{overflow:hidden;}
+.tracker-main .row-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tracker-main .list-row{flex-wrap:nowrap;}
+.tracker-main .pipeline{max-width:100%;}
 .ws-sidebar{width:190px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;transition:width .25s ease;overflow-y:auto;overflow-x:hidden;min-height:calc(100vh - 90px);max-height:calc(100vh - 86px);position:sticky;top:86px;}
 .ws-sidebar.collapsed{width:48px;}
 /* v2.7.10 — Focus Timer */
@@ -929,8 +964,74 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
             </div>
             <div class="timer-note" id="timerNote">Set an interval & race the clock.</div>
           </div>
+          <!-- v2.7.10 — Create form moved into left pane -->
+          <div class="side-create">
+            <div class="ws-top-label" style="padding:10px 10px 4px">Create</div>
+            <div class="add-area">
+              <div class="add-row1">
+                <input class="add-inp" id="addInp" placeholder="Task or Milestone name…" maxlength="140"
+                  oninput="clearDupError()"
+                  onkeydown="if(event.key==='Enter')addItem(false)"/>
+              </div>
+              <div class="dup-error" id="dupError">⚠ A task or milestone with this name already exists. Please use a different name.</div>
+              <div class="add-row2">
+                <select class="fld-sel" id="stageInp">
+                  <option value="1">Incoming</option><option value="2">Backlog</option>
+                  <option value="3">Planning</option><option value="4">Active/Exec</option>
+                  <option value="5">Adhoc</option><option value="6">Issues</option>
+                  <option value="7">Outstanding</option><option value="8">Closure</option>
+                </select>
+                <select class="fld-sel" id="priInp">
+                  <option value="medium">Medium Priority</option>
+                  <option value="high">High Priority</option>
+                  <option value="low">Low Priority</option>
+                </select>
+                <select class="fld-sel" id="ownerInp" style="min-width:90px">
+                  <option value="Don">Don</option>
+                  <option value="San">San</option>
+                  <option value="Nivin">Nivin</option>
+                  <option value="Common">Common</option>
+                </select>
+                <input class="fld-date" id="dueInp" type="date"/>
+                <select class="fld-sel" id="catInp">
+                  <option value="">Category</option>
+                  <option>Work</option><option>Health</option>
+                  <option>Personal</option><option>Finance</option><option>Learning</option>
+                  <option value="Project">Project</option>
+                </select>
+                <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
+                <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
+              </div>
+            </div>
+            <div class="ws-top-label" style="padding:10px 10px 4px">Filter</div>
+            <div class="frow">
+              <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
+              <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Milestones</button>
+              <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
+              <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
+              <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
+              <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
+              <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦 Archive</button>
+              <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
+                <option value="">👤 All Owners</option>
+              </select>
+              <select class="ssort" id="sortSel" onchange="renderTracker()">
+                <option value="newest">Newest</option><option value="oldest">Oldest</option>
+                <option value="stage">By Stage</option><option value="priority">By Priority</option>
+                <option value="milestone">Milestones first</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <!-- Main tracker area -->
+        <!-- v2.7.10 — Center detail pane -->
+        <div class="detail-pane" id="detailPane">
+          <div class="detail-empty">
+            <div class="de-ico">👈</div>
+            <div class="de-title">Select a task</div>
+            <div class="de-sub">Pick a category, then click a task in the list to see everything here.</div>
+          </div>
+        </div>
+        <!-- Right: pipeline + list -->
         <div class="tracker-main">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;overflow:hidden">
         <div class="pipeline" id="pipelineBanner" style="flex:1;margin-bottom:0;overflow-x:auto;flex-wrap:nowrap"></div>
@@ -940,69 +1041,12 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
         <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);margin-bottom:8px">📦 Archived — Read Only</div>
         <div id="archivePanelList"></div>
       </div>
-
-      <div class="add-area">
-        <div class="add-row1">
-          <input class="add-inp" id="addInp" placeholder="Task or Milestone name…" maxlength="140"
-            oninput="clearDupError()"
-            onkeydown="if(event.key==='Enter')addItem(false)"/>
-        </div>
-        <!-- C2 — duplicate error message -->
-        <div class="dup-error" id="dupError">⚠ A task or milestone with this name already exists. Please use a different name.</div>
-        <div class="add-row2">
-          <select class="fld-sel" id="stageInp">
-            <option value="1">Incoming</option><option value="2">Backlog</option>
-            <option value="3">Planning</option><option value="4">Active/Exec</option>
-            <option value="5">Adhoc</option><option value="6">Issues</option>
-            <option value="7">Outstanding</option><option value="8">Closure</option>
-          </select>
-          <select class="fld-sel" id="priInp">
-            <option value="medium">Medium Priority</option>
-            <option value="high">High Priority</option>
-            <option value="low">Low Priority</option>
-          </select>
-          <select class="fld-sel" id="ownerInp" style="min-width:90px">
-            <option value="Don">Don</option>
-            <option value="San">San</option>
-            <option value="Nivin">Nivin</option>
-            <option value="Common">Common</option>
-          </select>
-          <input class="fld-date" id="dueInp" type="date"/>
-          <select class="fld-sel" id="catInp">
-            <option value="">Category</option>
-            <option>Work</option><option>Health</option>
-            <option>Personal</option><option>Finance</option><option>Learning</option>
-          <option value="Project">Project</option>
-          </select>
-          <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
-          <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
-        </div>
-      </div>
-      <div class="frow">
-        <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
-        <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Milestones</button>
-        <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
-        <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
-        <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
-        <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
-        <!-- C3 — archive filter -->
-        <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦 Archive</button>
-        <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
-          <option value="">👤 All Owners</option>
-        </select>
-        <div class="fsep"></div>
-        <select class="ssort" id="sortSel" onchange="renderTracker()">
-          <option value="newest">Newest</option><option value="oldest">Oldest</option>
-          <option value="stage">By Stage</option><option value="priority">By Priority</option>
-          <option value="milestone">Milestones first</option>
-        </select>
-      </div>
-          <div id="recoverBanner" style="display:none;background:rgba(34,211,165,.1);border:1px solid rgba(34,211,165,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'DM Mono',monospace;font-size:.75rem;display:flex;align-items:center;gap:10px">
+          <div id="recoverBanner" style="display:none;background:rgba(34,211,165,.1);border:1px solid rgba(34,211,165,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'DM Mono',monospace;font-size:.75rem;align-items:center;gap:10px">
         <span style="color:var(--done)">♻️ Missing items? Check browser cache</span>
         <button onclick="tryRecoverFromCache()" style="background:var(--done);color:#000;border:none;border-radius:5px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:.65rem;cursor:pointer;font-weight:700">Recover Now</button>
         <button onclick="document.getElementById('recoverBanner').style.display='none'" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.9rem;margin-left:auto">×</button>
       </div>
-      <div id="archiveBanner" style="display:none;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:.8rem;color:var(--red)">📦 Archive View — all details expanded. Click ↩ Restore to move back.</span><button onclick="setFilter(null,'all')" style="background:none;border:1px solid var(--b1);border-radius:5px;padding:3px 10px;font-size:.7rem;color:var(--m1);cursor:pointer;margin-left:auto">← Back to All</button></div>
+      <div id="archiveBanner" style="display:none;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:10px;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:.8rem;color:var(--red)">📦 Archive View — click ↩ Restore to move back.</span><button onclick="setFilter(null,'all')" style="background:none;border:1px solid var(--b1);border-radius:5px;padding:3px 10px;font-size:.7rem;color:var(--m1);cursor:pointer;margin-left:auto">← Back to All</button></div>
       <div class="task-list" id="taskGrid"></div>
         </div><!-- end tracker-main -->
       </div><!-- end tracker-layout -->
@@ -1178,6 +1222,7 @@ const SEVEN_DAYS = 7*24*60*60*1000;
 let items=[], expanded={}, reminders=[], remCat='all', remGroup='all';
 let pView='daily', offset=0, filter='all', stageFilter=0, ownerFilter='', catFilter='all';
 let periodFilterOn=false; // v2.7.3 — period filtering is opt-in; off = show all items
+let selectedId=null; // v2.7.10 — currently selected task shown in the detail pane
 let remSort='newest'; // v2.5 reminder sort state
 let docsFolderId=localStorage.getItem('trackerDocsFolderId')||null;
 let workspace='all', sidebarOpen=true; // C1 v1.7
@@ -1895,7 +1940,7 @@ function ringHTML(p,isMile,isDone,isArchived){
 }
 
 /* ROW HTML */
-function rowHTML(item){
+function buildItemParts(item){
   const ph=item.phases||{};
   const p=calcPct(ph);
   const days=ageDays(item);
@@ -2041,7 +2086,7 @@ function rowHTML(item){
     </div>`;
   }).join('');
 
-  const detail=isExp?`<div class="det-pane">
+  const detail=`<div class="det-pane">
     <div class="det-left">
       <div class="det-sec">
         <div class="det-lbl">Status — select stage</div>
@@ -2136,11 +2181,12 @@ function rowHTML(item){
         <div class="comment-list">${commentItems}</div>
       </div>
     </div>
-  </div>`:'';
+  </div>`;
 
-  const rowCls=`list-row ${item.isMile?'lm':''} ${item.stage===8?'lclosed':''} ${item.archived?'larchived':''} ${item.stage===5?'ladhoc':''} ${item.stage===6?'lissue':''} ${isExp?'lselected':''}`;
-  return`<div class="${rowCls}" id="card_${item.id}" style="animation:fadeUp .2s ease both">
-    <div class="row-hd" onclick="toggleExpand('${item.id}')">
+  const isSel=(typeof selectedId!=='undefined'&&selectedId===item.id);
+  const rowCls=`list-row ${item.isMile?'lm':''} ${item.stage===8?'lclosed':''} ${item.archived?'larchived':''} ${item.stage===5?'ladhoc':''} ${item.stage===6?'lissue':''} ${isSel?'lselected':''}`;
+  const head=`<div class="${rowCls}" id="card_${item.id}" style="animation:fadeUp .2s ease both">
+    <div class="row-hd" onclick="selectTask('${item.id}')">
       <span class="row-ico">${item.isMile?'⬟':'📋'}</span>
       <span class="row-name" id="row_name_${item.id}">${esc(item.text)}
         ${item.isMile&&!item.archived?'<span class="bdg bm">⬟ Milestone</span>':''}
@@ -2160,13 +2206,16 @@ function rowHTML(item){
         ${ringHTML(p,item.isMile,item.stage===8,item.archived)}
         <button class="rename-btn" onclick="event.stopPropagation();startRename('${item.id}')" title="Rename">✏️</button>
         ${item.stage===8&&!item.archived?`<button class="arch-row-btn" onclick="event.stopPropagation();archiveItem('${item.id}')" title="Archive">📦</button>`:''}
-        <span class="row-arr" style="${isExp?'transform:rotate(180deg)':''}">▼</span>
+        <span class="row-arr" style="${isSel?'color:var(--blue)':''}">›</span>
         <button class="row-del" onclick="event.stopPropagation();delItem('${item.id}')">✕</button>
       </div>
     </div>
-    ${detail}
   </div>`;
+  return {head, detail};
 }
+/* List rows show heads only; detail renders in the center pane (v2.7.10) */
+function rowHTML(item){return buildItemParts(item).head;}
+function detailHTML(item){return buildItemParts(item).detail;}
 
 
 /* ══ TRACKER RENDER ════════════════════════════════ */
@@ -2229,6 +2278,9 @@ function renderTracker(){
   document.getElementById('taskGrid').innerHTML=vis.length
     ?vis.map(rowHTML).join('')
     :`<div class="empty"><div class="eico">${filter==='archive'?'📦':(periodFilterOn?'📅':'○')}</div><div class="etitle">${filter==='archive'?'No archived items':(periodFilterOn?'Nothing in '+pLabel(pView,offset):'Nothing here')}</div><div class="esub">${filter==='archive'?'Closed tasks auto-archive after 7 days':(periodFilterOn?'No tasks for this period. Use ◀ ▶ to change it, toggle 📅 off to see all, or add a task.':'Add a task or milestone above')}</div></div>`;
+  // v2.7.10 — keep the detail pane in sync with selection
+  if(selectedId&&!items.some(i=>i.id===selectedId))selectedId=null;
+  if(typeof renderDetail==='function')renderDetail();
 }
 
 /* ══ ACTIONS ═══════════════════════════════════════ */
@@ -2266,7 +2318,39 @@ function addItem(isMile){
   saveData();
 }
 
-function toggleExpand(id){expanded[id]=!expanded[id];patchCard(items.find(i=>i.id===id));}
+function toggleExpand(id){selectTask(id);} // back-compat alias
+function selectTask(id){
+  selectedId=(selectedId===id)?null:id;
+  // update list selection highlight without full re-render
+  document.querySelectorAll('.list-row.lselected').forEach(el=>el.classList.remove('lselected'));
+  if(selectedId){const c=document.getElementById('card_'+selectedId);if(c)c.classList.add('lselected');}
+  renderDetail();
+}
+function renderDetail(){
+  const pane=document.getElementById('detailPane');if(!pane)return;
+  const layout=document.querySelector('.tracker-layout');
+  const item=items.find(i=>i.id===selectedId);
+  if(!item){
+    if(layout)layout.classList.add('no-detail');
+    pane.innerHTML=`<div class="detail-empty">
+      <div class="de-ico">👈</div>
+      <div class="de-title">Select a task</div>
+      <div class="de-sub">Pick a category, then click a task in the list to see everything here.</div>
+    </div>`;
+    return;
+  }
+  if(layout)layout.classList.remove('no-detail');
+  const st=stageOf(item);
+  pane.innerHTML=`<div class="detail-head">
+      <span class="dh-ico">${item.isMile?'⬟':'📋'}</span>
+      <span class="dh-title" id="row_name_${item.id}">${esc(item.text)}</span>
+      ${item.isMile?'<span class="bdg bm">⬟ Milestone</span>':''}
+      <span class="dh-stage" style="color:${st.col}">${st.short}</span>
+      <button class="dh-rename" onclick="startRename('${item.id}')" title="Rename">✏️</button>
+      <button class="dh-close" onclick="selectTask('${item.id}')" title="Close">✕</button>
+    </div>
+    <div class="detail-scroll">${detailHTML(item)}</div>`;
+}
 function toggleAddCI(itemId){const row=document.getElementById('ciadd_'+itemId);const inp=document.getElementById('ciinp_'+itemId);if(!row)return;row.classList.toggle('open');if(row.classList.contains('open')&&inp)inp.focus();}
 
 function setStage(id,n){
@@ -2323,7 +2407,7 @@ function addActivity(itemId){const inp=document.getElementById('ciinp_'+itemId);
 function toggleAct(itemId,actId){const item=items.find(i=>i.id===itemId);if(!item)return;const act=item.activities.find(a=>a.id===actId);if(!act)return;act.done=!act.done;patchCard(item);saveData();refreshDash();}
 function delActivity(itemId,actId){const item=items.find(i=>i.id===itemId);if(!item)return;item.activities=item.activities.filter(a=>a.id!==actId);patchCard(item);saveData();refreshDash();}
 function delItem(id){if(!confirm('Remove this item?'))return;items=items.filter(i=>i.id!==id);delete expanded[id];renderTracker();saveData();}
-function patchCard(item){if(!item)return;const el=document.getElementById('card_'+item.id);if(!el){renderTracker();return;}const tmp=document.createElement('div');tmp.innerHTML=rowHTML(item);el.replaceWith(tmp.firstElementChild);renderPipeline();}
+function patchCard(item){if(!item)return;const el=document.getElementById('card_'+item.id);if(el){const tmp=document.createElement('div');tmp.innerHTML=rowHTML(item);el.replaceWith(tmp.firstElementChild);}else{renderTracker();}renderPipeline();if(selectedId===item.id&&document.getElementById('detailPane')){renderDetail();}}
 
 /* ══ REMINDERS ═════════════════════════════════════ */
 function setRemCat(el,cat){

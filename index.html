@@ -252,6 +252,13 @@ header{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 8
 .na-box{background:var(--s3);border:1px solid var(--b2);border-radius:7px;padding:11px 12px;margin-bottom:12px;}
 .na-lbl{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
 .notes-box{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:11px 12px;margin-bottom:10px;}
+/* #5 v2.7.15 — task link */
+.link-box{background:var(--s3);border:1px solid var(--b2);border-radius:7px;padding:11px 12px;margin-bottom:12px;}
+.link-open{display:block;margin-top:7px;font-family:'DM Mono',monospace;font-size:.66rem;color:var(--blue);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(77,158,255,.3);background:rgba(77,158,255,.08);border-radius:6px;padding:5px 8px;}
+.link-open:hover{background:rgba(77,158,255,.16);text-decoration:underline;}
+/* #6 v2.7.15 — references */
+.ref-box{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:11px 12px;margin-top:12px;}
+.ref-ta{min-height:60px;}
 .notes-lbl{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.07em;text-transform:uppercase;color:var(--m1);margin-bottom:6px;}
 .rf-inp{width:100%;padding:7px 10px;border:1px solid var(--b1);background:var(--s2);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--tx);outline:none;transition:border-color .2s;}
 .rf-inp:focus{border-color:var(--blue);}
@@ -506,12 +513,16 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ci-move-btn{background:var(--s3);border:1px solid var(--b1);cursor:pointer;font-size:.82rem;padding:2px 6px;border-radius:5px;opacity:1;color:var(--blue);transition:all .15s;}
 .ci-move-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
 /* v2.7.10 — checklist item due date */
-.ci-due-wrap{position:relative;flex-shrink:0;display:inline-flex;}
+.ci-due-wrap{position:relative;flex-shrink:0;display:inline-flex;align-items:center;}
 .ci-due-btn{display:inline-flex;align-items:center;gap:3px;background:var(--s3);border:1px solid var(--b1);cursor:pointer;font-size:.74rem;padding:2px 6px;border-radius:5px;color:var(--m1);transition:all .15s;}
 .ci-due-btn:hover{border-color:var(--b2);color:var(--tx);}
 .ci-due-btn.cdue-set{background:rgba(34,211,165,.12);border-color:rgba(34,211,165,.4);color:var(--done);}
 .ci-due-lbl{font-family:'DM Mono',monospace;font-size:.56rem;}
-.ci-due-inp{position:absolute;top:26px;left:0;z-index:30;background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:4px;color:var(--tx);font-family:'DM Mono';font-size:.7rem;}
+.ci-due-inp{margin-left:5px;background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:3px 5px;color:var(--tx);font-family:'DM Mono';font-size:.7rem;}
+/* #4 v2.7.15 — hide done toggle */
+.cl-hidedone{background:var(--s3);border:1px solid var(--b1);border-radius:6px;color:var(--m1);cursor:pointer;font-family:'DM Mono',monospace;font-size:.56rem;padding:3px 7px;transition:all .15s;flex-shrink:0;}
+.cl-hidedone:hover{color:var(--tx);border-color:var(--b2);}
+.cl-hidedone.on{background:rgba(34,211,165,.12);border-color:rgba(34,211,165,.4);color:var(--done);}
 .ci-lbl-picker{position:fixed;}
 /* v2.7.7 — Sub-checklist */
 .cl-item-wrap{display:flex;flex-direction:column;}
@@ -978,7 +989,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.14</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.15</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1782,6 +1793,12 @@ function toggleChecklist(itemId,clId){
   const cl=item.checklists.find(c=>c.id===clId);if(!cl)return;
   cl.open=!cl.open;patchCard(item);
 }
+/* #4 v2.7.15 — hide/show completed checklist items */
+function toggleHideDone(itemId,clId){
+  const item=items.find(i=>i.id===itemId);if(!item)return;
+  const cl=item.checklists.find(c=>c.id===clId);if(!cl)return;
+  cl.hideDone=!(cl.hideDone===true);patchCard(item);saveData();
+}
 function delChecklist(itemId,clId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
   if(!confirm('Delete this checklist?'))return;
@@ -1862,8 +1879,8 @@ function editSubItem(itemId,clId,ciId,sId){
 /* v2.7.10 — checklist item due dates + linked reminders */
 function toggleCIDuePicker(ciId){
   const inp=document.getElementById('cidue_'+ciId);if(!inp)return;
-  inp.style.display=inp.style.display==='none'?'block':'none';
-  if(inp.style.display!=='none'){try{inp.showPicker?inp.showPicker():inp.focus();}catch(e){inp.focus();}}
+  inp.style.display=(inp.style.display==='none'||!inp.style.display)?'inline-block':'none';
+  if(inp.style.display!=='none'){try{inp.focus();inp.showPicker&&inp.showPicker();}catch(e){}}
 }
 function setCIDue(itemId,clId,ciId,val){
   const r=_findCI(itemId,clId,ciId);if(!r)return;
@@ -2073,7 +2090,9 @@ function buildItemParts(item){
     const cdone=cl.items?.filter(i=>i.done).length||0;
     const ctotal=cl.items?.length||0;
     const isOpen=cl.open!==false;
-    const ciItems=(cl.items||[]).map(ci=>{
+    const hideDone=cl.hideDone===true;
+    const visItems=(cl.items||[]).filter(ci=>!(hideDone&&ci.done));
+    const ciItems=visItems.map(ci=>{
       const subOpen=ci.subOpen===true;
       const subs=ci.subItems||[];
       const subDone=subs.filter(s=>s.done).length;
@@ -2121,6 +2140,7 @@ function buildItemParts(item){
         <span class="cl-group-arr"  style="${isOpen?'transform:rotate(180deg)':''}">▼</span>
         <span class="cl-group-name" ondblclick="event.stopPropagation();renameChecklist('${item.id}','${cl.id}',this)" title="Double-click to rename">${esc(cl.name)}</span>
         <span class="cl-group-stats">${cdone}/${ctotal} done</span>
+        ${cdone>0?`<button class="cl-hidedone ${hideDone?'on':''}" onclick="event.stopPropagation();toggleHideDone('${item.id}','${cl.id}')" title="${hideDone?'Show completed items':'Hide completed items'}">${hideDone?'👁 Show done':'🙈 Hide done ('+cdone+')'}</button>`:''}
         <button class="cl-group-del" onclick="event.stopPropagation();delChecklist('${item.id}','${cl.id}')">×</button>
       </div>
       <div class="cl-desc-box">
@@ -2218,6 +2238,13 @@ function buildItemParts(item){
           onclick="event.stopPropagation()"
           onchange="event.stopPropagation();updateField('${item.id}','notes',this.value)" maxlength="3000">${esc(item.notes||'')}</textarea>
       </div>
+      <div class="link-box">
+        <div class="na-lbl">🔗 Link</div>
+        <input class="rf-inp" value="${esc(item.link||'')}" placeholder="Paste a URL (https://…)"
+          onclick="event.stopPropagation()"
+          onchange="event.stopPropagation();updateField('${item.id}','link',this.value)" maxlength="1000"/>
+        ${item.link?`<a class="link-open" href="${esc(item.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${esc(item.link)}">↗ ${esc(item.link)}</a>`:''}
+      </div>
       <div class="det-sec" style="margin-top:8px">
         <div class="det-lbl">Due Date</div>
         <input type="date" class="rf-inp" value="${item.dueDate||''}"
@@ -2263,6 +2290,14 @@ function buildItemParts(item){
           </div>
         </div>
         <div class="comment-list">${commentItems}</div>
+      </div>
+      <div class="ref-box">
+        <div class="na-lbl">📑 References</div>
+        <textarea class="rf-txt ref-ta" placeholder="Capture references… press Enter for 1. 2. 3."
+          onclick="event.stopPropagation()"
+          onkeydown="clDescKeydown(event,this)"
+          onchange="event.stopPropagation();updateField('${item.id}','references',this.value)"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" maxlength="4000">${esc(item.references||'')}</textarea>
       </div>
     </div>
   </div>`;
@@ -2435,6 +2470,8 @@ function toggleListPane(){
 }
 function renderDetail(){
   const pane=document.getElementById('detailPane');if(!pane)return;
+  // #1 v2.7.15 — preserve scroll position so editing doesn't jump to top
+  const prevScroll=(()=>{const s=pane.querySelector('.detail-scroll');return s?s.scrollTop:0;})();
   const item=items.find(i=>i.id===selectedId);
   if(!item){
     pane.innerHTML=`<div class="detail-empty">
@@ -2454,6 +2491,9 @@ function renderDetail(){
       <button class="dh-close" onclick="selectTask('${item.id}')" title="Close">✕</button>
     </div>
     <div class="detail-scroll">${detailHTML(item)}</div>`;
+  // restore scroll
+  const ns=pane.querySelector('.detail-scroll');
+  if(ns&&prevScroll)ns.scrollTop=prevScroll;
 }
 function toggleAddCI(itemId){const row=document.getElementById('ciadd_'+itemId);const inp=document.getElementById('ciinp_'+itemId);if(!row)return;row.classList.toggle('open');if(row.classList.contains('open')&&inp)inp.focus();}
 
@@ -2495,6 +2535,7 @@ function updateField(id,field,val){
   item[field]=val;
   if(field==='dueDate')syncTaskReminder(item);
   saveData();
+  if(field==='link'&&selectedId===id&&document.getElementById('detailPane'))renderDetail();
 }
 /* Move a task from one category to another (e.g. Personal → Project) */
 function changeCategory(id,newCat){
@@ -3564,7 +3605,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.14';
+const CURRENT_VER='v2.7.15';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

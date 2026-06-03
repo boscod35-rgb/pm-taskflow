@@ -854,26 +854,61 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .pipe-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);padding:0 6px;flex-shrink:0;display:none;}
 
 /* ============================================================
-   v2.7.10 — 3-PANE LAYOUT (authoritative; defined last to win) 
+   v2.7.11 — 3-PANE LAYOUT (authoritative; defined last to win)
+   Left: categories+timer | Center: create/filter + detail | Right: list
    ============================================================ */
-.tracker-layout{display:grid !important;grid-template-columns:248px minmax(360px,1.05fr) minmax(420px,1fr) !important;gap:0;margin:-16px 0 !important;min-height:calc(100vh - 90px);align-items:stretch;}
-.tracker-layout.no-detail{grid-template-columns:248px 0 1fr !important;}
-.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:static !important;max-height:none !important;min-height:0 !important;overflow:visible !important;}
-.tracker-layout .detail-pane{flex:none !important;min-width:0 !important;}
+.tracker-layout{display:grid !important;grid-template-columns:218px minmax(520px,1.7fr) minmax(360px,1fr) !important;gap:0;margin:-16px 0 !important;min-height:calc(100vh - 90px);align-items:stretch;}
+.tracker-layout.list-collapsed{grid-template-columns:218px 1fr 0 !important;}
+.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:sticky !important;top:86px !important;max-height:calc(100vh - 86px) !important;min-height:0 !important;overflow-y:auto !important;align-self:start !important;}
+/* Left pane compact so categories + timer are both visible without long scroll */
+.ws-list{padding:6px 6px !important;}
+.ws-item{padding:6px 8px !important;}
+.timer-box{margin:8px !important;padding:10px 10px !important;}
+.timer-display{font-size:2.1rem !important;padding:4px 0 !important;}
+
+/* CENTER column = create/filter (top) + detail (fills rest) */
+.center-col{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--b1);border-right:1px solid var(--b1);background:var(--bg);}
+.center-top{flex-shrink:0;padding:12px 14px;border-bottom:1px solid var(--b1);background:var(--s1);z-index:15;}
+.center-top .add-area{margin:0;}
+.center-top .add-row1{display:flex;gap:8px;margin-bottom:8px;}
+.center-top .add-inp{flex:1;}
+.center-top .add-row2{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.center-top .add-row2 .fld-sel,.center-top .add-row2 .fld-date{flex:1;min-width:120px;}
+.center-top .frow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.center-collapse-btn{flex-shrink:0;background:var(--s2);border:1px solid var(--b1);border-radius:8px;width:38px;color:var(--m1);cursor:pointer;font-size:1rem;}
+.center-collapse-btn:hover{color:var(--blue);border-color:var(--blue);}
+.detail-pane{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;border:none;}
+.detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--m2);}
+.de-ico{font-size:2rem;margin-bottom:12px;opacity:.6;}
+.de-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--m1);margin-bottom:6px;}
+.de-sub{font-size:.78rem;max-width:260px;line-height:1.5;}
+.detail-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:5;}
+.dh-ico{font-size:1.05rem;color:var(--gold);flex-shrink:0;}
+.dh-title{flex:1;font-family:'Syne',sans-serif;font-weight:700;font-size:1.02rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dh-stage{font-family:'DM Mono',monospace;font-size:.62rem;flex-shrink:0;}
+.dh-rename,.dh-close{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:30px;height:30px;color:var(--m1);cursor:pointer;flex-shrink:0;font-size:.82rem;}
+.dh-rename:hover,.dh-close:hover{color:var(--tx);border-color:var(--b2);}
+.detail-scroll{flex:1;overflow-y:auto;}
+/* In the wide center, the detail uses TWO columns: checklists left, notes/etc right */
+.detail-scroll .det-pane{display:grid !important;grid-template-columns:1.15fr 1fr !important;border-top:none;}
+.detail-scroll .det-left{border-right:1px solid var(--b1) !important;border-bottom:none !important;}
+@media(max-width:1150px){.detail-scroll .det-pane{grid-template-columns:1fr !important;}.detail-scroll .det-left{border-right:none !important;border-bottom:1px solid var(--b1) !important;}}
+
+/* RIGHT list pane */
 .tracker-layout .tracker-main{flex:none !important;min-width:0 !important;width:auto !important;padding:14px 16px !important;overflow:hidden !important;}
-.tracker-main .pipeline{overflow-x:auto !important;max-width:100% !important;}
+.tracker-layout.list-collapsed .tracker-main{display:none !important;}
 .tracker-main .row-name{white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
 .tracker-main .list-row{flex-wrap:nowrap !important;}
 .tracker-main .row-meta{flex-shrink:0;}
-/* center detail scrolls internally; head pinned */
-.detail-pane{display:flex;flex-direction:column;position:sticky;top:86px;max-height:calc(100vh - 86px);overflow:hidden;border-left:1px solid var(--b1);border-right:1px solid var(--b1);background:var(--bg);}
-.detail-scroll{flex:1;overflow-y:auto;}
-.detail-scroll .det-pane{display:grid !important;grid-template-columns:1fr !important;border-top:none;}
-.detail-scroll .det-left{border-right:none !important;border-bottom:1px solid var(--b1);}
+/* Pipeline: shrink so all 8 stages fit without scrolling */
+.tracker-main .pipeline{display:flex !important;flex-wrap:nowrap !important;gap:3px !important;overflow-x:auto !important;max-width:100% !important;}
+.tracker-main .pipeline .pipe-stage{min-width:0 !important;flex:1 1 0 !important;padding:5px 2px !important;}
+.tracker-main .pipeline .pipe-stage .ps-name,.tracker-main .pipeline .pipe-stage>*:first-child{font-size:.5rem !important;letter-spacing:0 !important;white-space:nowrap;}
+.tracker-main .pipeline .pipe-stage .ps-count,.tracker-main .pipeline .pipe-stage>*:nth-child(2){font-size:.95rem !important;}
+
 @media(max-width:1000px){
-  .tracker-layout, .tracker-layout.no-detail{grid-template-columns:1fr !important;}
-  .detail-pane{position:fixed;inset:86px 0 0 auto;width:min(520px,94vw);z-index:120;box-shadow:-18px 0 50px rgba(0,0,0,.5);}
-  .tracker-layout:not(.no-detail) .tracker-main{display:none;}
+  .tracker-layout, .tracker-layout.list-collapsed{grid-template-columns:1fr !important;}
+  .ws-sidebar{position:relative !important;top:0 !important;max-height:none !important;}
 }
 </style>
 </head>
@@ -920,7 +955,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.10</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.11</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -955,15 +990,15 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
   <div class="main-content" id="mainContent">
     <!-- TRACKER -->
     <div id="viewTracker">
-      <div class="tracker-layout">
-        <!-- C1 v1.7 — workspace sidebar -->
+      <div class="tracker-layout" id="trackerLayout">
+        <!-- LEFT: categories + timer (fixed) -->
         <div class="ws-sidebar" id="wsSidebar">
           <div class="ws-top">
             <span class="ws-top-label">Workspaces</span>
             <button class="ws-toggle" id="wsToggleBtn" onclick="toggleSidebar()">◀</button>
           </div>
           <div class="ws-list" id="wsList"></div>
-          <!-- v2.7.10 — Focus Timer -->
+          <!-- Focus Timer (visible right below categories) -->
           <div class="timer-box" id="timerBox">
             <div class="timer-hd"><span class="ws-top-label" style="padding:0">⏱ Focus Timer</span></div>
             <div class="timer-display" id="timerDisplay">15:00</div>
@@ -983,14 +1018,19 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
             </div>
             <div class="timer-note" id="timerNote">Set an interval & race the clock.</div>
           </div>
-          <!-- v2.7.10 — Create form moved into left pane -->
-          <div class="side-create">
-            <div class="ws-top-label" style="padding:10px 10px 4px">Create</div>
+        </div>
+
+        <!-- CENTER: create/filter (top) + detail -->
+        <div class="center-col" id="centerCol">
+          <div class="center-top" id="centerTop">
             <div class="add-area">
               <div class="add-row1">
                 <input class="add-inp" id="addInp" placeholder="Task or Milestone name…" maxlength="140"
                   oninput="clearDupError()"
                   onkeydown="if(event.key==='Enter')addItem(false)"/>
+                <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
+                <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
+                <button class="center-collapse-btn" id="centerCollapseBtn" onclick="toggleListPane()" title="Expand / collapse the task list">⤢</button>
               </div>
               <div class="dup-error" id="dupError">⚠ A task or milestone with this name already exists. Please use a different name.</div>
               <div class="add-row2">
@@ -1018,40 +1058,37 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
                   <option>Personal</option><option>Finance</option><option>Learning</option>
                   <option value="Project">Project</option>
                 </select>
-                <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
-                <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
+              </div>
+              <div class="frow">
+                <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
+                <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Milestones</button>
+                <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
+                <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
+                <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
+                <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
+                <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦 Archive</button>
+                <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
+                  <option value="">👤 All Owners</option>
+                </select>
+                <select class="ssort" id="sortSel" onchange="renderTracker()">
+                  <option value="newest">Newest</option><option value="oldest">Oldest</option>
+                  <option value="stage">By Stage</option><option value="priority">By Priority</option>
+                  <option value="milestone">Milestones first</option>
+                </select>
               </div>
             </div>
-            <div class="ws-top-label" style="padding:10px 10px 4px">Filter</div>
-            <div class="frow">
-              <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
-              <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Milestones</button>
-              <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
-              <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
-              <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
-              <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
-              <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦 Archive</button>
-              <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
-                <option value="">👤 All Owners</option>
-              </select>
-              <select class="ssort" id="sortSel" onchange="renderTracker()">
-                <option value="newest">Newest</option><option value="oldest">Oldest</option>
-                <option value="stage">By Stage</option><option value="priority">By Priority</option>
-                <option value="milestone">Milestones first</option>
-              </select>
+          </div>
+          <div class="detail-pane" id="detailPane">
+            <div class="detail-empty">
+              <div class="de-ico">👈</div>
+              <div class="de-title">Select a task</div>
+              <div class="de-sub">Pick a category, then click a task in the list to see everything here.</div>
             </div>
           </div>
         </div>
-        <!-- v2.7.10 — Center detail pane -->
-        <div class="detail-pane" id="detailPane">
-          <div class="detail-empty">
-            <div class="de-ico">👈</div>
-            <div class="de-title">Select a task</div>
-            <div class="de-sub">Pick a category, then click a task in the list to see everything here.</div>
-          </div>
-        </div>
-        <!-- Right: pipeline + list -->
-        <div class="tracker-main">
+
+        <!-- RIGHT: pipeline + list (collapsible) -->
+        <div class="tracker-main" id="trackerMain">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;overflow:hidden">
         <div class="pipeline" id="pipelineBanner" style="flex:1;margin-bottom:0;overflow-x:auto;flex-wrap:nowrap"></div>
         <button class="pipe-arch-btn" id="archBtn" onclick="toggleArchivePanel()" style="flex-shrink:0">📦 Archive</button>
@@ -2340,25 +2377,28 @@ function addItem(isMile){
 function toggleExpand(id){selectTask(id);} // back-compat alias
 function selectTask(id){
   selectedId=(selectedId===id)?null:id;
-  // update list selection highlight without full re-render
   document.querySelectorAll('.list-row.lselected').forEach(el=>el.classList.remove('lselected'));
   if(selectedId){const c=document.getElementById('card_'+selectedId);if(c)c.classList.add('lselected');}
   renderDetail();
 }
+/* v2.7.11 — collapse the right list pane so the center work area expands */
+function toggleListPane(){
+  const layout=document.getElementById('trackerLayout');if(!layout)return;
+  layout.classList.toggle('list-collapsed');
+  const b=document.getElementById('centerCollapseBtn');
+  if(b)b.textContent=layout.classList.contains('list-collapsed')?'⤡':'⤢';
+}
 function renderDetail(){
   const pane=document.getElementById('detailPane');if(!pane)return;
-  const layout=document.querySelector('.tracker-layout');
   const item=items.find(i=>i.id===selectedId);
   if(!item){
-    if(layout)layout.classList.add('no-detail');
     pane.innerHTML=`<div class="detail-empty">
-      <div class="de-ico">👈</div>
+      <div class="de-ico">📋</div>
       <div class="de-title">Select a task</div>
-      <div class="de-sub">Pick a category, then click a task in the list to see everything here.</div>
+      <div class="de-sub">Click a task in the list on the right to see and edit everything here.</div>
     </div>`;
     return;
   }
-  if(layout)layout.classList.remove('no-detail');
   const st=stageOf(item);
   pane.innerHTML=`<div class="detail-head">
       <span class="dh-ico">${item.isMile?'⬟':'📋'}</span>
@@ -3479,7 +3519,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.10';
+const CURRENT_VER='v2.7.11';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

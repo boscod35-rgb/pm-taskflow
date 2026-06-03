@@ -854,32 +854,39 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .pipe-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);padding:0 6px;flex-shrink:0;display:none;}
 
 /* ============================================================
-   v2.7.12 — 3-PANE LAYOUT (authoritative; defined last to win)
-   Left: create + categories + timer | Center: working area | Right: pipeline+filter+list(2-line)
+   v2.7.13 — FINAL 3-PANE (authoritative; last to win)
+   Ribbon: stages right | Left: categories+timer | Center: create/filter+detail | Right: name list
    ============================================================ */
-.tracker-layout{display:grid !important;grid-template-columns:240px minmax(440px,1.5fr) minmax(380px,1fr) !important;gap:0;margin:-16px 0 !important;min-height:calc(100vh - 90px);align-items:stretch;}
-.tracker-layout.list-collapsed{grid-template-columns:240px 1fr 0 !important;}
-.tracker-layout.side-collapsed{grid-template-columns:50px minmax(440px,1.7fr) minmax(380px,1fr) !important;}
-.tracker-layout.side-collapsed.list-collapsed{grid-template-columns:50px 1fr 0 !important;}
-.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:sticky !important;top:86px !important;max-height:calc(100vh - 86px) !important;min-height:0 !important;overflow-y:auto !important;align-self:start !important;display:flex !important;flex-direction:column !important;}
-/* Left create pane */
-.side-create-top{border-bottom:1px solid var(--b1);padding-bottom:8px;}
-.side-create-top .add-area{margin:0;padding:0 8px;}
-.side-create-top .add-row2{display:flex;flex-direction:column;gap:6px;margin:6px 0;}
-.side-create-top .add-row2 .fld-sel,.side-create-top .add-row2 .fld-date{width:100%;min-width:0;}
-.side-create-top .add-btns-row{display:flex;gap:6px;}
-.side-create-top .add-btns-row .abtn{flex:1;}
-.ws-sidebar.collapsed .side-create-top,.ws-sidebar.collapsed .timer-box,.ws-sidebar.collapsed .ws-top-label{display:none !important;}
-.ws-list{padding:6px 6px !important;}
-.ws-item{padding:6px 8px !important;}
-.timer-box{margin:8px !important;padding:10px 10px !important;}
-.timer-display{font-size:1.9rem !important;padding:4px 0 !important;}
+/* Pipeline lives in the top ribbon, right-aligned */
+.pbar{display:flex;align-items:center;gap:0;flex-wrap:nowrap;}
+.ribbon-pipe{display:flex !important;flex-wrap:nowrap !important;gap:3px !important;margin:0 0 0 auto !important;padding:4px 0 !important;overflow:visible !important;align-items:center;}
+.ribbon-pipe .pipe-stage{min-width:0 !important;flex:0 0 auto !important;padding:3px 6px !important;flex-direction:column !important;gap:1px !important;}
+.ribbon-pipe .pipe-stage>*:first-child{font-size:.46rem !important;letter-spacing:.02em !important;white-space:nowrap;}
+.ribbon-pipe .pipe-stage>*:nth-child(2){font-size:.82rem !important;line-height:1;}
+.ribbon-arch{margin-left:8px !important;flex-shrink:0;padding:5px 9px !important;font-size:.8rem !important;}
 
-/* CENTER working area */
-.center-col{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--b1);border-right:1px solid var(--b1);background:var(--bg);}
-.center-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0;}
-.center-bar-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--m2);flex:1;}
-.center-collapse-btn{flex-shrink:0;background:var(--s2);border:1px solid var(--b1);border-radius:8px;width:34px;height:28px;color:var(--m1);cursor:pointer;font-size:.95rem;}
+.tracker-layout{display:grid !important;grid-template-columns:230px minmax(460px,1.7fr) 300px !important;gap:0;margin:-16px 0 !important;min-height:calc(100vh - 90px);align-items:stretch;}
+.tracker-layout.list-collapsed{grid-template-columns:230px 1fr 40px !important;}
+.tracker-layout.side-collapsed{grid-template-columns:50px minmax(460px,1.8fr) 300px !important;}
+.tracker-layout.side-collapsed.list-collapsed{grid-template-columns:50px 1fr 40px !important;}
+.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:sticky !important;top:86px !important;max-height:calc(100vh - 86px) !important;min-height:0 !important;overflow-y:auto !important;align-self:start !important;display:flex !important;flex-direction:column !important;border-right:1px solid var(--b1) !important;}
+.ws-sidebar.collapsed .timer-box,.ws-sidebar.collapsed .ws-top-label{display:none !important;}
+.ws-list{padding:6px 6px !important;}
+.ws-item{padding:7px 8px !important;border:1px solid transparent;}
+.ws-item.ws-act{border-color:var(--b2) !important;}
+.timer-box{margin:8px !important;padding:10px 10px !important;border:1px solid var(--b1) !important;border-radius:10px !important;}
+.timer-display{font-size:2rem !important;padding:4px 0 !important;}
+
+/* CENTER: create/filter (top) + detail */
+.center-col{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--b1);background:var(--bg);}
+.center-top{flex-shrink:0;padding:12px 14px;border-bottom:1px solid var(--b1);background:var(--s1);}
+.center-top .add-area{margin:0;}
+.center-top .add-row1{display:flex;gap:8px;margin-bottom:8px;}
+.center-top .add-inp{flex:1;}
+.center-top .add-row2{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.center-top .add-row2 .fld-sel,.center-top .add-row2 .fld-date{flex:1;min-width:120px;}
+.center-top .frow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.center-collapse-btn{flex-shrink:0;background:var(--s2);border:1px solid var(--b1);border-radius:8px;width:38px;color:var(--m1);cursor:pointer;font-size:1rem;}
 .center-collapse-btn:hover{color:var(--blue);border-color:var(--blue);}
 .detail-pane{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;border:none;}
 .detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--m2);}
@@ -893,34 +900,38 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .dh-rename,.dh-close{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:30px;height:30px;color:var(--m1);cursor:pointer;flex-shrink:0;font-size:.82rem;}
 .dh-rename:hover,.dh-close:hover{color:var(--tx);border-color:var(--b2);}
 .detail-scroll{flex:1;overflow-y:auto;}
-/* detail uses TWO columns: checklists left, notes/etc right */
 .detail-scroll .det-pane{display:grid !important;grid-template-columns:1.15fr 1fr !important;border-top:none;}
 .detail-scroll .det-left{border-right:1px solid var(--b1) !important;border-bottom:none !important;}
-@media(max-width:1150px){.detail-scroll .det-pane{grid-template-columns:1fr !important;}.detail-scroll .det-left{border-right:none !important;border-bottom:1px solid var(--b1) !important;}}
+@media(max-width:1200px){.detail-scroll .det-pane{grid-template-columns:1fr !important;}.detail-scroll .det-left{border-right:none !important;border-bottom:1px solid var(--b1) !important;}}
 
-/* RIGHT list pane */
-.tracker-layout .tracker-main{flex:none !important;min-width:0 !important;width:auto !important;padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;position:sticky;top:86px;max-height:calc(100vh - 86px);align-self:start;}
-.tracker-layout.list-collapsed .tracker-main{display:none !important;}
-.right-fixed{flex-shrink:0;background:var(--bg);padding:14px 14px 8px;border-bottom:1px solid var(--b1);}
-#taskGrid{flex:1;padding:10px 14px 30px;overflow-y:auto;min-height:0;}
-/* Pipeline fixed frame — fit all 8 stages */
-.tracker-main .pipeline{display:flex !important;flex-wrap:nowrap !important;gap:3px !important;overflow:hidden !important;max-width:100% !important;}
-.tracker-main .pipeline .pipe-stage{min-width:0 !important;flex:1 1 0 !important;padding:5px 1px !important;}
-.tracker-main .pipeline .pipe-stage>*:first-child{font-size:.46rem !important;letter-spacing:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-.tracker-main .pipeline .pipe-stage>*:nth-child(2){font-size:.9rem !important;}
-.tracker-main .frow{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
-.tracker-main .frow .owner-filter,.tracker-main .frow .ssort{flex:1;min-width:100px;}
-/* Task rows in TWO lines: title on top, meta below */
-.tracker-main .list-row{flex-wrap:nowrap !important;}
-.tracker-main .row-hd{display:flex !important;flex-wrap:wrap !important;align-items:center !important;row-gap:4px;}
-.tracker-main .row-ico{flex:0 0 auto;}
-.tracker-main .row-name{white-space:normal !important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden !important;flex:1 1 0 !important;min-width:0;line-height:1.3;font-size:.86rem;}
-.tracker-main .row-meta{flex:1 1 100% !important;flex-wrap:wrap;margin-top:2px;gap:6px;}
-.tracker-main .row-meta .ring-wrap,.tracker-main .row-meta svg{margin-left:auto;}
+/* RIGHT: name list (collapsible) */
+.tracker-layout .tracker-main{flex:none !important;min-width:0 !important;width:auto !important;padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;position:sticky;top:86px;max-height:calc(100vh - 86px);align-self:start;background:var(--bg);}
+.list-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0;}
+.list-head-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--m2);flex:1;}
+.list-collapse-btn{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:28px;height:26px;color:var(--m1);cursor:pointer;font-size:.7rem;}
+.list-collapse-btn:hover{color:var(--blue);border-color:var(--blue);}
+.namelist{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;min-height:0;}
+.namerow{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--b1);border-radius:9px;background:var(--s1);cursor:pointer;transition:all .15s;border-left:3px solid var(--sc);}
+.namerow:hover{border-color:var(--b2);background:var(--s2);transform:translateX(-1px);}
+.namerow.nr-sel{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue);background:color-mix(in srgb,var(--blue) 8%,var(--s1));}
+.namerow.nr-mile{border-left-color:var(--gold);}
+.nr-ico{font-size:.9rem;flex-shrink:0;color:var(--gold);}
+.nr-body{flex:1;min-width:0;}
+.nr-name{font-weight:600;font-size:.84rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.nr-mbadge{color:var(--gold);font-size:.7rem;}
+.nr-meta{display:flex;align-items:center;gap:5px;margin-top:3px;font-family:'DM Mono',monospace;font-size:.58rem;color:var(--m2);flex-wrap:wrap;}
+.nr-dot{width:3px;height:3px;border-radius:50%;background:var(--m2);}
+.nr-arr{color:var(--m2);font-size:.85rem;flex-shrink:0;}
+.namerow.nr-sel .nr-arr{color:var(--blue);}
+/* collapsed list = thin strip with just the expand button */
+.tracker-layout.list-collapsed .tracker-main{overflow:visible !important;}
+.tracker-layout.list-collapsed .namelist,.tracker-layout.list-collapsed .list-head-label{display:none !important;}
+.tracker-layout.list-collapsed .list-head{flex-direction:column;padding:8px 4px;border-left:1px solid var(--b1);height:100%;}
 
 @media(max-width:1000px){
   .tracker-layout, .tracker-layout.list-collapsed, .tracker-layout.side-collapsed{grid-template-columns:1fr !important;}
   .ws-sidebar{position:relative !important;top:0 !important;max-height:none !important;}
+  .ribbon-pipe{display:none !important;}
 }
 </style>
 </head>
@@ -967,7 +978,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.12</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.13</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -996,6 +1007,9 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
       <button class="ptab" id="pfilterToggle" onclick="togglePeriodFilter()" title="When ON, the tracker shows only items in the selected period">📅 Filter: Off</button>
       <div class="psep"></div>
       <div class="plbl" id="plbl"></div>
+      <!-- v2.7.13 — pipeline stages live in the ribbon, right side -->
+      <div class="pipeline ribbon-pipe" id="pipelineBanner"></div>
+      <button class="pipe-arch-btn ribbon-arch" id="archBtn" onclick="toggleArchivePanel()" title="Archived items">📦</button>
     </div>
   </header>
 
@@ -1003,16 +1017,46 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
     <!-- TRACKER -->
     <div id="viewTracker">
       <div class="tracker-layout" id="trackerLayout">
-        <!-- LEFT: create (top) + categories + timer -->
+        <!-- LEFT: categories + timer (collapsible) -->
         <div class="ws-sidebar" id="wsSidebar">
-          <!-- Create pane on top -->
-          <div class="side-create-top" id="sideCreateTop">
-            <div class="ws-top-label" style="padding:10px 10px 6px">➕ Create</div>
+          <div class="ws-top">
+            <span class="ws-top-label">Workspaces</span>
+            <button class="ws-toggle" id="wsToggleBtn" onclick="toggleSidebar()">◀</button>
+          </div>
+          <div class="ws-list" id="wsList"></div>
+          <!-- Focus Timer -->
+          <div class="timer-box" id="timerBox">
+            <div class="timer-hd"><span class="ws-top-label" style="padding:0">⏱ Focus Timer</span></div>
+            <div class="timer-display" id="timerDisplay">15:00</div>
+            <div class="timer-ctrls">
+              <select class="timer-sel" id="timerSel" onchange="onTimerSelChange()">
+                <option value="15">15 min</option>
+                <option value="30">30 min</option>
+                <option value="45">45 min</option>
+                <option value="60">60 min</option>
+                <option value="custom">Custom…</option>
+              </select>
+              <input class="timer-custom" id="timerCustom" type="number" min="1" max="600" placeholder="min" style="display:none" onchange="onTimerCustom()"/>
+            </div>
+            <div class="timer-btns">
+              <button class="timer-btn tb-start" id="timerStartBtn" onclick="toggleTimer()">▶ Start</button>
+              <button class="timer-btn tb-reset" onclick="resetTimer()">↺ Reset</button>
+            </div>
+            <div class="timer-note" id="timerNote">Set an interval & race the clock.</div>
+          </div>
+        </div>
+
+        <!-- CENTER: create + filters (top), then detail (2-col) -->
+        <div class="center-col" id="centerCol">
+          <div class="center-top" id="centerTop">
             <div class="add-area">
               <div class="add-row1">
                 <input class="add-inp" id="addInp" placeholder="Task or Milestone name…" maxlength="140"
                   oninput="clearDupError()"
                   onkeydown="if(event.key==='Enter')addItem(false)"/>
+                <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
+                <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
+                <button class="center-collapse-btn" id="centerCollapseBtn" onclick="toggleListPane()" title="Expand / collapse the task list">⤢</button>
               </div>
               <div class="dup-error" id="dupError">⚠ A task or milestone with this name already exists. Please use a different name.</div>
               <div class="add-row2">
@@ -1041,44 +1085,24 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
                   <option value="Project">Project</option>
                 </select>
               </div>
-              <div class="add-btns-row">
-                <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
-                <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
+              <div class="frow">
+                <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
+                <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Milestones</button>
+                <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
+                <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
+                <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
+                <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
+                <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦 Archive</button>
+                <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
+                  <option value="">👤 All Owners</option>
+                </select>
+                <select class="ssort" id="sortSel" onchange="renderTracker()">
+                  <option value="newest">Newest</option><option value="oldest">Oldest</option>
+                  <option value="stage">By Stage</option><option value="priority">By Priority</option>
+                  <option value="milestone">Milestones first</option>
+                </select>
               </div>
             </div>
-          </div>
-          <div class="ws-top">
-            <span class="ws-top-label">Workspaces</span>
-            <button class="ws-toggle" id="wsToggleBtn" onclick="toggleSidebar()">◀</button>
-          </div>
-          <div class="ws-list" id="wsList"></div>
-          <!-- Focus Timer -->
-          <div class="timer-box" id="timerBox">
-            <div class="timer-hd"><span class="ws-top-label" style="padding:0">⏱ Focus Timer</span></div>
-            <div class="timer-display" id="timerDisplay">15:00</div>
-            <div class="timer-ctrls">
-              <select class="timer-sel" id="timerSel" onchange="onTimerSelChange()">
-                <option value="15">15 min</option>
-                <option value="30">30 min</option>
-                <option value="45">45 min</option>
-                <option value="60">60 min</option>
-                <option value="custom">Custom…</option>
-              </select>
-              <input class="timer-custom" id="timerCustom" type="number" min="1" max="600" placeholder="min" style="display:none" onchange="onTimerCustom()"/>
-            </div>
-            <div class="timer-btns">
-              <button class="timer-btn tb-start" id="timerStartBtn" onclick="toggleTimer()">▶ Start</button>
-              <button class="timer-btn tb-reset" onclick="resetTimer()">↺ Reset</button>
-            </div>
-            <div class="timer-note" id="timerNote">Set an interval & race the clock.</div>
-          </div>
-        </div>
-
-        <!-- CENTER: working area (detail only) -->
-        <div class="center-col" id="centerCol">
-          <div class="center-bar">
-            <span class="center-bar-label">Working Area</span>
-            <button class="center-collapse-btn" id="centerCollapseBtn" onclick="toggleListPane()" title="Expand / collapse the task list">⤢</button>
           </div>
           <div class="detail-pane" id="detailPane">
             <div class="detail-empty">
@@ -1089,42 +1113,23 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
           </div>
         </div>
 
-        <!-- RIGHT: pipeline (fixed) + filters + list (2-line) -->
+        <!-- RIGHT: simple task-name list (collapsible) -->
         <div class="tracker-main" id="trackerMain">
-          <div class="right-fixed" id="rightFixed">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;overflow:hidden">
-              <div class="pipeline" id="pipelineBanner" style="flex:1;margin-bottom:0;overflow-x:auto;flex-wrap:nowrap"></div>
-              <button class="pipe-arch-btn" id="archBtn" onclick="toggleArchivePanel()" style="flex-shrink:0">📦</button>
-            </div>
-            <div class="frow">
-              <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
-              <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Miles</button>
-              <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
-              <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
-              <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
-              <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
-              <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦</button>
-              <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
-                <option value="">👤 All Owners</option>
-              </select>
-              <select class="ssort" id="sortSel" onchange="renderTracker()">
-                <option value="newest">Newest</option><option value="oldest">Oldest</option>
-                <option value="stage">By Stage</option><option value="priority">By Priority</option>
-                <option value="milestone">Milestones first</option>
-              </select>
-            </div>
+          <div class="list-head">
+            <span class="list-head-label" id="listHeadLabel">Tasks</span>
+            <button class="list-collapse-btn" id="listCollapseBtn" onclick="toggleListPane()" title="Collapse / expand the list">▶</button>
           </div>
-      <div id="archivePanel" style="display:none;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:12px;margin-bottom:10px">
-        <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);margin-bottom:8px">📦 Archived — Read Only</div>
-        <div id="archivePanelList"></div>
-      </div>
-          <div id="recoverBanner" style="display:none;background:rgba(34,211,165,.1);border:1px solid rgba(34,211,165,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:'DM Mono',monospace;font-size:.75rem;align-items:center;gap:10px">
-        <span style="color:var(--done)">♻️ Missing items? Check browser cache</span>
-        <button onclick="tryRecoverFromCache()" style="background:var(--done);color:#000;border:none;border-radius:5px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:.65rem;cursor:pointer;font-weight:700">Recover Now</button>
-        <button onclick="document.getElementById('recoverBanner').style.display='none'" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.9rem;margin-left:auto">×</button>
-      </div>
-      <div id="archiveBanner" style="display:none;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin-bottom:10px;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:.8rem;color:var(--red)">📦 Archive View — click ↩ Restore to move back.</span><button onclick="setFilter(null,'all')" style="background:none;border:1px solid var(--b1);border-radius:5px;padding:3px 10px;font-size:.7rem;color:var(--m1);cursor:pointer;margin-left:auto">← Back to All</button></div>
-      <div class="task-list" id="taskGrid"></div>
+          <div id="archivePanel" style="display:none;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:12px;margin:10px">
+            <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);margin-bottom:8px">📦 Archived — Read Only</div>
+            <div id="archivePanelList"></div>
+          </div>
+          <div id="recoverBanner" style="display:none;background:rgba(34,211,165,.1);border:1px solid rgba(34,211,165,.3);border-radius:8px;padding:10px 14px;margin:10px;font-family:'DM Mono',monospace;font-size:.75rem;align-items:center;gap:10px">
+            <span style="color:var(--done)">♻️ Missing items? Check browser cache</span>
+            <button onclick="tryRecoverFromCache()" style="background:var(--done);color:#000;border:none;border-radius:5px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:.65rem;cursor:pointer;font-weight:700">Recover Now</button>
+            <button onclick="document.getElementById('recoverBanner').style.display='none'" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.9rem;margin-left:auto">×</button>
+          </div>
+          <div id="archiveBanner" style="display:none;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;margin:10px;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:.8rem;color:var(--red)">📦 Archive View — click ↩ Restore to move back.</span><button onclick="setFilter(null,'all')" style="background:none;border:1px solid var(--b1);border-radius:5px;padding:3px 10px;font-size:.7rem;color:var(--m1);cursor:pointer;margin-left:auto">← Back to All</button></div>
+          <div class="namelist" id="taskGrid"></div>
         </div><!-- end tracker-main -->
       </div><!-- end tracker-layout -->
     </div>
@@ -2295,6 +2300,22 @@ function buildItemParts(item){
 /* List rows show heads only; detail renders in the center pane (v2.7.10) */
 function rowHTML(item){return buildItemParts(item).head;}
 function detailHTML(item){return buildItemParts(item).detail;}
+/* v2.7.13 — compact name row for the right list (names in two rows: title + minimal meta) */
+function nameRowHTML(item){
+  const st=stageOf(item);
+  const isSel=(selectedId===item.id);
+  const days=ageDays(item);
+  const priLbl={high:'HIGH',medium:'MED',low:'LOW'}[item.priority||'medium'];
+  const priCls={high:'pri-hi',medium:'pri-md',low:'pri-lo'}[item.priority||'medium'];
+  return `<div class="namerow ${isSel?'nr-sel':''} ${item.isMile?'nr-mile':''}" id="card_${item.id}" onclick="selectTask('${item.id}')" style="--sc:${st.col}">
+    <span class="nr-ico">${item.isMile?'⬟':'📋'}</span>
+    <div class="nr-body">
+      <div class="nr-name">${esc(item.text)}${item.isMile?' <span class="nr-mbadge">⬟</span>':''}</div>
+      <div class="nr-meta"><span class="pri ${priCls}">${priLbl}</span><span class="nr-dot"></span>${item.owner?esc(item.owner)+' · ':''}<span style="color:${st.col}">${st.short}</span>${item.dueDate&&item.stage!==8?' · '+item.dueDate:''}</div>
+    </div>
+    <span class="nr-arr">${isSel?'●':'›'}</span>
+  </div>`;
+}
 
 
 /* ══ TRACKER RENDER ════════════════════════════════ */
@@ -2355,7 +2376,7 @@ function renderTracker(){
   else if(sort==='milestone') vis.sort((a,b)=>(b.isMile?1:0)-(a.isMile?1:0));
 
   document.getElementById('taskGrid').innerHTML=vis.length
-    ?vis.map(rowHTML).join('')
+    ?vis.map(nameRowHTML).join('')
     :`<div class="empty"><div class="eico">${filter==='archive'?'📦':(periodFilterOn?'📅':'○')}</div><div class="etitle">${filter==='archive'?'No archived items':(periodFilterOn?'Nothing in '+pLabel(pView,offset):'Nothing here')}</div><div class="esub">${filter==='archive'?'Closed tasks auto-archive after 7 days':(periodFilterOn?'No tasks for this period. Use ◀ ▶ to change it, toggle 📅 off to see all, or add a task.':'Add a task or milestone above')}</div></div>`;
   // v2.7.10 — keep the detail pane in sync with selection
   if(selectedId&&!items.some(i=>i.id===selectedId))selectedId=null;
@@ -2408,8 +2429,9 @@ function selectTask(id){
 function toggleListPane(){
   const layout=document.getElementById('trackerLayout');if(!layout)return;
   layout.classList.toggle('list-collapsed');
-  const b=document.getElementById('centerCollapseBtn');
-  if(b)b.textContent=layout.classList.contains('list-collapsed')?'⤡':'⤢';
+  const collapsed=layout.classList.contains('list-collapsed');
+  const b=document.getElementById('centerCollapseBtn'); if(b)b.textContent=collapsed?'⤡':'⤢';
+  const lb=document.getElementById('listCollapseBtn'); if(lb)lb.textContent=collapsed?'◀':'▶';
 }
 function renderDetail(){
   const pane=document.getElementById('detailPane');if(!pane)return;
@@ -2489,7 +2511,7 @@ function addActivity(itemId){const inp=document.getElementById('ciinp_'+itemId);
 function toggleAct(itemId,actId){const item=items.find(i=>i.id===itemId);if(!item)return;const act=item.activities.find(a=>a.id===actId);if(!act)return;act.done=!act.done;patchCard(item);saveData();refreshDash();}
 function delActivity(itemId,actId){const item=items.find(i=>i.id===itemId);if(!item)return;item.activities=item.activities.filter(a=>a.id!==actId);patchCard(item);saveData();refreshDash();}
 function delItem(id){if(!confirm('Remove this item?'))return;items=items.filter(i=>i.id!==id);delete expanded[id];renderTracker();saveData();}
-function patchCard(item){if(!item)return;const el=document.getElementById('card_'+item.id);if(el){const tmp=document.createElement('div');tmp.innerHTML=rowHTML(item);el.replaceWith(tmp.firstElementChild);}else{renderTracker();}renderPipeline();if(selectedId===item.id&&document.getElementById('detailPane')){renderDetail();}}
+function patchCard(item){if(!item)return;const el=document.getElementById('card_'+item.id);if(el){const tmp=document.createElement('div');tmp.innerHTML=nameRowHTML(item);el.replaceWith(tmp.firstElementChild);}else{renderTracker();}renderPipeline();if(selectedId===item.id&&document.getElementById('detailPane')){renderDetail();}}
 
 /* ══ REMINDERS ═════════════════════════════════════ */
 function setRemCat(el,cat){
@@ -3542,7 +3564,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.12';
+const CURRENT_VER='v2.7.13';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

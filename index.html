@@ -371,9 +371,28 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .comment-del:hover{color:var(--red)!important;}
 /* C1 v1.7 — workspace sidebar */
 .tracker-layout{display:flex;gap:0;margin:-16px;min-height:calc(100vh - 90px);align-items:flex-start;}
-.ws-sidebar{width:190px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;transition:width .25s ease;overflow:hidden;min-height:calc(100vh - 90px);position:sticky;top:86px;}
+.ws-sidebar{width:190px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;transition:width .25s ease;overflow-y:auto;overflow-x:hidden;min-height:calc(100vh - 90px);max-height:calc(100vh - 86px);position:sticky;top:86px;}
 .ws-sidebar.collapsed{width:48px;}
-.ws-top{display:flex;align-items:center;justify-content:space-between;padding:12px 10px 8px;border-bottom:1px solid var(--b1);}
+/* v2.7.10 — Focus Timer */
+.timer-box{margin:10px;padding:14px 12px;border-top:1px solid var(--b1);display:flex;flex-direction:column;gap:9px;}
+.ws-sidebar.collapsed .timer-box{display:none;}
+.timer-hd{display:flex;align-items:center;}
+.timer-display{font-family:'DM Mono',monospace;font-weight:500;font-size:2.5rem;letter-spacing:.02em;text-align:center;color:var(--tx);line-height:1;padding:6px 0;font-variant-numeric:tabular-nums;transition:color .2s;}
+.timer-display.running{color:var(--blue);}
+.timer-display.warn{color:var(--gold);}
+.timer-display.done{color:var(--red);animation:tflash .6s ease infinite;}
+@keyframes tflash{50%{opacity:.4;}}
+.timer-ctrls{display:flex;gap:6px;}
+.timer-sel,.timer-custom{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:6px 8px;color:var(--m1);font-family:'DM Sans';font-size:.75rem;outline:none;cursor:pointer;}
+.timer-sel:focus,.timer-custom:focus{border-color:var(--blue);}
+.timer-btns{display:flex;gap:6px;}
+.timer-btn{flex:1;border:none;border-radius:7px;padding:8px;font-family:'DM Sans';font-weight:600;font-size:.76rem;cursor:pointer;transition:.15s;}
+.tb-start{background:var(--blue-d);color:var(--blue);border:1px solid rgba(77,158,255,.35);}
+.tb-start:hover{background:var(--blue);color:#fff;}
+.tb-start.pausing{background:rgba(240,180,41,.13);color:var(--gold);border-color:rgba(240,180,41,.4);}
+.tb-reset{background:var(--s2);color:var(--m1);border:1px solid var(--b1);}
+.tb-reset:hover{color:var(--tx);border-color:var(--b2);}
+.timer-note{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m2);text-align:center;line-height:1.4;}
 .ws-top-label{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--m2);white-space:nowrap;overflow:hidden;}
 .ws-sidebar.collapsed .ws-top-label{display:none;}
 .ws-toggle{background:none;border:1px solid var(--b1);border-radius:4px;color:var(--m1);cursor:pointer;font-size:.65rem;padding:3px 6px;flex-shrink:0;transition:all .2s;}
@@ -451,6 +470,13 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ci-lbl-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
 .ci-move-btn{background:var(--s3);border:1px solid var(--b1);cursor:pointer;font-size:.82rem;padding:2px 6px;border-radius:5px;opacity:1;color:var(--blue);transition:all .15s;}
 .ci-move-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+/* v2.7.10 — checklist item due date */
+.ci-due-wrap{position:relative;flex-shrink:0;display:inline-flex;}
+.ci-due-btn{display:inline-flex;align-items:center;gap:3px;background:var(--s3);border:1px solid var(--b1);cursor:pointer;font-size:.74rem;padding:2px 6px;border-radius:5px;color:var(--m1);transition:all .15s;}
+.ci-due-btn:hover{border-color:var(--b2);color:var(--tx);}
+.ci-due-btn.cdue-set{background:rgba(34,211,165,.12);border-color:rgba(34,211,165,.4);color:var(--done);}
+.ci-due-lbl{font-family:'DM Mono',monospace;font-size:.56rem;}
+.ci-due-inp{position:absolute;top:26px;left:0;z-index:30;background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:4px;color:var(--tx);font-family:'DM Mono';font-size:.7rem;}
 .ci-lbl-picker{position:fixed;}
 /* v2.7.7 — Sub-checklist */
 .cl-item-wrap{display:flex;flex-direction:column;}
@@ -840,7 +866,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.9</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.10</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -883,6 +909,26 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
             <button class="ws-toggle" id="wsToggleBtn" onclick="toggleSidebar()">◀</button>
           </div>
           <div class="ws-list" id="wsList"></div>
+          <!-- v2.7.10 — Focus Timer -->
+          <div class="timer-box" id="timerBox">
+            <div class="timer-hd"><span class="ws-top-label" style="padding:0">⏱ Focus Timer</span></div>
+            <div class="timer-display" id="timerDisplay">15:00</div>
+            <div class="timer-ctrls">
+              <select class="timer-sel" id="timerSel" onchange="onTimerSelChange()">
+                <option value="15">15 min</option>
+                <option value="30">30 min</option>
+                <option value="45">45 min</option>
+                <option value="60">60 min</option>
+                <option value="custom">Custom…</option>
+              </select>
+              <input class="timer-custom" id="timerCustom" type="number" min="1" max="600" placeholder="min" style="display:none" onchange="onTimerCustom()"/>
+            </div>
+            <div class="timer-btns">
+              <button class="timer-btn tb-start" id="timerStartBtn" onclick="toggleTimer()">▶ Start</button>
+              <button class="timer-btn tb-reset" onclick="resetTimer()">↺ Reset</button>
+            </div>
+            <div class="timer-note" id="timerNote">Set an interval & race the clock.</div>
+          </div>
         </div>
         <!-- Main tracker area -->
         <div class="tracker-main">
@@ -1642,7 +1688,9 @@ function toggleCLItem(itemId,clId,ciId){
 function delCLItem(itemId,clId,ciId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
   const cl=item.checklists.find(c=>c.id===clId);if(!cl)return;
-  cl.items=cl.items.filter(i=>i.id!==ciId);patchCard(item);saveData();refreshDash();
+  cl.items=cl.items.filter(i=>i.id!==ciId);
+  if(reminders)reminders=reminders.filter(r=>r.linkedCIId!==ciId); // remove linked reminder
+  patchCard(item);saveData();refreshDash();
 }
 /* v2.7.7 — Sub-checklists: each checklist item can have its own sub-items, toggled on/off. */
 function _findCI(itemId,clId,ciId){
@@ -1681,6 +1729,37 @@ function editSubItem(itemId,clId,ciId,sId){
   const s=r.ci.subItems.find(x=>x.id===sId);if(!s)return;
   const nv=prompt('Edit sub-item:',s.text);
   if(nv!==null&&nv.trim()){s.text=nv.trim();patchCard(r.item);saveData();}
+}
+/* v2.7.10 — checklist item due dates + linked reminders */
+function toggleCIDuePicker(ciId){
+  const inp=document.getElementById('cidue_'+ciId);if(!inp)return;
+  inp.style.display=inp.style.display==='none'?'block':'none';
+  if(inp.style.display!=='none'){try{inp.showPicker?inp.showPicker():inp.focus();}catch(e){inp.focus();}}
+}
+function setCIDue(itemId,clId,ciId,val){
+  const r=_findCI(itemId,clId,ciId);if(!r)return;
+  r.ci.dueDate=val||'';
+  syncCIReminder(r.item,r.cl,r.ci);
+  const inp=document.getElementById('cidue_'+ciId);if(inp)inp.style.display='none';
+  patchCard(r.item);saveData();
+  if(document.getElementById('viewReminder')&&document.getElementById('viewReminder').style.display!=='none')renderReminders();
+}
+/* Create/update/remove the reminder linked to a checklist item */
+function syncCIReminder(item,cl,ci){
+  reminders=reminders||[];
+  const key='ci:'+ci.id;
+  let r=reminders.find(x=>x.linkedCIId===ci.id);
+  if(!ci.dueDate){ if(r)reminders=reminders.filter(x=>x.linkedCIId!==ci.id); return; }
+  if(!r){
+    r={id:uid(),linkedCIId:ci.id,linkedItemId:item.id,fromChecklist:true,done:false,priority:ci.flagged?'important':'normal',
+       notifyBefore:'1d',active:true,createdAt:Date.now()};
+    reminders.push(r);
+  }
+  r.text='☑ '+(ci.text||'Checklist item')+'  ·  '+(cl.name||'Checklist')+' / '+(item.text||'');
+  r.dueDate=ci.dueDate;
+  r.category=remGroupForCat(item.cat);
+  r.fromChecklist=true;
+  r.linkedItemId=item.id;
 }
 /* C10 — inline edit checklist item */
 function editCLItem(itemId,clId,ciId){
@@ -1893,6 +1972,12 @@ function rowHTML(item){
         ondblclick="event.stopPropagation();editCLItem('${item.id}','${cl.id}','${ci.id}')"
         title="Double-click to edit">${esc(ci.text)}</span>
       <button class="ci-sub-toggle ${subOpen?'cst-on':''}" onclick="event.stopPropagation();toggleSubChecklist('${item.id}','${cl.id}','${ci.id}')" title="${subOpen?'Hide sub-checklist':'Add / show sub-checklist'}">⊞${subs.length?`<span class="cst-cnt">${subDone}/${subs.length}</span>`:''}</button>
+      <span class="ci-due-wrap">
+        <button class="ci-due-btn ${ci.dueDate?'cdue-set':''}" onclick="event.stopPropagation();toggleCIDuePicker('${ci.id}')" title="${ci.dueDate?'Due '+ci.dueDate:'Set due date'}">📅${ci.dueDate?`<span class="ci-due-lbl">${ci.dueDate.slice(5)}</span>`:''}</button>
+        <input type="date" class="ci-due-inp" id="cidue_${ci.id}" value="${ci.dueDate||''}" style="display:none"
+          onclick="event.stopPropagation()"
+          onchange="event.stopPropagation();setCIDue('${item.id}','${cl.id}','${ci.id}',this.value)"/>
+      </span>
       <button class="ci-flag ${ci.flagged?'ci-flag-on':'ci-flag-off'}" onclick="event.stopPropagation();toggleCIFlag('${item.id}','${cl.id}','${ci.id}')" title="${ci.flagged?'Flagged — click to remove':'Flag for follow-up'}">⚑</button>
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">L</button>
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
@@ -2347,21 +2432,25 @@ function renderRemSidebar(){
     if(cat==='all')return gr.filter(function(r){return!r.done;}).length;
     if(cat==='today')return gr.filter(function(r){return!r.done&&r.dueDate===today;}).length;
     if(cat==='important')return gr.filter(function(r){return!r.done&&r.priority==='important';}).length;
+    if(cat==='checklist')return gr.filter(function(r){return!r.done&&r.fromChecklist===true;}).length;
     return gr.filter(function(r){return r.done;}).length;
   }
   el.innerHTML=
     '<div class="rem-sidebar-title">\uD83D\uDD14 Reminders</div>'
     +'<div class="rem-grp-hdr">All</div>'
     +btn('all','all','\uD83D\uDCCB All', cnt('all','all'))
+    +btn('all','checklist','\u2611 From Checklists', cnt('all','checklist'))
     +'<div class="rem-grp-hdr">Work</div>'
     +btn('work','all','All', cnt('work','all'))
     +btn('work','today','Today', cnt('work','today'))
     +btn('work','important','\u2B50 Important', cnt('work','important'))
+    +btn('work','checklist','\u2611 Checklist', cnt('work','checklist'))
     +btn('work','completed','Completed', cnt('work','completed'))
     +'<div class="rem-grp-hdr">Personal</div>'
     +btn('personal','all','All', cnt('personal','all'))
     +btn('personal','today','Today', cnt('personal','today'))
     +btn('personal','important','\u2B50 Important', cnt('personal','important'))
+    +btn('personal','checklist','\u2611 Checklist', cnt('personal','checklist'))
     +btn('personal','completed','Completed', cnt('personal','completed'));
 }
 
@@ -2390,6 +2479,7 @@ function renderReminders(){
     if(remCat==='all')vis=activeRems.concat(inactiveRems);
     else if(remCat==='today')vis=activeRems.filter(function(r){return r.dueDate===today;});
     else if(remCat==='important')vis=activeRems.filter(function(r){return r.priority==='important';});
+    else if(remCat==='checklist')vis=activeRems.filter(function(r){return r.fromChecklist===true;});
     else if(remCat==='completed')vis=doneRems.slice();
 
     var el=document.getElementById('remList');
@@ -3222,8 +3312,71 @@ function updateClDesc(itemId,clId,ta){
 }
 
 /* ══ BOOT ══════════════════════════════════════════ */
+/* ══ v2.7.10 FOCUS TIMER ═══════════════════════════ */
+let _tmrTotal=15*60, _tmrLeft=15*60, _tmrId=null, _tmrRunning=false;
+function fmtTimer(s){const m=Math.floor(s/60),ss=s%60;return (m<10?'0':'')+m+':'+(ss<10?'0':'')+ss;}
+function paintTimer(){
+  const d=document.getElementById('timerDisplay'); if(!d)return;
+  d.textContent=fmtTimer(_tmrLeft);
+  d.classList.remove('running','warn','done');
+  if(_tmrLeft<=0)d.classList.add('done');
+  else if(_tmrRunning&&_tmrLeft<=60)d.classList.add('warn');
+  else if(_tmrRunning)d.classList.add('running');
+}
+function onTimerSelChange(){
+  const sel=document.getElementById('timerSel'), cust=document.getElementById('timerCustom');
+  if(sel.value==='custom'){cust.style.display='';cust.focus();return;}
+  cust.style.display='none';
+  setTimerMinutes(parseInt(sel.value,10));
+}
+function onTimerCustom(){
+  const v=parseInt(document.getElementById('timerCustom').value,10);
+  if(v&&v>0)setTimerMinutes(Math.min(v,600));
+}
+function setTimerMinutes(m){
+  stopTimerTick();_tmrRunning=false;
+  _tmrTotal=m*60;_tmrLeft=_tmrTotal;
+  const b=document.getElementById('timerStartBtn');if(b){b.textContent='▶ Start';b.classList.remove('pausing');}
+  const n=document.getElementById('timerNote');if(n)n.textContent='Set: '+m+' min. Race the clock!';
+  paintTimer();
+}
+function stopTimerTick(){if(_tmrId){clearInterval(_tmrId);_tmrId=null;}}
+function toggleTimer(){
+  const b=document.getElementById('timerStartBtn');
+  if(_tmrRunning){ // pause
+    _tmrRunning=false;stopTimerTick();
+    if(b){b.textContent='▶ Resume';b.classList.remove('pausing');}
+    paintTimer();return;
+  }
+  if(_tmrLeft<=0)_tmrLeft=_tmrTotal;
+  _tmrRunning=true;
+  if(b){b.textContent='⏸ Pause';b.classList.add('pausing');}
+  const n=document.getElementById('timerNote');if(n)n.textContent='Running… stay focused.';
+  paintTimer();
+  stopTimerTick();
+  _tmrId=setInterval(()=>{
+    _tmrLeft--;
+    if(_tmrLeft<=0){
+      _tmrLeft=0;stopTimerTick();_tmrRunning=false;
+      if(b){b.textContent='▶ Start';b.classList.remove('pausing');}
+      paintTimer();
+      const n2=document.getElementById('timerNote');if(n2)n2.textContent="⏰ Time's up!";
+      try{document.title='⏰ Time\u2019s up! — Project Tracker';}catch(e){}
+      setTimeout(()=>{alert("⏰ Time's up! Did you finish the task within "+(_tmrTotal/60)+" minutes?");try{document.title='Project Tracker';}catch(e){}},120);
+      return;
+    }
+    paintTimer();
+  },1000);
+}
+function resetTimer(){
+  stopTimerTick();_tmrRunning=false;_tmrLeft=_tmrTotal;
+  const b=document.getElementById('timerStartBtn');if(b){b.textContent='▶ Start';b.classList.remove('pausing');}
+  const n=document.getElementById('timerNote');if(n)n.textContent='Set an interval & race the clock.';
+  paintTimer();
+}
+
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.9';
+const CURRENT_VER='v2.7.10';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

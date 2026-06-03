@@ -854,28 +854,32 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .pipe-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);padding:0 6px;flex-shrink:0;display:none;}
 
 /* ============================================================
-   v2.7.11 — 3-PANE LAYOUT (authoritative; defined last to win)
-   Left: categories+timer | Center: create/filter + detail | Right: list
+   v2.7.12 — 3-PANE LAYOUT (authoritative; defined last to win)
+   Left: create + categories + timer | Center: working area | Right: pipeline+filter+list(2-line)
    ============================================================ */
-.tracker-layout{display:grid !important;grid-template-columns:218px minmax(520px,1.7fr) minmax(360px,1fr) !important;gap:0;margin:-16px 0 !important;min-height:calc(100vh - 90px);align-items:stretch;}
-.tracker-layout.list-collapsed{grid-template-columns:218px 1fr 0 !important;}
-.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:sticky !important;top:86px !important;max-height:calc(100vh - 86px) !important;min-height:0 !important;overflow-y:auto !important;align-self:start !important;}
-/* Left pane compact so categories + timer are both visible without long scroll */
+.tracker-layout{display:grid !important;grid-template-columns:240px minmax(440px,1.5fr) minmax(380px,1fr) !important;gap:0;margin:-16px 0 !important;min-height:calc(100vh - 90px);align-items:stretch;}
+.tracker-layout.list-collapsed{grid-template-columns:240px 1fr 0 !important;}
+.tracker-layout.side-collapsed{grid-template-columns:50px minmax(440px,1.7fr) minmax(380px,1fr) !important;}
+.tracker-layout.side-collapsed.list-collapsed{grid-template-columns:50px 1fr 0 !important;}
+.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:sticky !important;top:86px !important;max-height:calc(100vh - 86px) !important;min-height:0 !important;overflow-y:auto !important;align-self:start !important;display:flex !important;flex-direction:column !important;}
+/* Left create pane */
+.side-create-top{border-bottom:1px solid var(--b1);padding-bottom:8px;}
+.side-create-top .add-area{margin:0;padding:0 8px;}
+.side-create-top .add-row2{display:flex;flex-direction:column;gap:6px;margin:6px 0;}
+.side-create-top .add-row2 .fld-sel,.side-create-top .add-row2 .fld-date{width:100%;min-width:0;}
+.side-create-top .add-btns-row{display:flex;gap:6px;}
+.side-create-top .add-btns-row .abtn{flex:1;}
+.ws-sidebar.collapsed .side-create-top,.ws-sidebar.collapsed .timer-box,.ws-sidebar.collapsed .ws-top-label{display:none !important;}
 .ws-list{padding:6px 6px !important;}
 .ws-item{padding:6px 8px !important;}
 .timer-box{margin:8px !important;padding:10px 10px !important;}
-.timer-display{font-size:2.1rem !important;padding:4px 0 !important;}
+.timer-display{font-size:1.9rem !important;padding:4px 0 !important;}
 
-/* CENTER column = create/filter (top) + detail (fills rest) */
+/* CENTER working area */
 .center-col{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--b1);border-right:1px solid var(--b1);background:var(--bg);}
-.center-top{flex-shrink:0;padding:12px 14px;border-bottom:1px solid var(--b1);background:var(--s1);z-index:15;}
-.center-top .add-area{margin:0;}
-.center-top .add-row1{display:flex;gap:8px;margin-bottom:8px;}
-.center-top .add-inp{flex:1;}
-.center-top .add-row2{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
-.center-top .add-row2 .fld-sel,.center-top .add-row2 .fld-date{flex:1;min-width:120px;}
-.center-top .frow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
-.center-collapse-btn{flex-shrink:0;background:var(--s2);border:1px solid var(--b1);border-radius:8px;width:38px;color:var(--m1);cursor:pointer;font-size:1rem;}
+.center-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0;}
+.center-bar-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--m2);flex:1;}
+.center-collapse-btn{flex-shrink:0;background:var(--s2);border:1px solid var(--b1);border-radius:8px;width:34px;height:28px;color:var(--m1);cursor:pointer;font-size:.95rem;}
 .center-collapse-btn:hover{color:var(--blue);border-color:var(--blue);}
 .detail-pane{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;border:none;}
 .detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--m2);}
@@ -889,25 +893,33 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .dh-rename,.dh-close{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:30px;height:30px;color:var(--m1);cursor:pointer;flex-shrink:0;font-size:.82rem;}
 .dh-rename:hover,.dh-close:hover{color:var(--tx);border-color:var(--b2);}
 .detail-scroll{flex:1;overflow-y:auto;}
-/* In the wide center, the detail uses TWO columns: checklists left, notes/etc right */
+/* detail uses TWO columns: checklists left, notes/etc right */
 .detail-scroll .det-pane{display:grid !important;grid-template-columns:1.15fr 1fr !important;border-top:none;}
 .detail-scroll .det-left{border-right:1px solid var(--b1) !important;border-bottom:none !important;}
 @media(max-width:1150px){.detail-scroll .det-pane{grid-template-columns:1fr !important;}.detail-scroll .det-left{border-right:none !important;border-bottom:1px solid var(--b1) !important;}}
 
 /* RIGHT list pane */
-.tracker-layout .tracker-main{flex:none !important;min-width:0 !important;width:auto !important;padding:14px 16px !important;overflow:hidden !important;}
+.tracker-layout .tracker-main{flex:none !important;min-width:0 !important;width:auto !important;padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;position:sticky;top:86px;max-height:calc(100vh - 86px);align-self:start;}
 .tracker-layout.list-collapsed .tracker-main{display:none !important;}
-.tracker-main .row-name{white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+.right-fixed{flex-shrink:0;background:var(--bg);padding:14px 14px 8px;border-bottom:1px solid var(--b1);}
+#taskGrid{flex:1;padding:10px 14px 30px;overflow-y:auto;min-height:0;}
+/* Pipeline fixed frame — fit all 8 stages */
+.tracker-main .pipeline{display:flex !important;flex-wrap:nowrap !important;gap:3px !important;overflow:hidden !important;max-width:100% !important;}
+.tracker-main .pipeline .pipe-stage{min-width:0 !important;flex:1 1 0 !important;padding:5px 1px !important;}
+.tracker-main .pipeline .pipe-stage>*:first-child{font-size:.46rem !important;letter-spacing:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.tracker-main .pipeline .pipe-stage>*:nth-child(2){font-size:.9rem !important;}
+.tracker-main .frow{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.tracker-main .frow .owner-filter,.tracker-main .frow .ssort{flex:1;min-width:100px;}
+/* Task rows in TWO lines: title on top, meta below */
 .tracker-main .list-row{flex-wrap:nowrap !important;}
-.tracker-main .row-meta{flex-shrink:0;}
-/* Pipeline: shrink so all 8 stages fit without scrolling */
-.tracker-main .pipeline{display:flex !important;flex-wrap:nowrap !important;gap:3px !important;overflow-x:auto !important;max-width:100% !important;}
-.tracker-main .pipeline .pipe-stage{min-width:0 !important;flex:1 1 0 !important;padding:5px 2px !important;}
-.tracker-main .pipeline .pipe-stage .ps-name,.tracker-main .pipeline .pipe-stage>*:first-child{font-size:.5rem !important;letter-spacing:0 !important;white-space:nowrap;}
-.tracker-main .pipeline .pipe-stage .ps-count,.tracker-main .pipeline .pipe-stage>*:nth-child(2){font-size:.95rem !important;}
+.tracker-main .row-hd{display:flex !important;flex-wrap:wrap !important;align-items:center !important;row-gap:4px;}
+.tracker-main .row-ico{flex:0 0 auto;}
+.tracker-main .row-name{white-space:normal !important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden !important;flex:1 1 0 !important;min-width:0;line-height:1.3;font-size:.86rem;}
+.tracker-main .row-meta{flex:1 1 100% !important;flex-wrap:wrap;margin-top:2px;gap:6px;}
+.tracker-main .row-meta .ring-wrap,.tracker-main .row-meta svg{margin-left:auto;}
 
 @media(max-width:1000px){
-  .tracker-layout, .tracker-layout.list-collapsed{grid-template-columns:1fr !important;}
+  .tracker-layout, .tracker-layout.list-collapsed, .tracker-layout.side-collapsed{grid-template-columns:1fr !important;}
   .ws-sidebar{position:relative !important;top:0 !important;max-height:none !important;}
 }
 </style>
@@ -955,7 +967,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.11</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.12</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -991,14 +1003,56 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
     <!-- TRACKER -->
     <div id="viewTracker">
       <div class="tracker-layout" id="trackerLayout">
-        <!-- LEFT: categories + timer (fixed) -->
+        <!-- LEFT: create (top) + categories + timer -->
         <div class="ws-sidebar" id="wsSidebar">
+          <!-- Create pane on top -->
+          <div class="side-create-top" id="sideCreateTop">
+            <div class="ws-top-label" style="padding:10px 10px 6px">➕ Create</div>
+            <div class="add-area">
+              <div class="add-row1">
+                <input class="add-inp" id="addInp" placeholder="Task or Milestone name…" maxlength="140"
+                  oninput="clearDupError()"
+                  onkeydown="if(event.key==='Enter')addItem(false)"/>
+              </div>
+              <div class="dup-error" id="dupError">⚠ A task or milestone with this name already exists. Please use a different name.</div>
+              <div class="add-row2">
+                <select class="fld-sel" id="stageInp">
+                  <option value="1">Incoming</option><option value="2">Backlog</option>
+                  <option value="3">Planning</option><option value="4">Active/Exec</option>
+                  <option value="5">Adhoc</option><option value="6">Issues</option>
+                  <option value="7">Outstanding</option><option value="8">Closure</option>
+                </select>
+                <select class="fld-sel" id="priInp">
+                  <option value="medium">Medium Priority</option>
+                  <option value="high">High Priority</option>
+                  <option value="low">Low Priority</option>
+                </select>
+                <select class="fld-sel" id="ownerInp">
+                  <option value="Don">Don</option>
+                  <option value="San">San</option>
+                  <option value="Nivin">Nivin</option>
+                  <option value="Common">Common</option>
+                </select>
+                <input class="fld-date" id="dueInp" type="date"/>
+                <select class="fld-sel" id="catInp">
+                  <option value="">Category</option>
+                  <option>Work</option><option>Health</option>
+                  <option>Personal</option><option>Finance</option><option>Learning</option>
+                  <option value="Project">Project</option>
+                </select>
+              </div>
+              <div class="add-btns-row">
+                <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
+                <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
+              </div>
+            </div>
+          </div>
           <div class="ws-top">
             <span class="ws-top-label">Workspaces</span>
             <button class="ws-toggle" id="wsToggleBtn" onclick="toggleSidebar()">◀</button>
           </div>
           <div class="ws-list" id="wsList"></div>
-          <!-- Focus Timer (visible right below categories) -->
+          <!-- Focus Timer -->
           <div class="timer-box" id="timerBox">
             <div class="timer-hd"><span class="ws-top-label" style="padding:0">⏱ Focus Timer</span></div>
             <div class="timer-display" id="timerDisplay">15:00</div>
@@ -1020,79 +1074,46 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
           </div>
         </div>
 
-        <!-- CENTER: create/filter (top) + detail -->
+        <!-- CENTER: working area (detail only) -->
         <div class="center-col" id="centerCol">
-          <div class="center-top" id="centerTop">
-            <div class="add-area">
-              <div class="add-row1">
-                <input class="add-inp" id="addInp" placeholder="Task or Milestone name…" maxlength="140"
-                  oninput="clearDupError()"
-                  onkeydown="if(event.key==='Enter')addItem(false)"/>
-                <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
-                <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
-                <button class="center-collapse-btn" id="centerCollapseBtn" onclick="toggleListPane()" title="Expand / collapse the task list">⤢</button>
-              </div>
-              <div class="dup-error" id="dupError">⚠ A task or milestone with this name already exists. Please use a different name.</div>
-              <div class="add-row2">
-                <select class="fld-sel" id="stageInp">
-                  <option value="1">Incoming</option><option value="2">Backlog</option>
-                  <option value="3">Planning</option><option value="4">Active/Exec</option>
-                  <option value="5">Adhoc</option><option value="6">Issues</option>
-                  <option value="7">Outstanding</option><option value="8">Closure</option>
-                </select>
-                <select class="fld-sel" id="priInp">
-                  <option value="medium">Medium Priority</option>
-                  <option value="high">High Priority</option>
-                  <option value="low">Low Priority</option>
-                </select>
-                <select class="fld-sel" id="ownerInp" style="min-width:90px">
-                  <option value="Don">Don</option>
-                  <option value="San">San</option>
-                  <option value="Nivin">Nivin</option>
-                  <option value="Common">Common</option>
-                </select>
-                <input class="fld-date" id="dueInp" type="date"/>
-                <select class="fld-sel" id="catInp">
-                  <option value="">Category</option>
-                  <option>Work</option><option>Health</option>
-                  <option>Personal</option><option>Finance</option><option>Learning</option>
-                  <option value="Project">Project</option>
-                </select>
-              </div>
-              <div class="frow">
-                <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
-                <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Milestones</button>
-                <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
-                <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
-                <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
-                <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
-                <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦 Archive</button>
-                <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
-                  <option value="">👤 All Owners</option>
-                </select>
-                <select class="ssort" id="sortSel" onchange="renderTracker()">
-                  <option value="newest">Newest</option><option value="oldest">Oldest</option>
-                  <option value="stage">By Stage</option><option value="priority">By Priority</option>
-                  <option value="milestone">Milestones first</option>
-                </select>
-              </div>
-            </div>
+          <div class="center-bar">
+            <span class="center-bar-label">Working Area</span>
+            <button class="center-collapse-btn" id="centerCollapseBtn" onclick="toggleListPane()" title="Expand / collapse the task list">⤢</button>
           </div>
           <div class="detail-pane" id="detailPane">
             <div class="detail-empty">
-              <div class="de-ico">👈</div>
+              <div class="de-ico">📋</div>
               <div class="de-title">Select a task</div>
-              <div class="de-sub">Pick a category, then click a task in the list to see everything here.</div>
+              <div class="de-sub">Click a task in the list on the right to see and edit everything here.</div>
             </div>
           </div>
         </div>
 
-        <!-- RIGHT: pipeline + list (collapsible) -->
+        <!-- RIGHT: pipeline (fixed) + filters + list (2-line) -->
         <div class="tracker-main" id="trackerMain">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;overflow:hidden">
-        <div class="pipeline" id="pipelineBanner" style="flex:1;margin-bottom:0;overflow-x:auto;flex-wrap:nowrap"></div>
-        <button class="pipe-arch-btn" id="archBtn" onclick="toggleArchivePanel()" style="flex-shrink:0">📦 Archive</button>
-      </div>
+          <div class="right-fixed" id="rightFixed">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;overflow:hidden">
+              <div class="pipeline" id="pipelineBanner" style="flex:1;margin-bottom:0;overflow-x:auto;flex-wrap:nowrap"></div>
+              <button class="pipe-arch-btn" id="archBtn" onclick="toggleArchivePanel()" style="flex-shrink:0">📦</button>
+            </div>
+            <div class="frow">
+              <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
+              <button class="fchip"    data-f="milestone" onclick="setFilter(this,'milestone')">⬟ Miles</button>
+              <button class="fchip"    data-f="adhoc"     onclick="setFilter(this,'adhoc')">⚡ Adhoc</button>
+              <button class="fchip"    data-f="issue"     onclick="setFilter(this,'issue')">⚠ Issues</button>
+              <button class="fchip"    data-f="open"      onclick="setFilter(this,'open')">Open</button>
+              <button class="fchip"    data-f="done"      onclick="setFilter(this,'done')">✓ Closed</button>
+              <button class="fchip arc" data-f="archive"  onclick="setFilter(this,'archive')">📦</button>
+              <select class="owner-filter" id="ownerFilter" onchange="renderTracker()">
+                <option value="">👤 All Owners</option>
+              </select>
+              <select class="ssort" id="sortSel" onchange="renderTracker()">
+                <option value="newest">Newest</option><option value="oldest">Oldest</option>
+                <option value="stage">By Stage</option><option value="priority">By Priority</option>
+                <option value="milestone">Milestones first</option>
+              </select>
+            </div>
+          </div>
       <div id="archivePanel" style="display:none;background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:12px;margin-bottom:10px">
         <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);margin-bottom:8px">📦 Archived — Read Only</div>
         <div id="archivePanelList"></div>
@@ -1593,7 +1614,9 @@ function toggleSidebar(){
   sidebarOpen=!sidebarOpen;
   const sb=document.getElementById('wsSidebar');
   const btn=document.getElementById('wsToggleBtn');
+  const layout=document.getElementById('trackerLayout');
   if(sb){sb.classList.toggle('collapsed',!sidebarOpen);}
+  if(layout){layout.classList.toggle('side-collapsed',!sidebarOpen);}
   if(btn){btn.textContent=sidebarOpen?'◀':'▶';}
 }
 function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
@@ -3519,7 +3542,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.11';
+const CURRENT_VER='v2.7.12';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

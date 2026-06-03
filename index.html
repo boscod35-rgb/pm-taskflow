@@ -865,11 +865,11 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ribbon-pipe .pipe-stage>*:nth-child(2){font-size:.82rem !important;line-height:1;}
 .ribbon-arch{margin-left:8px !important;flex-shrink:0;padding:5px 9px !important;font-size:.8rem !important;}
 
-.tracker-layout{display:grid !important;grid-template-columns:230px minmax(460px,1.7fr) 300px !important;gap:0;margin:-16px 0 !important;min-height:calc(100vh - 90px);align-items:stretch;}
+.tracker-layout{display:grid !important;grid-template-columns:230px minmax(460px,1.7fr) 300px !important;gap:0;margin:0 !important;min-height:calc(100vh - 90px);align-items:stretch !important;border:1px solid var(--b1);border-radius:12px;overflow:hidden;background:var(--s1);}
 .tracker-layout.list-collapsed{grid-template-columns:230px 1fr 40px !important;}
 .tracker-layout.side-collapsed{grid-template-columns:50px minmax(460px,1.8fr) 300px !important;}
 .tracker-layout.side-collapsed.list-collapsed{grid-template-columns:50px 1fr 40px !important;}
-.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:sticky !important;top:86px !important;max-height:calc(100vh - 86px) !important;min-height:0 !important;overflow-y:auto !important;align-self:start !important;display:flex !important;flex-direction:column !important;border-right:1px solid var(--b1) !important;}
+.tracker-layout .ws-sidebar{width:auto !important;min-width:0 !important;max-width:none !important;flex:none !important;position:static !important;top:auto !important;max-height:none !important;min-height:0 !important;overflow-y:auto !important;align-self:stretch !important;display:flex !important;flex-direction:column !important;border-right:1px solid var(--b1) !important;}
 .ws-sidebar.collapsed .timer-box,.ws-sidebar.collapsed .ws-top-label{display:none !important;}
 .ws-list{padding:6px 6px !important;}
 .ws-item{padding:7px 8px !important;border:1px solid transparent;}
@@ -905,7 +905,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 @media(max-width:1200px){.detail-scroll .det-pane{grid-template-columns:1fr !important;}.detail-scroll .det-left{border-right:none !important;border-bottom:1px solid var(--b1) !important;}}
 
 /* RIGHT: name list (collapsible) */
-.tracker-layout .tracker-main{flex:none !important;min-width:0 !important;width:auto !important;padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;position:sticky;top:86px;max-height:calc(100vh - 86px);align-self:start;background:var(--bg);}
+.tracker-layout .tracker-main{flex:none !important;min-width:0 !important;width:auto !important;padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;position:static;max-height:none;align-self:stretch;background:var(--bg);}
 .list-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0;}
 .list-head-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--m2);flex:1;}
 .list-collapse-btn{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:28px;height:26px;color:var(--m1);cursor:pointer;font-size:.7rem;}
@@ -978,7 +978,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.13</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.14</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -3564,7 +3564,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.13';
+const CURRENT_VER='v2.7.14';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

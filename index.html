@@ -259,6 +259,35 @@ header{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 8
 /* #6 v2.7.15 — references */
 .ref-box{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:11px 12px;margin-top:12px;}
 .ref-ta{min-height:60px;}
+/* v2.7.16 — Excel panel */
+.excel-box{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:11px 12px;margin-top:12px;}
+.excel-note{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--m2);background:var(--s3);border:1px solid var(--b1);border-radius:99px;padding:1px 7px;margin-left:6px;text-transform:none;letter-spacing:0;}
+.excel-panel{display:flex;flex-direction:column;gap:8px;}
+.excel-upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.excel-hint{font-size:.66rem;color:var(--m2);}
+.excel-btn{border:1px solid var(--b1);border-radius:7px;padding:7px 12px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.76rem;cursor:pointer;background:var(--s3);color:var(--m1);transition:all .15s;}
+.excel-btn:hover{color:var(--tx);border-color:var(--b2);}
+.excel-btn-up{background:rgba(34,211,165,.12);border-color:rgba(34,211,165,.4);color:var(--done);}
+.excel-btn-up:hover{background:var(--done);color:#06281f;}
+.excel-btn-dl{background:var(--blue-d);border-color:rgba(77,158,255,.4);color:var(--blue);}
+.excel-btn-dl:hover{background:var(--blue);color:#fff;}
+.excel-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.excel-tab{border:1px solid var(--b1);border-radius:6px 6px 0 0;padding:5px 10px;font-family:'DM Sans',sans-serif;font-size:.7rem;cursor:pointer;background:var(--s1);color:var(--m1);transition:all .15s;}
+.excel-tab:hover{color:var(--tx);}
+.excel-tab.on{background:var(--s3);color:var(--tx);border-bottom-color:var(--blue);border-bottom-width:2px;}
+.excel-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.excel-fname{flex:1;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--m1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.excel-grid-wrap{max-height:420px;overflow:auto;border:1px solid var(--b1);border-radius:7px;background:var(--bg);}
+.excel-grid{border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:.72rem;}
+.excel-grid th{position:sticky;background:var(--s3);color:var(--m2);font-family:'DM Mono',monospace;font-size:.58rem;font-weight:500;border:1px solid var(--b1);padding:3px 6px;text-align:center;z-index:1;}
+.excel-grid thead th{top:0;}
+.excel-corner{left:0;top:0;z-index:2 !important;}
+.excel-rowh{left:0;z-index:1;min-width:30px;}
+.excel-colh{min-width:90px;}
+.excel-cell{border:1px solid var(--b1);padding:4px 7px;color:var(--tx);min-width:90px;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none;vertical-align:top;}
+.excel-cell:focus{background:color-mix(in srgb,var(--blue) 12%,var(--bg));overflow:visible;white-space:normal;box-shadow:inset 0 0 0 2px var(--blue);}
+.excel-trunc{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m2);padding:6px;}
+.excel-empty{padding:18px;text-align:center;color:var(--m2);font-size:.74rem;}
 .notes-lbl{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.07em;text-transform:uppercase;color:var(--m1);margin-bottom:6px;}
 .rf-inp{width:100%;padding:7px 10px;border:1px solid var(--b1);background:var(--s2);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--tx);outline:none;transition:border-color .2s;}
 .rf-inp:focus{border-color:var(--blue);}
@@ -989,7 +1018,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.15</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.16</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1879,8 +1908,9 @@ function editSubItem(itemId,clId,ciId,sId){
 /* v2.7.10 — checklist item due dates + linked reminders */
 function toggleCIDuePicker(ciId){
   const inp=document.getElementById('cidue_'+ciId);if(!inp)return;
-  inp.style.display=(inp.style.display==='none'||!inp.style.display)?'inline-block':'none';
-  if(inp.style.display!=='none'){try{inp.focus();inp.showPicker&&inp.showPicker();}catch(e){}}
+  const showing=(inp.style.display!=='none'&&inp.style.display!=='');
+  inp.style.display=showing?'none':'inline-block';
+  if(!showing){inp.focus();/* no showPicker(): let the inline input's own calendar open anchored next to the task */}
 }
 function setCIDue(itemId,clId,ciId,val){
   const r=_findCI(itemId,clId,ciId);if(!r)return;
@@ -2299,6 +2329,24 @@ function buildItemParts(item){
           onchange="event.stopPropagation();updateField('${item.id}','references',this.value)"
           oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" maxlength="4000">${esc(item.references||'')}</textarea>
       </div>
+      <!-- v2.7.16 — Excel panel (session-only test) -->
+      <div class="excel-box" id="excelBox_${item.id}">
+        <div class="na-lbl">📊 Excel <span class="excel-note">session-only test</span></div>
+        <div class="excel-panel" id="excelPanel" onclick="event.stopPropagation()">
+          <div class="excel-upload" id="excelUpload">
+            <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none" onchange="onExcelUpload(event)"/>
+            <button class="excel-btn excel-btn-up" onclick="document.getElementById('excelFileInput').click()">⬆ Upload .xlsx</button>
+            <span class="excel-hint">Multi-tab workbooks supported. View · edit · download.</span>
+          </div>
+          <div class="excel-tabs" id="excelTabs" style="display:none"></div>
+          <div class="excel-toolbar" id="excelToolbar" style="display:none">
+            <span class="excel-fname" id="excelFname"></span>
+            <button class="excel-btn excel-btn-dl" onclick="downloadExcel()">⬇ Download .xlsx</button>
+            <button class="excel-btn excel-btn-clear" onclick="clearExcel()">✕ Clear</button>
+          </div>
+          <div class="excel-grid-wrap" id="excelGridWrap" style="display:none"></div>
+        </div>
+      </div>
     </div>
   </div>`;
 
@@ -2355,6 +2403,9 @@ function nameRowHTML(item){
 
 /* ══ TRACKER RENDER ════════════════════════════════ */
 function renderTracker(){
+  // #1 v2.7.15 — preserve detail scroll across full re-renders
+  const _ds=document.querySelector('#detailPane .detail-scroll');const _dsTop=_ds?_ds.scrollTop:0;
+  if(_dsTop){setTimeout(()=>{const e=document.querySelector('#detailPane .detail-scroll');if(e)e.scrollTop=_dsTop;},0);}
   renderPipeline();
   renderSidebar();
   updatePLabel();
@@ -2494,6 +2545,8 @@ function renderDetail(){
   // restore scroll
   const ns=pane.querySelector('.detail-scroll');
   if(ns&&prevScroll)ns.scrollTop=prevScroll;
+  // v2.7.16 — if a workbook is loaded in this session, re-render it into the panel
+  if(typeof _xlWb!=='undefined'&&_xlWb&&document.getElementById('excelGridWrap')){try{renderExcel();}catch(e){}}
 }
 function toggleAddCI(itemId){const row=document.getElementById('ciadd_'+itemId);const inp=document.getElementById('ciinp_'+itemId);if(!row)return;row.classList.toggle('open');if(row.classList.contains('open')&&inp)inp.focus();}
 
@@ -3540,6 +3593,99 @@ function updateClDesc(itemId,clId,ta){
   saveData();
 }
 
+/* ══ v2.7.16 EXCEL (session-only test) ════════════════ */
+let _xlWb=null, _xlSheet=null, _xlName='';
+const _XL_MAXROWS=300, _XL_MAXCOLS=40;
+function onExcelUpload(ev){
+  const file=ev.target.files&&ev.target.files[0]; if(!file)return;
+  _xlName=file.name;
+  if(typeof XLSX==='undefined'){alert('Excel library not loaded — check your internet connection and reload.');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      _xlWb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      _xlSheet=_xlWb.SheetNames[0];
+      renderExcel();
+    }catch(err){alert('Could not read this file: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+  ev.target.value='';
+}
+function _xlTrim(aoa){
+  // trim trailing fully-empty rows and columns
+  let maxR=0,maxC=0;
+  for(let r=0;r<aoa.length;r++){for(let c=0;c<(aoa[r]||[]).length;c++){const v=aoa[r][c];if(v!==null&&v!==undefined&&String(v).trim()!==''){if(r+1>maxR)maxR=r+1;if(c+1>maxC)maxC=c+1;}}}
+  const out=[];for(let r=0;r<maxR;r++){const row=[];for(let c=0;c<maxC;c++){row.push((aoa[r]&&aoa[r][c]!=null)?aoa[r][c]:'');}out.push(row);}
+  return out;
+}
+function renderExcel(){
+  if(!_xlWb)return;
+  const tabsEl=document.getElementById('excelTabs');
+  const tb=document.getElementById('excelToolbar');
+  const wrap=document.getElementById('excelGridWrap');
+  const up=document.getElementById('excelUpload');
+  if(!tabsEl||!wrap)return;
+  up.style.display='none'; tabsEl.style.display='flex'; tb.style.display='flex'; wrap.style.display='block';
+  document.getElementById('excelFname').textContent=_xlName;
+  tabsEl.innerHTML=_xlWb.SheetNames.map(n=>`<button class="excel-tab ${n===_xlSheet?'on':''}" onclick="selectExcelSheet(${JSON.stringify(n).replace(/"/g,'&quot;')})">${escExcel(n)}</button>`).join('');
+  const ws=_xlWb.Sheets[_xlSheet];
+  let aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',blankrows:true});
+  aoa=_xlTrim(aoa);
+  const totalR=aoa.length, totalC=aoa.reduce((m,r)=>Math.max(m,r.length),0);
+  const rows=Math.min(totalR,_XL_MAXROWS), cols=Math.min(totalC,_XL_MAXCOLS);
+  if(!rows){wrap.innerHTML='<div class="excel-empty">This sheet is empty.</div>';return;}
+  const colLetter=i=>{let s='';i++;while(i>0){i--;s=String.fromCharCode(65+(i%26))+s;i=Math.floor(i/26);}return s;};
+  let html='<table class="excel-grid"><thead><tr><th class="excel-corner"></th>';
+  for(let c=0;c<cols;c++)html+='<th class="excel-colh">'+colLetter(c)+'</th>';
+  html+='</tr></thead><tbody>';
+  for(let r=0;r<rows;r++){
+    html+='<tr><th class="excel-rowh">'+(r+1)+'</th>';
+    for(let c=0;c<cols;c++){
+      let v=(aoa[r]&&aoa[r][c]!=null)?aoa[r][c]:'';
+      if(v instanceof Date && !isNaN(v)){const mm=('0'+(v.getMonth()+1)).slice(-2),dd=('0'+v.getDate()).slice(-2);v=v.getFullYear()+'-'+mm+'-'+dd;}
+      html+='<td class="excel-cell" contenteditable="true" data-r="'+r+'" data-c="'+c+'" onblur="editExcelCell(this)">'+escExcel(String(v))+'</td>';
+    }
+    html+='</tr>';
+  }
+  html+='</tbody></table>';
+  let note='';
+  if(totalR>rows||totalC>cols)note='<div class="excel-trunc">Showing '+rows+'×'+cols+' of '+totalR+'×'+totalC+' cells (large sheet trimmed for display).</div>';
+  wrap.innerHTML=html+note;
+}
+function escExcel(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function selectExcelSheet(n){_xlSheet=n;renderExcel();}
+function editExcelCell(td){
+  if(!_xlWb)return;
+  const r=+td.dataset.r, c=+td.dataset.c;
+  const addr=XLSX.utils.encode_cell({r:r,c:c});
+  const ws=_xlWb.Sheets[_xlSheet];
+  let val=td.innerText;
+  // try to keep numbers numeric
+  const num=Number(val);
+  if(val.trim()!==''&&!isNaN(num)&&String(num)===val.trim()){ws[addr]={t:'n',v:num};}
+  else if(val.trim()===''){delete ws[addr];}
+  else{ws[addr]={t:'s',v:val};}
+  // extend sheet range if needed
+  const ref=ws['!ref']||'A1';const rng=XLSX.utils.decode_range(ref);
+  if(c>rng.e.c)rng.e.c=c; if(r>rng.e.r)rng.e.r=r; ws['!ref']=XLSX.utils.encode_range(rng);
+}
+function downloadExcel(){
+  if(!_xlWb){alert('Upload a file first.');return;}
+  try{
+    const out=XLSX.write(_xlWb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=(_xlName.replace(/\.(xlsx|xls)$/i,'')||'workbook')+'_edited.xlsx';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},100);
+  }catch(err){alert('Download failed: '+err.message);}
+}
+function clearExcel(){
+  _xlWb=null;_xlSheet=null;_xlName='';
+  const up=document.getElementById('excelUpload');const tabsEl=document.getElementById('excelTabs');
+  const tb=document.getElementById('excelToolbar');const wrap=document.getElementById('excelGridWrap');
+  if(up)up.style.display='flex'; if(tabsEl){tabsEl.style.display='none';tabsEl.innerHTML='';}
+  if(tb)tb.style.display='none'; if(wrap){wrap.style.display='none';wrap.innerHTML='';}
+}
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ v2.7.10 FOCUS TIMER ═══════════════════════════ */
 let _tmrTotal=15*60, _tmrLeft=15*60, _tmrId=null, _tmrRunning=false;
@@ -3605,7 +3751,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.15';
+const CURRENT_VER='v2.7.16';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

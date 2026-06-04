@@ -286,6 +286,10 @@ header{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 8
 .excel-colh{min-width:90px;}
 .excel-cell{border:1px solid var(--b1);padding:4px 7px;color:var(--tx);min-width:90px;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;outline:none;vertical-align:top;}
 .excel-cell:focus{background:color-mix(in srgb,var(--blue) 12%,var(--bg));overflow:visible;white-space:normal;box-shadow:inset 0 0 0 2px var(--blue);}
+.excel-cell.xl-cellsel{box-shadow:inset 0 0 0 1px var(--blue);}
+.excel-grid th.xl-selhdr{background:color-mix(in srgb,var(--blue) 22%,var(--s3));color:var(--blue);}
+.excel-edit-btn{background:var(--s3);border-color:var(--b1);color:var(--m1);padding:7px 10px;}
+.excel-edit-btn:hover{color:var(--tx);border-color:var(--blue);}
 .excel-trunc{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--m2);padding:6px;}
 .excel-empty{padding:18px;text-align:center;color:var(--m2);font-size:.74rem;}
 .notes-lbl{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.07em;text-transform:uppercase;color:var(--m1);margin-bottom:6px;}
@@ -915,6 +919,34 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ws-item{padding:7px 8px !important;border:1px solid transparent;}
 .ws-item.ws-act{border-color:var(--b2) !important;}
 .timer-box{margin:8px !important;padding:10px 10px !important;border:1px solid var(--b1) !important;border-radius:10px !important;}
+/* v2.7.17 — Quick Links */
+.ql-box{border-top:1px solid var(--b1);margin-top:4px;}
+.ws-sidebar.collapsed .ql-box{display:none;}
+.ql-list{display:flex;flex-direction:column;gap:5px;padding:2px 8px 8px;}
+.ql-slot{display:flex;align-items:center;gap:7px;border:1px solid var(--b1);border-radius:8px;padding:7px 9px;cursor:pointer;transition:all .15s;background:var(--s1);}
+.ql-slot:hover{border-color:var(--b2);background:var(--s2);}
+.ql-empty{border-style:dashed;color:var(--m2);justify-content:flex-start;}
+.ql-empty:hover{border-color:var(--gold);color:var(--gold);}
+.ql-plus{font-size:1rem;line-height:1;flex-shrink:0;}
+.ql-empty-lbl{font-size:.72rem;}
+.ql-filled.ql-active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue);}
+.ql-ico{font-size:.85rem;flex-shrink:0;color:var(--gold);}
+.ql-name{flex:1;font-size:.76rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx);}
+.ql-stage{font-family:'DM Mono',monospace;font-size:.52rem;flex-shrink:0;}
+.ql-x{background:none;border:none;color:var(--m2);cursor:pointer;font-size:.72rem;flex-shrink:0;opacity:.6;padding:0 2px;}
+.ql-x:hover{opacity:1;color:var(--red);}
+/* Quick Link picker */
+.ql-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;}
+.ql-picker{background:var(--s1);border:1px solid var(--b2);border-radius:12px;width:min(460px,92vw);max-height:70vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.qlp-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--b1);font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+.qlp-close{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:28px;height:28px;color:var(--m1);cursor:pointer;}
+.qlp-close:hover{color:var(--tx);}
+.qlp-search{margin:12px 16px 6px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:9px 12px;color:var(--tx);font-family:'DM Sans';font-size:.85rem;outline:none;}
+.qlp-search:focus{border-color:var(--blue);}
+.qlp-list{overflow-y:auto;padding:6px 12px 14px;display:flex;flex-direction:column;gap:4px;}
+.qlp-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--b1);border-radius:8px;cursor:pointer;transition:all .15s;}
+.qlp-row:hover{border-color:var(--blue);background:var(--s2);}
+.qlp-name{flex:1;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .timer-display{font-size:2rem !important;padding:4px 0 !important;}
 
 /* CENTER: create/filter (top) + detail */
@@ -1018,7 +1050,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.16</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.17</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1064,6 +1096,11 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
             <button class="ws-toggle" id="wsToggleBtn" onclick="toggleSidebar()">◀</button>
           </div>
           <div class="ws-list" id="wsList"></div>
+          <!-- v2.7.17 — Quick Links: top 3 revisable tasks -->
+          <div class="ql-box" id="qlBox">
+            <div class="ws-top-label" style="padding:8px 10px 4px">⭐ Quick Links</div>
+            <div class="ql-list" id="qlList"></div>
+          </div>
           <!-- Focus Timer -->
           <div class="timer-box" id="timerBox">
             <div class="timer-hd"><span class="ws-top-label" style="padding:0">⏱ Focus Timer</span></div>
@@ -1353,7 +1390,7 @@ let dragSrc=null; // for drag-to-reorder
 let folderId=localStorage.getItem('trackerFolderId')||null;
 let fileId=localStorage.getItem('trackerFileId')||null;
 let tokenClient, accessToken, tokenExpiry=0, saveTimer=null;
-const DEFAULT_CONFIG={theme:'dark',categories:['Work','Personal','Finance','Health','Learning','Project'],owners:['Don','San','Nivin','Common'],notifyDefault:'1d',labels:[]};
+const DEFAULT_CONFIG={theme:'dark',categories:['Work','Personal','Finance','Health','Learning','Project'],owners:['Don','San','Nivin','Common'],notifyDefault:'1d',labels:[],quickLinks:[null,null,null]};
 let appConfig={...DEFAULT_CONFIG};
 function loadConfig(){try{const s=JSON.parse(localStorage.getItem('pmtf_cfg')||'{}');appConfig={...DEFAULT_CONFIG,...s};if(!appConfig.emailjs)appConfig.emailjs={key:localStorage.getItem('ejs_key')||'',svc:localStorage.getItem('ejs_svc')||'',tpl:localStorage.getItem('ejs_tpl')||''};
   // Ensure default categories (e.g. Project) exist even for older saved configs
@@ -1536,6 +1573,7 @@ async function loadData(){
       if(resp.ok){
         const d=await resp.json();
         items=d.items||[];expanded={};reminders=d.reminders||[];
+        if(d.quickLinks&&Array.isArray(d.quickLinks)){appConfig.quickLinks=d.quickLinks;saveConfig();}
         const _KC=getCats().concat(['Work','Personal','Finance','Health','Learning','Project']);
         items.forEach(it=>{if(it.cat&&_KC.some(k=>k.toLowerCase()===(it.cat||'').toLowerCase()))return; if(!it.cat)it.cat='Personal';});
         // v2.7.8 — correct linked-reminder groups from their parent task's category
@@ -1563,7 +1601,7 @@ async function loadData(){
   try{initEjs();checkAndSendReminders();}catch(e){}
 }
 
-async function saveData(){if(saveTimer)clearTimeout(saveTimer);setSyncState('load','Saving…');saveTimer=setTimeout(async()=>{try{const body=JSON.stringify({items,expanded,reminders,savedAt:new Date().toISOString()});const flId=await ensureFolder();let fid=fileId||await findFile();const meta=JSON.stringify(fid?{}:{name:FILE_NAME,mimeType:'application/json',parents:[flId]});const bnd='tracker_bnd_x9';const mp=`--${bnd}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${bnd}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${bnd}--`;await ensureToken();const resp=await fetch(fid?`https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=multipart`:`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`,{method:fid?'PATCH':'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${bnd}`},body:mp});if(!resp.ok)throw new Error(resp.status);const result=await resp.json();fileId=result.id;localStorage.setItem('trackerFileId',fileId);lsSave();setSyncState('ok','Saved ✓ 📁 Project Tracker');}catch(e){console.error(e);setSyncState('err','Save failed');}},1800);}
+async function saveData(){if(saveTimer)clearTimeout(saveTimer);setSyncState('load','Saving…');saveTimer=setTimeout(async()=>{try{const body=JSON.stringify({items,expanded,reminders,quickLinks:(appConfig.quickLinks||[null,null,null]),savedAt:new Date().toISOString()});const flId=await ensureFolder();let fid=fileId||await findFile();const meta=JSON.stringify(fid?{}:{name:FILE_NAME,mimeType:'application/json',parents:[flId]});const bnd='tracker_bnd_x9';const mp=`--${bnd}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${bnd}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${bnd}--`;await ensureToken();const resp=await fetch(fid?`https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=multipart`:`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`,{method:fid?'PATCH':'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${bnd}`},body:mp});if(!resp.ok)throw new Error(resp.status);const result=await resp.json();fileId=result.id;localStorage.setItem('trackerFileId',fileId);lsSave();setSyncState('ok','Saved ✓ 📁 Project Tracker');}catch(e){console.error(e);setSyncState('err','Save failed');}},1800);}
 
 /* ══ UI HELPERS ════════════════════════════════════ */
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));document.getElementById(id).classList.add('show');}
@@ -1642,6 +1680,67 @@ function renderSidebar(){
       <span class="ws-cnt">${cnt}</span>
     </div>`;
   }).join('');
+  renderQuickLinks();
+}
+/* v2.7.17 — Quick Links (top 3 revisable tasks) */
+function getQuickLinks(){
+  if(!appConfig.quickLinks||!Array.isArray(appConfig.quickLinks))appConfig.quickLinks=[null,null,null];
+  while(appConfig.quickLinks.length<3)appConfig.quickLinks.push(null);
+  return appConfig.quickLinks;
+}
+function renderQuickLinks(){
+  const el=document.getElementById('qlList');if(!el)return;
+  const ql=getQuickLinks();
+  el.innerHTML=ql.slice(0,3).map((id,idx)=>{
+    const it=id?items.find(i=>i.id===id):null;
+    if(!it){
+      return `<div class="ql-slot ql-empty" onclick="openQuickLinkPicker(${idx})"><span class="ql-plus">+</span><span class="ql-empty-lbl">Add quick link ${idx+1}</span></div>`;
+    }
+    const st=stageOf(it);
+    return `<div class="ql-slot ql-filled ${selectedId===it.id?'ql-active':''}" onclick="selectTask('${it.id}')" title="${esc(it.text)}">
+      <span class="ql-ico">${it.isMile?'\u2b1f':'\ud83d\udccb'}</span>
+      <span class="ql-name">${esc(it.text)}</span>
+      <span class="ql-stage" style="color:${st.col}">${st.short}</span>
+      <button class="ql-x" onclick="event.stopPropagation();clearQuickLink(${idx})" title="Remove">\u2715</button>
+    </div>`;
+  }).join('');
+}
+function clearQuickLink(idx){
+  const ql=getQuickLinks();ql[idx]=null;saveConfig();if(typeof saveData==="function")saveData();renderQuickLinks();
+}
+function openQuickLinkPicker(idx){
+  const pool=items.filter(i=>!i.archived&&!i.isGroup);
+  if(!pool.length){alert('No tasks yet - create one first.');return;}
+  const existing=document.getElementById('qlPicker');if(existing)existing.remove();
+  const ov=document.createElement('div');ov.id='qlPicker';ov.className='ql-picker-overlay';
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  const rows=pool.map(i=>{const st=stageOf(i);return `<div class="qlp-row" onclick="assignQuickLink(${idx},'${i.id}')">
+    <span class="ql-ico">${i.isMile?'\u2b1f':'\ud83d\udccb'}</span>
+    <span class="qlp-name">${esc(i.text)}</span>
+    <span class="ql-stage" style="color:${st.col}">${st.short}</span>
+  </div>`;}).join('');
+  ov.innerHTML=`<div class="ql-picker" onclick="event.stopPropagation()">
+    <div class="qlp-hd">\u2b50 Pick a task for Quick Link ${idx+1}
+      <button class="qlp-close" onclick="document.getElementById('qlPicker').remove()">\u2715</button></div>
+    <input class="qlp-search" id="qlpSearch" placeholder="Type to filter..." oninput="filterQLPicker(this.value)"/>
+    <div class="qlp-list" id="qlpList">${rows}</div>
+  </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>{const s=document.getElementById('qlpSearch');if(s)s.focus();},30);
+}
+function filterQLPicker(q){
+  q=(q||'').toLowerCase();
+  document.querySelectorAll('#qlpList .qlp-row').forEach(r=>{
+    const t=r.querySelector('.qlp-name').textContent.toLowerCase();
+    r.style.display=t.includes(q)?'':'none';
+  });
+}
+function assignQuickLink(idx,id){
+  const ql=getQuickLinks();
+  for(let k=0;k<ql.length;k++)if(ql[k]===id)ql[k]=null;
+  ql[idx]=id;saveConfig();if(typeof saveData==="function")saveData();
+  const p=document.getElementById('qlPicker');if(p)p.remove();
+  renderQuickLinks();
 }
 function setWorkspace(key){
   workspace=key;
@@ -2341,6 +2440,10 @@ function buildItemParts(item){
           <div class="excel-tabs" id="excelTabs" style="display:none"></div>
           <div class="excel-toolbar" id="excelToolbar" style="display:none">
             <span class="excel-fname" id="excelFname"></span>
+            <button class="excel-btn excel-edit-btn" onclick="xlAddRow()" title="Add a row at the bottom">＋ Row</button>
+            <button class="excel-btn excel-edit-btn" onclick="xlAddCol()" title="Add a column at the right">＋ Col</button>
+            <button class="excel-btn excel-edit-btn" onclick="xlDelRow()" title="Delete the row of the selected cell">－ Row</button>
+            <button class="excel-btn excel-edit-btn" onclick="xlDelCol()" title="Delete the column of the selected cell">－ Col</button>
             <button class="excel-btn excel-btn-dl" onclick="downloadExcel()">⬇ Download .xlsx</button>
             <button class="excel-btn excel-btn-clear" onclick="clearExcel()">✕ Clear</button>
           </div>
@@ -3595,6 +3698,8 @@ function updateClDesc(itemId,clId,ta){
 
 /* ══ v2.7.16 EXCEL (session-only test) ════════════════ */
 let _xlWb=null, _xlSheet=null, _xlName='';
+let _xlData=null;   // current sheet as array-of-arrays (editable model)
+let _xlSel={r:0,c:0};
 const _XL_MAXROWS=300, _XL_MAXCOLS=40;
 function onExcelUpload(ev){
   const file=ev.target.files&&ev.target.files[0]; if(!file)return;
@@ -3605,18 +3710,32 @@ function onExcelUpload(ev){
     try{
       _xlWb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
       _xlSheet=_xlWb.SheetNames[0];
+      loadSheetData();
       renderExcel();
     }catch(err){alert('Could not read this file: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
   ev.target.value='';
 }
-function _xlTrim(aoa){
-  // trim trailing fully-empty rows and columns
+function _xlFmtVal(v){
+  if(v instanceof Date && !isNaN(v)){const mm=('0'+(v.getMonth()+1)).slice(-2),dd=('0'+v.getDate()).slice(-2);return v.getFullYear()+'-'+mm+'-'+dd;}
+  return (v==null)?'':v;
+}
+function loadSheetData(){
+  const ws=_xlWb.Sheets[_xlSheet];
+  let aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',blankrows:true});
+  // trim trailing empty rows/cols
   let maxR=0,maxC=0;
   for(let r=0;r<aoa.length;r++){for(let c=0;c<(aoa[r]||[]).length;c++){const v=aoa[r][c];if(v!==null&&v!==undefined&&String(v).trim()!==''){if(r+1>maxR)maxR=r+1;if(c+1>maxC)maxC=c+1;}}}
-  const out=[];for(let r=0;r<maxR;r++){const row=[];for(let c=0;c<maxC;c++){row.push((aoa[r]&&aoa[r][c]!=null)?aoa[r][c]:'');}out.push(row);}
-  return out;
+  maxR=Math.max(maxR,1);maxC=Math.max(maxC,1);
+  const out=[];for(let r=0;r<maxR;r++){const row=[];for(let c=0;c<maxC;c++){row.push((aoa[r]&&aoa[r][c]!=null)?_xlFmtVal(aoa[r][c]):'');}out.push(row);}
+  _xlData=out;_xlSel={r:0,c:0};
+}
+function commitSheetData(){
+  // write _xlData back into the workbook sheet (so other tabs/download see edits)
+  if(!_xlWb||!_xlData)return;
+  const ws=XLSX.utils.aoa_to_sheet(_xlData);
+  _xlWb.Sheets[_xlSheet]=ws;
 }
 function renderExcel(){
   if(!_xlWb)return;
@@ -3625,25 +3744,23 @@ function renderExcel(){
   const wrap=document.getElementById('excelGridWrap');
   const up=document.getElementById('excelUpload');
   if(!tabsEl||!wrap)return;
+  if(!_xlData)loadSheetData();
   up.style.display='none'; tabsEl.style.display='flex'; tb.style.display='flex'; wrap.style.display='block';
   document.getElementById('excelFname').textContent=_xlName;
   tabsEl.innerHTML=_xlWb.SheetNames.map(n=>`<button class="excel-tab ${n===_xlSheet?'on':''}" onclick="selectExcelSheet(${JSON.stringify(n).replace(/"/g,'&quot;')})">${escExcel(n)}</button>`).join('');
-  const ws=_xlWb.Sheets[_xlSheet];
-  let aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',blankrows:true});
-  aoa=_xlTrim(aoa);
-  const totalR=aoa.length, totalC=aoa.reduce((m,r)=>Math.max(m,r.length),0);
+  const totalR=_xlData.length, totalC=_xlData.reduce((m,r)=>Math.max(m,r.length),0);
   const rows=Math.min(totalR,_XL_MAXROWS), cols=Math.min(totalC,_XL_MAXCOLS);
-  if(!rows){wrap.innerHTML='<div class="excel-empty">This sheet is empty.</div>';return;}
   const colLetter=i=>{let s='';i++;while(i>0){i--;s=String.fromCharCode(65+(i%26))+s;i=Math.floor(i/26);}return s;};
   let html='<table class="excel-grid"><thead><tr><th class="excel-corner"></th>';
-  for(let c=0;c<cols;c++)html+='<th class="excel-colh">'+colLetter(c)+'</th>';
+  for(let c=0;c<cols;c++)html+='<th class="excel-colh '+(c===_xlSel.c?'xl-selhdr':'')+'">'+colLetter(c)+'</th>';
   html+='</tr></thead><tbody>';
   for(let r=0;r<rows;r++){
-    html+='<tr><th class="excel-rowh">'+(r+1)+'</th>';
+    html+='<tr><th class="excel-rowh '+(r===_xlSel.r?'xl-selhdr':'')+'">'+(r+1)+'</th>';
     for(let c=0;c<cols;c++){
-      let v=(aoa[r]&&aoa[r][c]!=null)?aoa[r][c]:'';
-      if(v instanceof Date && !isNaN(v)){const mm=('0'+(v.getMonth()+1)).slice(-2),dd=('0'+v.getDate()).slice(-2);v=v.getFullYear()+'-'+mm+'-'+dd;}
-      html+='<td class="excel-cell" contenteditable="true" data-r="'+r+'" data-c="'+c+'" onblur="editExcelCell(this)">'+escExcel(String(v))+'</td>';
+      const v=(_xlData[r]&&_xlData[r][c]!=null)?_xlData[r][c]:'';
+      const sel=(r===_xlSel.r&&c===_xlSel.c)?' xl-cellsel':'';
+      html+='<td class="excel-cell'+sel+'" contenteditable="true" data-r="'+r+'" data-c="'+c+'" '
+        +'onfocus="xlFocus('+r+','+c+')" onblur="editExcelCell(this)" onkeydown="xlCellKey(event,this)">'+escExcel(String(v))+'</td>';
     }
     html+='</tr>';
   }
@@ -3653,25 +3770,39 @@ function renderExcel(){
   wrap.innerHTML=html+note;
 }
 function escExcel(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function selectExcelSheet(n){_xlSheet=n;renderExcel();}
+function selectExcelSheet(n){commitSheetData();_xlSheet=n;loadSheetData();renderExcel();}
+function xlFocus(r,c){_xlSel={r:r,c:c};}
 function editExcelCell(td){
-  if(!_xlWb)return;
+  if(!_xlData)return;
   const r=+td.dataset.r, c=+td.dataset.c;
-  const addr=XLSX.utils.encode_cell({r:r,c:c});
-  const ws=_xlWb.Sheets[_xlSheet];
-  let val=td.innerText;
-  // try to keep numbers numeric
+  if(!_xlData[r])_xlData[r]=[];
+  let val=td.innerText.replace(/\n$/,'');
   const num=Number(val);
-  if(val.trim()!==''&&!isNaN(num)&&String(num)===val.trim()){ws[addr]={t:'n',v:num};}
-  else if(val.trim()===''){delete ws[addr];}
-  else{ws[addr]={t:'s',v:val};}
-  // extend sheet range if needed
-  const ref=ws['!ref']||'A1';const rng=XLSX.utils.decode_range(ref);
-  if(c>rng.e.c)rng.e.c=c; if(r>rng.e.r)rng.e.r=r; ws['!ref']=XLSX.utils.encode_range(rng);
+  _xlData[r][c]=(val.trim()!==''&&!isNaN(num)&&String(num)===val.trim())?num:val;
+  commitSheetData();
 }
+/* keyboard nav: Enter=down, Tab=right (Shift reverses) */
+function xlCellKey(ev,td){
+  const r=+td.dataset.r,c=+td.dataset.c;
+  let nr=r,nc=c,move=false;
+  if(ev.key==='Enter'){ev.preventDefault();nr=ev.shiftKey?r-1:r+1;move=true;}
+  else if(ev.key==='Tab'){ev.preventDefault();nc=ev.shiftKey?c-1:c+1;move=true;}
+  if(move){
+    editExcelCell(td);
+    const next=document.querySelector('.excel-cell[data-r="'+nr+'"][data-c="'+nc+'"]');
+    if(next){next.focus();
+      const rng=document.createRange();rng.selectNodeContents(next);rng.collapse(false);
+      const sel=window.getSelection();sel.removeAllRanges();sel.addRange(rng);}
+  }
+}
+function xlAddRow(){ if(!_xlData)return; const cols=_xlData.reduce((m,r)=>Math.max(m,r.length),1); const at=Math.min(_xlSel.r+1,_xlData.length); _xlData.splice(at,0,new Array(cols).fill('')); commitSheetData(); renderExcel(); }
+function xlAddCol(){ if(!_xlData)return; const at=_xlSel.c+1; _xlData.forEach(row=>{while(row.length<at)row.push('');row.splice(at,0,'');}); commitSheetData(); renderExcel(); }
+function xlDelRow(){ if(!_xlData||_xlData.length<=1)return; _xlData.splice(_xlSel.r,1); if(_xlSel.r>=_xlData.length)_xlSel.r=_xlData.length-1; commitSheetData(); renderExcel(); }
+function xlDelCol(){ if(!_xlData)return; const cols=_xlData.reduce((m,r)=>Math.max(m,r.length),1); if(cols<=1)return; _xlData.forEach(row=>{if(_xlSel.c<row.length)row.splice(_xlSel.c,1);}); if(_xlSel.c>=cols-1)_xlSel.c=Math.max(0,cols-2); commitSheetData(); renderExcel(); }
 function downloadExcel(){
   if(!_xlWb){alert('Upload a file first.');return;}
   try{
+    commitSheetData();
     const out=XLSX.write(_xlWb,{bookType:'xlsx',type:'array'});
     const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -3680,7 +3811,7 @@ function downloadExcel(){
   }catch(err){alert('Download failed: '+err.message);}
 }
 function clearExcel(){
-  _xlWb=null;_xlSheet=null;_xlName='';
+  _xlWb=null;_xlSheet=null;_xlName='';_xlData=null;_xlSel={r:0,c:0};
   const up=document.getElementById('excelUpload');const tabsEl=document.getElementById('excelTabs');
   const tb=document.getElementById('excelToolbar');const wrap=document.getElementById('excelGridWrap');
   if(up)up.style.display='flex'; if(tabsEl){tabsEl.style.display='none';tabsEl.innerHTML='';}
@@ -3751,7 +3882,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.16';
+const CURRENT_VER='v2.7.17';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

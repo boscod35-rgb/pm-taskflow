@@ -131,6 +131,8 @@ header{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 8
 .abtn-t:hover{background:var(--blue);color:#fff;}
 .abtn-m{background:var(--gold-d);color:var(--gold);border-color:rgba(240,180,41,.3);}
 .abtn-m:hover{background:var(--gold);color:#000;}
+.abtn-dup{background:rgba(168,85,247,.12);color:#c084fc;border-color:rgba(168,85,247,.35);}
+.abtn-dup:hover{background:#a855f7;color:#fff;}
 
 /* FILTER BAR */
 .frow{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
@@ -254,8 +256,10 @@ header{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 8
 .notes-box{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:11px 12px;margin-bottom:10px;}
 /* #5 v2.7.15 — task link */
 .link-box{background:var(--s3);border:1px solid var(--b2);border-radius:7px;padding:11px 12px;margin-bottom:12px;}
-.link-open{display:block;margin-top:7px;font-family:'DM Mono',monospace;font-size:.66rem;color:var(--blue);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(77,158,255,.3);background:rgba(77,158,255,.08);border-radius:6px;padding:5px 8px;}
+.link-open{display:inline-block;margin-top:7px;font-family:'DM Mono',monospace;font-size:.66rem;color:var(--blue);text-decoration:none;white-space:nowrap;border:1px solid rgba(77,158,255,.3);background:rgba(77,158,255,.08);border-radius:6px;padding:5px 10px;}
 .link-open:hover{background:rgba(77,158,255,.16);text-decoration:underline;}
+.detail-scroll .det-left,.detail-scroll .det-right{min-width:0;overflow:hidden;}
+.detail-scroll .rf-inp,.detail-scroll input,.detail-scroll textarea,.detail-scroll select{max-width:100%;box-sizing:border-box;}
 /* #6 v2.7.15 — references */
 .ref-box{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:11px 12px;margin-top:12px;}
 .ref-ta{min-height:60px;}
@@ -579,6 +583,13 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .fi-flag-sub{color:#a855f7 !important;}
 .followup-item.fi-sub{border-left:3px solid #a855f7;}
 .fi-subtag{font-family:'DM Mono',monospace;font-size:.5rem;background:rgba(168,85,247,.18);color:#c084fc;border:1px solid rgba(168,85,247,.4);border-radius:4px;padding:0 4px;letter-spacing:.05em;vertical-align:middle;}
+/* v2.7.19 — nested sub-items inside a flagged main item's follow-up card */
+.fi-subs{margin:6px 0 2px;padding-left:6px;border-left:2px solid rgba(168,85,247,.3);display:flex;flex-direction:column;gap:4px;}
+.fi-subrow{display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--m1);}
+.fi-subbox{width:15px;height:15px;border:1.5px solid var(--b2);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;cursor:pointer;flex-shrink:0;color:#fff;}
+.fi-subbox.on{background:var(--done);border-color:var(--done);}
+.fi-subtxt{flex:1;}
+.fi-subflagged{color:#a855f7;font-size:.8rem;}
 /* v2.7.18 — project start/end date pickers in create form */
 .proj-dates{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .proj-date-lbl{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(245,200,92,.35);border-radius:7px;padding:3px 8px;background:rgba(245,200,92,.06);}
@@ -1063,7 +1074,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.18</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.19</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1146,6 +1157,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
                   onkeydown="if(event.key==='Enter')addItem(false)"/>
                 <button class="abtn abtn-t" onclick="addItem(false)">+ Task</button>
                 <button class="abtn abtn-m" onclick="addItem(true)">⬟ Milestone</button>
+                <button class="abtn abtn-dup" onclick="openDuplicatePicker()" title="Duplicate an existing task or milestone">⧉ Duplicate</button>
                 <button class="center-collapse-btn" id="centerCollapseBtn" onclick="toggleListPane()" title="Expand / collapse the task list">⤢</button>
               </div>
               <div class="dup-error" id="dupError">⚠ A task or milestone with this name already exists. Please use a different name.</div>
@@ -1758,6 +1770,61 @@ function assignQuickLink(idx,id){
   ql[idx]=id;saveConfig();if(typeof saveData==="function")saveData();
   const p=document.getElementById('qlPicker');if(p)p.remove();
   renderQuickLinks();
+}
+/* v2.7.19 — Duplicate a task/milestone (single, deep copy) */
+function openDuplicatePicker(){
+  const pool=items.filter(i=>!i.archived&&!i.isGroup);
+  if(!pool.length){alert('No tasks yet — create one first.');return;}
+  const existing=document.getElementById('dupPicker');if(existing)existing.remove();
+  const ov=document.createElement('div');ov.id='dupPicker';ov.className='ql-picker-overlay';
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  const rows=pool.map(i=>{const st=stageOf(i);return `<div class="qlp-row" onclick="duplicateItem('${i.id}')">
+    <span class="ql-ico">${i.isMile?'\u2b1f':'\ud83d\udccb'}</span>
+    <span class="qlp-name">${esc(i.text)}</span>
+    <span class="ql-stage" style="color:${st.col}">${st.short}</span>
+  </div>`;}).join('');
+  ov.innerHTML=`<div class="ql-picker" onclick="event.stopPropagation()">
+    <div class="qlp-hd">\u29c9 Duplicate a task / milestone
+      <button class="qlp-close" onclick="document.getElementById('dupPicker').remove()">\u2715</button></div>
+    <input class="qlp-search" id="dupSearch" placeholder="Type to filter\u2026" oninput="filterDupPicker(this.value)"/>
+    <div class="qlp-list" id="dupList">${rows}</div>
+  </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>{const s=document.getElementById('dupSearch');if(s)s.focus();},30);
+}
+function filterDupPicker(q){
+  q=(q||'').toLowerCase();
+  document.querySelectorAll('#dupList .qlp-row').forEach(r=>{
+    const t=r.querySelector('.qlp-name').textContent.toLowerCase();
+    r.style.display=t.includes(q)?'':'none';
+  });
+}
+function duplicateItem(id){
+  const src=items.find(i=>i.id===id);if(!src)return;
+  const copy=JSON.parse(JSON.stringify(src)); // deep copy
+  copy.id=uid();
+  copy.text=src.text+' (Copy)';
+  copy.created=Date.now();
+  copy.period=periodAnchorDate();
+  copy.files=[];          // files are tied to the original upload — start clean
+  copy.comments=[];       // comments belong to the original
+  copy.closedAt=null;
+  // fresh ids for checklists / items / sub-items so they don't collide
+  (copy.checklists||[]).forEach(cl=>{
+    cl.id=uid();
+    (cl.items||[]).forEach(ci=>{
+      ci.id=uid();
+      (ci.subItems||[]).forEach(s=>{s.id=uid();});
+      // duplicated checklist-due reminders shouldn't carry the old link
+      if(ci.fromChecklist||ci.linkedCIId){ci.linkedCIId=null;}
+    });
+  });
+  items.unshift(copy);expanded[copy.id]=true;
+  const p=document.getElementById('dupPicker');if(p)p.remove();
+  renderTracker();
+  selectTask(copy.id);
+  setTimeout(()=>{const el=document.getElementById('card_'+copy.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');}},60);
+  saveData();
 }
 function setWorkspace(key){
   workspace=key;
@@ -2378,16 +2445,6 @@ function buildItemParts(item){
           <button class="ci-add" onclick="event.stopPropagation();addWeekChecklists('${item.id}')" title="Auto-create Mon-Sun checklists for this week" style="background:rgba(240,180,41,.15);color:var(--gold);border-color:rgba(240,180,41,.3)">📅 Week</button>
         </div>
       </div>
-      <div class="file-sec">
-        <div class="file-hd"><span class="file-title">📎 Files (${files.length})</span></div>
-        <input class="file-inp" type="file" id="file_inp_${item.id}" multiple
-          onchange="handleFileSelect('${item.id}',this)" onclick="event.stopPropagation()"/>
-        <div class="file-drop" onclick="event.stopPropagation();document.getElementById('file_inp_${item.id}').click()">
-          <div class="file-drop-txt">⬆ Click to upload files</div>
-        </div>
-        <div class="file-uploading" id="file_status_${item.id}" style="display:none">⏳ Uploading…</div>
-        ${fileItems}
-      </div>
     </div>
     <div class="det-right">
       <div class="na-box">
@@ -2407,7 +2464,7 @@ function buildItemParts(item){
         <input class="rf-inp" value="${esc(item.link||'')}" placeholder="Paste a URL (https://…)"
           onclick="event.stopPropagation()"
           onchange="event.stopPropagation();updateField('${item.id}','link',this.value)" maxlength="1000"/>
-        ${item.link?`<a class="link-open" href="${esc(item.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${esc(item.link)}">↗ ${esc(item.link)}</a>`:''}
+        ${item.link?`<a class="link-open" href="${esc(item.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${esc(item.link)}">↗ Open link</a>`:''}
       </div>
       <div class="det-sec" style="margin-top:8px">
         <div class="det-lbl">Due Date</div>
@@ -2474,6 +2531,17 @@ function buildItemParts(item){
           onkeydown="clDescKeydown(event,this)"
           onchange="event.stopPropagation();updateField('${item.id}','references',this.value)"
           oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" maxlength="4000">${esc(item.references||'')}</textarea>
+      </div>
+      <!-- v2.7.19 — Files moved to right pane -->
+      <div class="file-sec" style="margin-top:12px">
+        <div class="na-lbl">📎 Files (${files.length})</div>
+        <input class="file-inp" type="file" id="file_inp_${item.id}" multiple
+          onchange="handleFileSelect('${item.id}',this)" onclick="event.stopPropagation()"/>
+        <div class="file-drop" onclick="event.stopPropagation();document.getElementById('file_inp_${item.id}').click()">
+          <div class="file-drop-txt">⬆ Click to upload files</div>
+        </div>
+        <div class="file-uploading" id="file_status_${item.id}" style="display:none">⏳ Uploading…</div>
+        ${fileItems}
       </div>
       <!-- v2.7.16 — Excel panel (session-only test) -->
       <div class="excel-box" id="excelBox_${item.id}">
@@ -3438,11 +3506,19 @@ function renderFollowup(){
           +'</div></div>';
       }
       const done=ci.done;
+      const subList=(ci.subItems||[]);
+      const subHtml=subList.length?('<div class="fi-subs">'+subList.map(s=>
+        '<div class="fi-subrow '+(s.done?'fi-struck':'')+'">'
+        +'<span class="fi-subbox '+(s.done?'on':'')+'" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" data-sid="'+s.id+'" onclick="toggleSubItem(this.dataset.iid,this.dataset.cid,this.dataset.ciid,this.dataset.sid);renderFollowup();">'+(s.done?'✓':'')+'</span>'
+        +'<span class="fi-subtxt">'+esc(s.text)+'</span>'
+        +(s.flagged?'<span class="fi-subflagged">⚑</span>':'')
+        +'</div>').join('')+'</div>'):'';
       return '<div class="followup-item '+(done?'fi-done':'')+'">'
         +'<div class="fi-flag" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" onclick="toggleCIFlag(this.dataset.iid,this.dataset.cid,this.dataset.ciid)">⚑</div>'
         +'<div class="fi-body">'
         +'<div class="fi-task">'+esc(item.text)+' <span class="fi-cl">/ '+esc(cl.name)+'</span></div>'
         +'<div class="fi-txt '+(done?'fi-struck':'')+'">'+esc(ci.text)+'</div>'
+        +subHtml
         +'<div class="fi-meta">'+esc(item.cat||'')+' · '+esc(item.owner||'')+(item.dueDate?' · Due '+item.dueDate:'')+'</div>'
         +'</div>'
         +'<div class="fi-actions">'
@@ -3956,7 +4032,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.18';
+const CURRENT_VER='v2.7.19';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

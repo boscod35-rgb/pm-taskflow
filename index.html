@@ -1074,7 +1074,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.19</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.20</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -3481,8 +3481,8 @@ function renderFollowup(){
     items.filter(i=>!i.archived).forEach(item=>{
       (item.checklists||[]).forEach(cl=>{
         (cl.items||[]).forEach(ci=>{
-          if(ci.flagged===true)flagged.push({item,cl,ci});
-          (ci.subItems||[]).filter(s=>s.flagged===true).forEach(s=>flagged.push({item,cl,ci,sub:s}));
+          if(ci.flagged)flagged.push({item,cl,ci});
+          (ci.subItems||[]).filter(s=>s&&s.flagged).forEach(s=>flagged.push({item,cl,ci,sub:s}));
         });
       });
     });
@@ -4032,7 +4032,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.19';
+const CURRENT_VER='v2.7.20';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

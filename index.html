@@ -570,6 +570,19 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .ci-sub-txt{flex:1;font-size:.72rem;color:var(--tx);}
 .ci-sub-del{background:none;border:none;color:var(--m2);cursor:pointer;font-size:.85rem;opacity:.5;padding:0 4px;flex-shrink:0;}
 .ci-sub-del:hover{opacity:1;color:var(--red);}
+/* v2.7.18 — sub-item flag (distinct violet hue, different from main red/blue flag) */
+.ci-sub-flag{background:none;border:none;cursor:pointer;font-size:.82rem;flex-shrink:0;padding:0 3px;line-height:1;transition:all .15s;}
+.csf-off{color:var(--m2);opacity:.5;}
+.csf-off:hover{opacity:1;color:#b98bff;}
+.csf-on{color:#a855f7;opacity:1;text-shadow:0 0 7px rgba(168,85,247,.6);}
+/* v2.7.18 — follow-up sub-item card */
+.fi-flag-sub{color:#a855f7 !important;}
+.followup-item.fi-sub{border-left:3px solid #a855f7;}
+.fi-subtag{font-family:'DM Mono',monospace;font-size:.5rem;background:rgba(168,85,247,.18);color:#c084fc;border:1px solid rgba(168,85,247,.4);border-radius:4px;padding:0 4px;letter-spacing:.05em;vertical-align:middle;}
+/* v2.7.18 — project start/end date pickers in create form */
+.proj-dates{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.proj-date-lbl{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(245,200,92,.35);border-radius:7px;padding:3px 8px;background:rgba(245,200,92,.06);}
+.proj-date-lbl input{background:var(--s2);border:1px solid var(--b1);border-radius:5px;color:var(--tx);font-family:'DM Mono';font-size:.7rem;padding:2px 4px;}
 .ci-sub-add{display:flex;gap:6px;margin-top:3px;}
 .ci-sub-inp{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:3px 7px;font-family:'DM Sans',sans-serif;font-size:.7rem;color:var(--tx);outline:none;}
 .ci-sub-inp:focus{border-color:var(--blue);}
@@ -972,7 +985,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .dh-rename,.dh-close{background:var(--s2);border:1px solid var(--b1);border-radius:7px;width:30px;height:30px;color:var(--m1);cursor:pointer;flex-shrink:0;font-size:.82rem;}
 .dh-rename:hover,.dh-close:hover{color:var(--tx);border-color:var(--b2);}
 .detail-scroll{flex:1;overflow-y:auto;}
-.detail-scroll .det-pane{display:grid !important;grid-template-columns:1.15fr 1fr !important;border-top:none;}
+.detail-scroll .det-pane{display:grid !important;grid-template-columns:1fr 1fr !important;border-top:none;}
 .detail-scroll .det-left{border-right:1px solid var(--b1) !important;border-bottom:none !important;}
 @media(max-width:1200px){.detail-scroll .det-pane{grid-template-columns:1fr !important;}.detail-scroll .det-left{border-right:none !important;border-bottom:1px solid var(--b1) !important;}}
 
@@ -1050,7 +1063,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.17</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.18</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1155,12 +1168,16 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
                   <option value="Common">Common</option>
                 </select>
                 <input class="fld-date" id="dueInp" type="date"/>
-                <select class="fld-sel" id="catInp">
+                <select class="fld-sel" id="catInp" onchange="toggleProjectDates()">
                   <option value="">Category</option>
                   <option>Work</option><option>Health</option>
                   <option>Personal</option><option>Finance</option><option>Learning</option>
                   <option value="Project">Project</option>
                 </select>
+                <span class="proj-dates" id="projDates" style="display:none">
+                  <label class="proj-date-lbl">Start<input class="fld-date" id="startInp" type="date"/></label>
+                  <label class="proj-date-lbl">End<input class="fld-date" id="endInp" type="date"/></label>
+                </span>
               </div>
               <div class="frow">
                 <button class="fchip fa" data-f="all"       onclick="setFilter(this,'all')">All</button>
@@ -1802,13 +1819,15 @@ async function handleFileSelect(itemId,inputEl){
   if(!item.files)item.files=[];
   const statusEl=document.getElementById('file_status_'+itemId);
   if(statusEl){statusEl.textContent='Uploading…';statusEl.style.display='block';}
+  let failed=0;
   for(const f of files){
     try{const ref=await uploadFileToDrive(itemId,f);item.files.push(ref);}
-    catch(e){console.error('Upload failed:',e);}
+    catch(e){console.error('Upload failed:',e);failed++;}
   }
   if(statusEl){statusEl.style.display='none';}
   patchCard(item);saveData();refreshDash();
   inputEl.value='';
+  if(failed)alert(failed+' file(s) could not upload. Make sure you are signed in to Google Drive (try Reconnect), then retry.');
 }
 function delFile(itemId,fileId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
@@ -1994,6 +2013,12 @@ function toggleSubItem(itemId,clId,ciId,sId){
   const s=r.ci.subItems.find(x=>x.id===sId);if(!s)return;
   s.done=!s.done;patchCard(r.item);saveData();refreshDash();
 }
+function toggleSubFlag(itemId,clId,ciId,sId){
+  const r=_findCI(itemId,clId,ciId);if(!r||!r.ci.subItems)return;
+  const s=r.ci.subItems.find(x=>x.id===sId);if(!s)return;
+  s.flagged=!s.flagged;patchCard(r.item);saveData();
+  if(document.getElementById('viewFollowup')&&document.getElementById('viewFollowup').style.display!=='none')renderFollowup();
+}
 function delSubItem(itemId,clId,ciId,sId){
   const r=_findCI(itemId,clId,ciId);if(!r||!r.ci.subItems)return;
   r.ci.subItems=r.ci.subItems.filter(x=>x.id!==sId);patchCard(r.item);saveData();refreshDash();
@@ -2093,22 +2118,31 @@ function clGroupDrop(e,itemId,clId){
 }
 
 /* C2 — rename task/milestone */
-function startRename(itemId){
-  const nameEl=document.getElementById('row_name_'+itemId);if(!nameEl)return;
-  const orig=nameEl.textContent.trim();
+function _doRename(nameEl,itemId){
+  if(!nameEl)return;
+  const orig=(items.find(i=>i.id===itemId)||{}).text||nameEl.textContent.trim();
   const inp=document.createElement('input');
   inp.className='rename-inp';inp.value=orig;inp.maxLength=140;
   nameEl.innerHTML='';nameEl.appendChild(inp);inp.focus();inp.select();
+  let done=false;
   const save=()=>{
+    if(done)return;done=true;
     const newName=inp.value.trim();
     const item=items.find(i=>i.id===itemId);
-    if(item&&newName){item.text=newName;}
+    if(item&&newName)item.text=newName;
     patchCard(items.find(i=>i.id===itemId));
+    if(selectedId===itemId)renderDetail();
     if(newName)saveData();
   };
   inp.onblur=save;
-  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=orig;inp.blur();}};
+  inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){done=true;renderDetail();}};
   inp.onclick=e=>e.stopPropagation();
+}
+function startRename(itemId){ // name-list row
+  _doRename(document.getElementById('row_name_'+itemId),itemId);
+}
+function startRenameDetail(itemId){ // detail header (unique id)
+  _doRename(document.getElementById('dh_title_'+itemId),itemId);
 }
 
 /* C1 v1.6 — pipeline filtered by active category */
@@ -2229,6 +2263,7 @@ function buildItemParts(item){
         ${subs.map(s=>`<div class="ci-sub-item">
           <div class="ci-sub-box" onclick="event.stopPropagation();toggleSubItem('${item.id}','${cl.id}','${ci.id}','${s.id}')" style="${s.done?'background:var(--done);border-color:var(--done);color:#fff':''}">${s.done?'✓':''}</div>
           <span class="ci-sub-txt" style="${s.done?'text-decoration:line-through;color:var(--m1)':''}" ondblclick="event.stopPropagation();editSubItem('${item.id}','${cl.id}','${ci.id}','${s.id}')" title="Double-click to edit">${esc(s.text)}</span>
+          <button class="ci-sub-flag ${s.flagged?'csf-on':'csf-off'}" onclick="event.stopPropagation();toggleSubFlag('${item.id}','${cl.id}','${ci.id}','${s.id}')" title="${s.flagged?'Flagged sub-item — click to remove':'Flag sub-item for follow-up'}">⚑</button>
           <button class="ci-sub-del" onclick="event.stopPropagation();delSubItem('${item.id}','${cl.id}','${ci.id}','${s.id}')">×</button>
         </div>`).join('')}
         <div class="ci-sub-add">
@@ -2345,10 +2380,10 @@ function buildItemParts(item){
       </div>
       <div class="file-sec">
         <div class="file-hd"><span class="file-title">📎 Files (${files.length})</span></div>
-        <div class="file-drop" onclick="event.stopPropagation();triggerFileUpload('${item.id}')">
-          <div class="file-drop-txt">Click to upload files</div>
-          <input class="file-inp" type="file" id="file_inp_${item.id}" multiple
-            onchange="handleFileSelect('${item.id}',this)" onclick="event.stopPropagation()"/>
+        <input class="file-inp" type="file" id="file_inp_${item.id}" multiple
+          onchange="handleFileSelect('${item.id}',this)" onclick="event.stopPropagation()"/>
+        <div class="file-drop" onclick="event.stopPropagation();document.getElementById('file_inp_${item.id}').click()">
+          <div class="file-drop-txt">⬆ Click to upload files</div>
         </div>
         <div class="file-uploading" id="file_status_${item.id}" style="display:none">⏳ Uploading…</div>
         ${fileItems}
@@ -2381,6 +2416,18 @@ function buildItemParts(item){
           onchange="event.stopPropagation();updateField('${item.id}','dueDate',this.value);renderTracker();"
           style="max-width:180px"/>
       </div>
+      ${item.cat==='Project'?`<div class="det-sec" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:130px">
+          <div class="det-lbl">📆 Start Date</div>
+          <input type="date" class="rf-inp" value="${item.startDate||''}" onclick="event.stopPropagation()"
+            onchange="event.stopPropagation();updateField('${item.id}','startDate',this.value)" style="width:100%"/>
+        </div>
+        <div style="flex:1;min-width:130px">
+          <div class="det-lbl">🏁 End Date</div>
+          <input type="date" class="rf-inp" value="${item.endDate||''}" onclick="event.stopPropagation()"
+            onchange="event.stopPropagation();updateField('${item.id}','endDate',this.value)" style="width:100%"/>
+        </div>
+      </div>`:''}
       <div class="det-sec" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
         <div style="flex:1;min-width:130px">
           <div class="det-lbl">Category</div>
@@ -2580,17 +2627,22 @@ function addItem(isMile){
   const dup=items.find(i=>i.text.toLowerCase()===text.toLowerCase());
   if(dup){document.getElementById('dupError').style.display='flex';inp.focus();return;}
   document.getElementById('dupError').style.display='none';
+  const cat=document.getElementById('catInp').value||'';
   const item={id:uid(),text,isMile,
     stage:parseInt(document.getElementById('stageInp').value)||1,
     priority:document.getElementById('priInp').value||'medium',
     owner:document.getElementById('ownerInp').value||'Don',
     dueDate:document.getElementById('dueInp').value||'',
-    cat:document.getElementById('catInp').value||'',
+    cat:cat,
+    startDate:(cat==='Project'?(document.getElementById('startInp').value||''):''),
+    endDate:(cat==='Project'?(document.getElementById('endInp').value||''):''),
     period:periodAnchorDate(),created:Date.now(),done:false,archived:false,closedAt:null,
     phases:newPhases(),nextAction:'',notes:'',files:[],comments:[],checklists:[]};
   items.unshift(item);expanded[item.id]=true;
   inp.value='';
   document.getElementById('dueInp').value=todayStr();
+  const _si=document.getElementById('startInp'),_ei=document.getElementById('endInp');
+  if(_si)_si.value='';if(_ei)_ei.value='';
   // Immediate render — switch to All workspace so new item is always visible
   if(workspace!=='all'&&item.cat&&!getWsCats(workspace)?.includes(item.cat)){
     // stay in current workspace — item will show if cat matches
@@ -2608,6 +2660,11 @@ function addItem(isMile){
 }
 
 function toggleExpand(id){selectTask(id);} // back-compat alias
+/* v2.7.18 — show Start/End date pickers only for Project category */
+function toggleProjectDates(){
+  const cat=document.getElementById('catInp');const pd=document.getElementById('projDates');
+  if(pd)pd.style.display=(cat&&cat.value==='Project')?'inline-flex':'none';
+}
 function selectTask(id){
   selectedId=(selectedId===id)?null:id;
   document.querySelectorAll('.list-row.lselected').forEach(el=>el.classList.remove('lselected'));
@@ -2638,10 +2695,10 @@ function renderDetail(){
   const st=stageOf(item);
   pane.innerHTML=`<div class="detail-head">
       <span class="dh-ico">${item.isMile?'⬟':'📋'}</span>
-      <span class="dh-title" id="row_name_${item.id}">${esc(item.text)}</span>
+      <span class="dh-title" id="dh_title_${item.id}" ondblclick="startRenameDetail('${item.id}')" title="Double-click to rename">${esc(item.text)}</span>
       ${item.isMile?'<span class="bdg bm">⬟ Milestone</span>':''}
       <span class="dh-stage" style="color:${st.col}">${st.short}</span>
-      <button class="dh-rename" onclick="startRename('${item.id}')" title="Rename">✏️</button>
+      <button class="dh-rename" onclick="startRenameDetail('${item.id}')" title="Rename">✏️</button>
       <button class="dh-close" onclick="selectTask('${item.id}')" title="Close">✕</button>
     </div>
     <div class="detail-scroll">${detailHTML(item)}</div>`;
@@ -3355,17 +3412,34 @@ function renderFollowup(){
     const flagged=[];
     items.filter(i=>!i.archived).forEach(item=>{
       (item.checklists||[]).forEach(cl=>{
-        (cl.items||[]).filter(ci=>ci.flagged===true).forEach(ci=>flagged.push({item,cl,ci}));
+        (cl.items||[]).forEach(ci=>{
+          if(ci.flagged===true)flagged.push({item,cl,ci});
+          (ci.subItems||[]).filter(s=>s.flagged===true).forEach(s=>flagged.push({item,cl,ci,sub:s}));
+        });
       });
     });
-    if(!flagged.length){el.innerHTML='<div style="font-size:.82rem;color:var(--m2);padding:24px 0">No flagged items yet — click 🚩 on any checklist item</div>';return;}
-    const sortDone=(a,b)=>(a.ci.done?1:0)-(b.ci.done?1:0);
+    if(!flagged.length){el.innerHTML='<div style="font-size:.82rem;color:var(--m2);padding:24px 0">No flagged items yet — click ⚑ on any checklist item or sub-item</div>';return;}
+    const sortDone=(a,b)=>((a.sub?a.sub.done:a.ci.done)?1:0)-((b.sub?b.sub.done:b.ci.done)?1:0);
     const personal=flagged.filter(x=>(x.item.cat||'').toLowerCase()==='personal').sort(sortDone);
     const work=flagged.filter(x=>(x.item.cat||'').toLowerCase()!=='personal').sort(sortDone);
-    const buildCard=({item,cl,ci})=>{
+    const buildCard=({item,cl,ci,sub})=>{
+      if(sub){
+        const done=sub.done;
+        return '<div class="followup-item fi-sub '+(done?'fi-done':'')+'">'
+          +'<div class="fi-flag fi-flag-sub" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" data-sid="'+sub.id+'" onclick="toggleSubFlag(this.dataset.iid,this.dataset.cid,this.dataset.ciid,this.dataset.sid)">⚑</div>'
+          +'<div class="fi-body">'
+          +'<div class="fi-task">'+esc(item.text)+' <span class="fi-cl">/ '+esc(cl.name)+' / '+esc(ci.text)+'</span></div>'
+          +'<div class="fi-txt '+(done?'fi-struck':'')+'"><span class="fi-subtag">SUB</span> '+esc(sub.text)+'</div>'
+          +'<div class="fi-meta">'+esc(item.cat||'')+' · '+esc(item.owner||'')+(item.dueDate?' · Due '+item.dueDate:'')+'</div>'
+          +'</div>'
+          +'<div class="fi-actions">'
+          +'<div class="fi-done-btn '+(done?'fid-act':'')+'" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" data-sid="'+sub.id+'" onclick="toggleSubItem(this.dataset.iid,this.dataset.cid,this.dataset.ciid,this.dataset.sid)">'+(done?'✓':'')+'</div>'
+          +'<button class="fi-goto" data-id="'+item.id+'" onclick="gotoItem(this.dataset.id)">↗</button>'
+          +'</div></div>';
+      }
       const done=ci.done;
       return '<div class="followup-item '+(done?'fi-done':'')+'">'
-        +'<div class="fi-flag" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" onclick="toggleCIFlag(this.dataset.iid,this.dataset.cid,this.dataset.ciid)">🚩</div>'
+        +'<div class="fi-flag" data-iid="'+item.id+'" data-cid="'+cl.id+'" data-ciid="'+ci.id+'" onclick="toggleCIFlag(this.dataset.iid,this.dataset.cid,this.dataset.ciid)">⚑</div>'
         +'<div class="fi-body">'
         +'<div class="fi-task">'+esc(item.text)+' <span class="fi-cl">/ '+esc(cl.name)+'</span></div>'
         +'<div class="fi-txt '+(done?'fi-struck':'')+'">'+esc(ci.text)+'</div>'
@@ -3882,7 +3956,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.17';
+const CURRENT_VER='v2.7.18';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

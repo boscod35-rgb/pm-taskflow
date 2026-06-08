@@ -1074,7 +1074,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v2.7.20</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.0</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1083,6 +1083,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
         <button class="nav-btn dash" id="btnDash"    onclick="setView('dash')">📊 Dashboard</button>
         <button class="nav-btn rem"  id="btnRem"     onclick="setView('reminder')">🔔 Reminders</button>
         <button class="nav-btn" id="btnFollowup" onclick="setView('followup')">🚩 Follow-up</button>
+        <button class="nav-btn" id="btnBacklog" onclick="setView('backlog')">📦 Backlog</button>
         <button class="nav-btn" id="btnLabels"   onclick="setView('labels')">🏷️ Labels</button>
         <button class="nav-btn" id="btnSettings" onclick="setView('settings')" style="padding:5px 10px">⚙️</button>
         <button class="signout-btn" onclick="openSearch()" style="border-color:rgba(77,158,255,.3);color:var(--blue)">🔍 Search</button>
@@ -1345,6 +1346,54 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
       <div id="followupList" class="followup-list"></div>
     </div>
     <!-- C9: LABELS BOARD -->
+    <!-- v3.0: BACKLOG -->
+    <div id="viewBacklog" style="display:none">
+      <div style="padding:0 0 24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <div class="dtitle" style="margin-bottom:0">📦 <span>Backlog</span></div>
+          <span id="backlogCount" style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--m2);background:var(--s2);border:1px solid var(--b1);border-radius:99px;padding:2px 10px">0 items</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--m1)">Add anything — move to any task checklist when ready</span>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="backlogInp" placeholder="Add to backlog… idea, task, or anything to do later" maxlength="200"
+            style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--b1);background:var(--s2);border-radius:7px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none"
+            onkeydown="if(event.key==='Enter')addBacklogItem()"/>
+          <select id="backlogPri" style="padding:8px 9px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:7px;font-family:'DM Mono',monospace;font-size:.62rem;outline:none;cursor:pointer">
+            <option value="medium">Medium</option>
+            <option value="high">High Priority</option>
+            <option value="low">Low Priority</option>
+          </select>
+          <select id="backlogType" style="padding:8px 9px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:7px;font-family:'DM Mono',monospace;font-size:.62rem;outline:none;cursor:pointer">
+            <option value="onetime">1× One Time</option>
+            <option value="recurring">🔄 Recurring</option>
+          </select>
+          <button onclick="addBacklogItem()" style="padding:9px 16px;background:var(--blue-d);color:var(--blue);border:1px solid rgba(77,158,255,.3);border-radius:7px;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap">+ Add</button>
+        </div>
+        <div id="backlogList"></div>
+      </div>
+    </div>
+    <!-- Backlog Move Modal -->
+    <div id="backlogModal" style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:400;display:none;align-items:center;justify-content:center">
+      <div style="background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:20px;width:460px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:80vh;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span id="blmTitle" style="font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem">Move to Checklist</span>
+          <button onclick="closeBacklogModal()" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:1.1rem">✕</button>
+        </div>
+        <div id="blmItemName" style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);background:var(--gold-d);border:1px solid rgba(240,180,41,.3);border-radius:5px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        <div id="blmStep1">
+          <input id="blmSearch" placeholder="Search tasks…" oninput="filterBlmTasks(this.value)"
+            style="width:100%;padding:7px 10px;border:1px solid var(--b1);background:var(--s2);border-radius:7px;color:var(--tx);font-size:.82rem;outline:none;margin-bottom:8px"/>
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--m2);margin-bottom:5px">Select a task or milestone:</div>
+          <div id="blmTaskList" style="overflow-y:auto;max-height:320px"></div>
+        </div>
+        <div id="blmStep2" style="display:none">
+          <button onclick="blmBack()" style="background:none;border:1px solid var(--b1);border-radius:5px;color:var(--m1);cursor:pointer;font-size:.65rem;padding:4px 10px;font-family:'DM Mono',monospace;margin-bottom:8px">← Back</button>
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--m2);margin-bottom:5px">Pick checklist:</div>
+          <div id="blmClList" style="overflow-y:auto;max-height:320px"></div>
+        </div>
+      </div>
+    </div>
+
     <div id="viewLabels" style="display:none">
       <div class="dtitle">🏷️ Labels <span>Board</span></div>
       <div style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--m1);margin-bottom:16px">All labeled items grouped by label</div>
@@ -1641,6 +1690,7 @@ function setView(v){
   document.getElementById('viewDash').style.display=v==='dash'?'':'none';
   document.getElementById('viewReminder').style.display=v==='reminder'?'':'none';
   const _fup=document.getElementById('viewFollowup');if(_fup)_fup.style.display=v==='followup'?'':'none';
+  const _blg=document.getElementById('viewBacklog');if(_blg)_blg.style.display=v==='backlog'?'':'none';
   const _lab=document.getElementById('viewLabels');if(_lab)_lab.style.display=v==='labels'?'':'none';
   const _stt=document.getElementById('viewSettings');if(_stt)_stt.style.display=v==='settings'?'':'none';
   // Pipeline bar only on tracker
@@ -1650,12 +1700,14 @@ function setView(v){
   document.getElementById('btnDash').className='nav-btn dash'+(v==='dash'?' act':'');
   document.getElementById('btnRem').className='nav-btn rem'+(v==='reminder'?' act':'');
   const _bfu=document.getElementById('btnFollowup');if(_bfu)_bfu.className='nav-btn'+(v==='followup'?' act':'');
+  const _bbl=document.getElementById('btnBacklog');if(_bbl)_bbl.className='nav-btn'+(v==='backlog'?' act':'');
   const _bla=document.getElementById('btnLabels');if(_bla)_bla.className='nav-btn'+(v==='labels'?' act':'');
   const _bst=document.getElementById('btnSettings');if(_bst)_bst.className='nav-btn'+(v==='settings'?' act':'');
   // Render content
   if(v==='dash')renderDash();
   if(v==='reminder')renderReminders();
   if(v==='followup'){if(_fup)renderFollowup();}
+  if(v==='backlog'){renderBacklog();}
   if(v==='labels'){if(_lab)renderLabelsBoard();}
   if(v==='settings'){if(_stt)renderSettings();}
 }
@@ -1961,20 +2013,21 @@ function addWeekChecklists(itemId){
   if(!item.checklists)item.checklists=[];
   const dayNames=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const today=new Date();
-  const dow=today.getDay(); // 0=Sun
-  // Calculate NEXT Monday
+  const dow=today.getDay();
   const daysToNextMon=dow===0?1:8-dow;
   const nextMonday=new Date(today);
   nextMonday.setDate(today.getDate()+daysToNextMon);
   let added=0;
   for(let i=0;i<7;i++){
     const d=new Date(nextMonday);d.setDate(nextMonday.getDate()+i);
-    const name=(d.getMonth()+1)+'/'+(d.getDate())+' – '+dayNames[i];
-    if(!item.checklists.find(cl=>cl.name===name)){
+    const dayName=(d.getMonth()+1)+'/'+(d.getDate())+' – '+dayNames[i];
+    if(!item.checklists.find(cl=>cl.name.includes(dayName))){
+      if(!appConfig.clCounter)appConfig.clCounter=0;appConfig.clCounter++;
+      const name='#'+appConfig.clCounter+'-26 '+dayName;
       item.checklists.push({id:uid(),name,open:true,items:[],description:''});added++;
     }
   }
-  if(added>0){patchCard(item);saveData();}
+  if(added>0){saveConfig();patchCard(item);saveData();}
   else alert('Next week checklists already exist.');
 }
 function moveChecklist(itemId,clId,dir){
@@ -1996,10 +2049,16 @@ function renameChecklist(itemId,clId,el){
 }
 function addChecklist(itemId){
   const inp=document.getElementById('cl_new_name_'+itemId);if(!inp)return;
-  const name=inp.value.trim()||'Checklist '+(((items.find(i=>i.id===itemId)?.checklists)||[]).length+1);
+  const rawName=inp.value.trim();
+  if(!appConfig.clCounter)appConfig.clCounter=0;
+  appConfig.clCounter++;
+  const numTag='#'+appConfig.clCounter+'-26';
+  const name=rawName?numTag+' '+rawName:numTag+' Checklist';
+  saveConfig();
   const item=items.find(i=>i.id===itemId);if(!item)return;
   if(!item.checklists)item.checklists=[];
   item.checklists.push({id:uid(),name,open:true,items:[],description:''});
+  inp.value='';
   patchCard(item);saveData();refreshDash();
 }
 function toggleChecklist(itemId,clId){
@@ -2442,7 +2501,9 @@ function buildItemParts(item){
           <input class="ci-inp" id="cl_new_name_${item.id}" placeholder="New checklist name…" maxlength="60"
             onkeydown="if(event.key==='Enter'){event.stopPropagation();addChecklist('${item.id}');}"/>
           <button class="ci-add" onclick="event.stopPropagation();addChecklist('${item.id}')">+ List</button>
-          <button class="ci-add" onclick="event.stopPropagation();addWeekChecklists('${item.id}')" title="Auto-create Mon-Sun checklists for this week" style="background:rgba(240,180,41,.15);color:var(--gold);border-color:rgba(240,180,41,.3)">📅 Week</button>
+          <button class="ci-add" onclick="event.stopPropagation();addWeekChecklists('${item.id}')" title="Auto-create Mon-Sun checklists for NEXT week" style="background:rgba(240,180,41,.15);color:var(--gold);border-color:rgba(240,180,41,.3)">📅 Week</button>
+          <button class="ci-add" onclick="event.stopPropagation();showTemplateMenu('${item.id}',this)" style="background:rgba(192,132,252,.1);color:var(--c7);border-color:rgba(192,132,252,.3)">📋 Template</button>
+          <button class="ci-add" onclick="event.stopPropagation();saveClTemplate('${item.id}')" style="background:rgba(34,211,165,.1);color:var(--done);border-color:rgba(34,211,165,.3)" title="Save first checklist as template">💾 Save Tpl</button>
         </div>
       </div>
     </div>
@@ -3481,8 +3542,8 @@ function renderFollowup(){
     items.filter(i=>!i.archived).forEach(item=>{
       (item.checklists||[]).forEach(cl=>{
         (cl.items||[]).forEach(ci=>{
-          if(ci.flagged)flagged.push({item,cl,ci});
-          (ci.subItems||[]).filter(s=>s&&s.flagged).forEach(s=>flagged.push({item,cl,ci,sub:s}));
+          if(ci.flagged===true)flagged.push({item,cl,ci});
+          (ci.subItems||[]).filter(s=>s.flagged===true).forEach(s=>flagged.push({item,cl,ci,sub:s}));
         });
       });
     });
@@ -3701,13 +3762,17 @@ function showAllItems(){
   },100);
 }
 
-function saveClTemplate(itemId,clId){
+function saveClTemplate(itemId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
-  const cl=item.checklists?.find(c=>c.id===clId);if(!cl)return;
+  const cls=item.checklists||[];
+  if(!cls.length){alert('No checklists to save as template.');return;}
+  const cl=cls[0];
   const name=prompt('Template name:',cl.name);if(!name)return;
   if(!appConfig.clTemplates)appConfig.clTemplates=[];
-  appConfig.clTemplates.push({id:uid(),name,items:cl.items.map(ci=>({text:ci.text}))});
-  saveConfig();alert('Template saved!');
+  if(!appConfig.backlog)appConfig.backlog=[];
+  if(!appConfig.clCounter)appConfig.clCounter=0;
+  appConfig.clTemplates.push({id:uid(),name,items:(cl.items||[]).map(ci=>({text:ci.text}))});
+  saveConfig();alert('Template "'+name+'" saved!');
 }
 function applyClTemplate(itemId,tplId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
@@ -3967,6 +4032,187 @@ function clearExcel(){
   if(up)up.style.display='flex'; if(tabsEl){tabsEl.style.display='none';tabsEl.innerHTML='';}
   if(tb)tb.style.display='none'; if(wrap){wrap.style.display='none';wrap.innerHTML='';}
 }
+
+/* ══ v3.0 BACKLOG ════════════════════════════════════════════════════════ */
+var _blmSelBacklogId=null,_blmSelTaskId=null;
+
+function showToast(txt,col){
+  var t=document.createElement('div');
+  t.style.position='fixed';t.style.bottom='24px';t.style.right='24px';
+  t.style.background=col||'var(--done)';t.style.color='#000';
+  t.style.padding='10px 18px';t.style.borderRadius='8px';
+  t.style.fontFamily='monospace';t.style.fontSize='.75rem';
+  t.style.fontWeight='700';t.style.zIndex='9999';
+  t.style.boxShadow='0 4px 20px rgba(0,0,0,.4)';
+  t.textContent=txt;document.body.appendChild(t);
+  setTimeout(function(){t.remove();},2200);
+}
+
+function renderBacklog(){
+  var bl=appConfig.backlog||[];
+  var ce=document.getElementById('backlogCount');
+  if(ce)ce.textContent=bl.length+' item'+(bl.length!==1?'s':'');
+  var el=document.getElementById('backlogList');if(!el)return;
+  if(!bl.length){
+    el.innerHTML='<div class="empty"><div class="eico">📦</div>'
+      +'<div class="etitle">Backlog is empty</div>'
+      +'<div class="esub">Add ideas or tasks here — move them to a checklist when ready</div></div>';
+    return;
+  }
+  var priCls={high:'pri-hi',medium:'pri-md',low:'pri-lo'};
+  var priLbl={high:'HI',medium:'MED',low:'LO'};
+  el.innerHTML='';
+  bl.forEach(function(b,idx){
+    var div=document.createElement('div');
+    div.style.cssText='display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 13px;margin-bottom:5px;animation:fadeUp .15s ease both';
+    var typeBadge=b.taskType==='recurring'
+      ?'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:rgba(34,211,165,.1);color:var(--done);border:1px solid rgba(34,211,165,.3);white-space:nowrap">🔄 Recurring</span>'
+      :'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:rgba(77,158,255,.1);color:var(--blue);border:1px solid rgba(77,158,255,.3);white-space:nowrap">1× One Time</span>';
+    div.innerHTML='<span style="font-family:\'DM Mono\',monospace;font-size:.58rem;color:var(--m2);min-width:24px;flex-shrink:0">'+(idx+1)+'.</span>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:.86rem;font-weight:500">'+esc(b.text)+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:5px;flex-shrink:0">'
+      +typeBadge
+      +'<span class="pri '+priCls[b.priority||'medium']+'">'+priLbl[b.priority||'medium']+'</span>'
+      +'</div>'
+      +'<button data-id="'+b.id+'" style="padding:5px 11px;background:var(--done-d);color:var(--done);border:1px solid rgba(34,211,165,.3);border-radius:5px;font-family:\'DM Mono\',monospace;font-size:.58rem;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Move to task checklist">&#8594; Move</button>'
+      +'<button data-id="'+b.id+'" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.82rem;padding:2px 4px;flex-shrink:0">&#10005;</button>';
+    div.querySelectorAll('button')[0].onclick=function(){openBacklogMoveModal(this.dataset.id);};
+    div.querySelectorAll('button')[1].onclick=function(){delBacklogItem(this.dataset.id);};
+    el.appendChild(div);
+  });
+}
+
+function addBacklogItem(){
+  var inp=document.getElementById('backlogInp');
+  var pri=document.getElementById('backlogPri');
+  var typ=document.getElementById('backlogType');
+  var text=inp?inp.value.trim():'';if(!text)return;
+  if(!appConfig.backlog)appConfig.backlog=[];
+  appConfig.backlog.unshift({id:uid(),text:text,priority:pri?pri.value:'medium',taskType:typ?typ.value:'onetime',created:Date.now()});
+  if(inp)inp.value='';if(pri)pri.value='medium';if(typ)typ.value='onetime';
+  saveConfig();renderBacklog();
+}
+
+function delBacklogItem(id){
+  if(!confirm('Remove this backlog item?'))return;
+  appConfig.backlog=(appConfig.backlog||[]).filter(function(b){return b.id!==id;});
+  saveConfig();renderBacklog();
+}
+
+function openBacklogMoveModal(backlogId){
+  _blmSelBacklogId=backlogId;_blmSelTaskId=null;
+  var b=(appConfig.backlog||[]).find(function(x){return x.id===backlogId;});if(!b)return;
+  document.getElementById('blmItemName').textContent=b.text;
+  document.getElementById('blmTitle').textContent='Move to Task Checklist';
+  document.getElementById('blmStep1').style.display='';
+  document.getElementById('blmStep2').style.display='none';
+  document.getElementById('blmSearch').value='';
+  renderBlmTaskList('');
+  var m=document.getElementById('backlogModal');if(m)m.style.display='flex';
+}
+
+function closeBacklogModal(){
+  var m=document.getElementById('backlogModal');if(m)m.style.display='none';
+  _blmSelBacklogId=null;_blmSelTaskId=null;
+}
+
+function filterBlmTasks(q){renderBlmTaskList(q);}
+
+function renderBlmTaskList(q){
+  var el=document.getElementById('blmTaskList');if(!el)return;
+  q=(q||'').toLowerCase();
+  var vis=items.filter(function(i){return !i.archived&&(!q||i.text.toLowerCase().includes(q));}).slice(0,30);
+  el.innerHTML='';
+  if(!vis.length){el.innerHTML='<div style="padding:16px;text-align:center;font-size:.78rem;color:var(--m2)">No tasks found</div>';return;}
+  vis.forEach(function(i){
+    var cl=(i.checklists||[]).length;
+    var st=(STAGES.find(function(s){return s.n===i.stage;})||{short:'?'}).short;
+    var d=document.createElement('div');
+    d.dataset.id=i.id;
+    d.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;transition:all .15s';
+    d.innerHTML='<span>'+(i.isMile?'⬟':'📋')+'</span>'
+      +'<span style="flex:1;font-size:.84rem;font-weight:500">'+esc(i.text)+'</span>'
+      +'<span style="font-family:\'DM Mono\',monospace;font-size:.58rem;color:var(--m1)">'+esc(i.cat||'')+' · '+st+' · '+cl+'cl</span>';
+    d.onmouseenter=function(){this.style.background='var(--s2)';this.style.borderColor='var(--b1)';};
+    d.onmouseleave=function(){this.style.background='';this.style.borderColor='transparent';};
+    d.onclick=function(){blmSelectTask(this.dataset.id);};
+    el.appendChild(d);
+  });
+}
+
+function blmSelectTask(taskId){
+  _blmSelTaskId=taskId;
+  var item=items.find(function(i){return i.id===taskId;});if(!item)return;
+  document.getElementById('blmStep1').style.display='none';
+  document.getElementById('blmStep2').style.display='';
+  document.getElementById('blmTitle').textContent='Checklist: '+item.text.slice(0,26)+(item.text.length>26?'…':'');
+  var el=document.getElementById('blmClList');if(!el)return;
+  var cls=item.checklists||[];el.innerHTML='';
+  cls.forEach(function(cl){
+    var done=(cl.items||[]).filter(function(x){return x.done;}).length;
+    var total=(cl.items||[]).length;
+    var d=document.createElement('div');d.dataset.id=cl.id;
+    d.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;transition:all .15s';
+    d.innerHTML='<span>📋</span><span style="flex:1;font-size:.84rem">'+esc(cl.name)+'</span>'
+      +'<span style="font-family:\'DM Mono\',monospace;font-size:.6rem;color:var(--m2)">'+done+'/'+total+'</span>';
+    d.onmouseenter=function(){this.style.background='var(--done-d)';this.style.borderColor='rgba(34,211,165,.3)';};
+    d.onmouseleave=function(){this.style.background='';this.style.borderColor='transparent';};
+    d.onclick=function(){blmMoveToChecklist(this.dataset.id);};
+    el.appendChild(d);
+  });
+  var newBtn=document.createElement('div');
+  newBtn.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:7px;cursor:pointer;border:1px solid var(--b1);margin-top:6px;transition:all .15s';
+  newBtn.innerHTML='<span>➕</span><span style="font-size:.84rem">Create new checklist &amp; add item</span>';
+  newBtn.onmouseenter=function(){this.style.background='var(--blue-d)';};
+  newBtn.onmouseleave=function(){this.style.background='';};
+  newBtn.onclick=blmMoveToNewChecklist;
+  el.appendChild(newBtn);
+}
+
+function blmBack(){
+  _blmSelTaskId=null;
+  document.getElementById('blmStep1').style.display='';
+  document.getElementById('blmStep2').style.display='none';
+  document.getElementById('blmTitle').textContent='Move to Task Checklist';
+  renderBlmTaskList(document.getElementById('blmSearch').value);
+}
+
+function blmMoveToChecklist(clId){
+  if(!_blmSelBacklogId||!_blmSelTaskId)return;
+  var b=(appConfig.backlog||[]).find(function(x){return x.id===_blmSelBacklogId;});if(!b)return;
+  var item=items.find(function(i){return i.id===_blmSelTaskId;});if(!item)return;
+  var cl=(item.checklists||[]).find(function(c){return c.id===clId;});if(!cl)return;
+  if(!cl.items)cl.items=[];
+  cl.items.unshift({id:uid(),text:b.text,done:false,flagged:false,labels:[],order:0});
+  appConfig.backlog=(appConfig.backlog||[]).filter(function(x){return x.id!==_blmSelBacklogId;});
+  saveConfig();saveData();closeBacklogModal();renderBacklog();
+  setTimeout(function(){
+    selectedId=item.id;renderTracker();
+    setTimeout(function(){var el=document.getElementById('card_'+item.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');}renderDetail();},80);
+  },100);
+  showToast('✓ Moved to checklist!');
+}
+
+function blmMoveToNewChecklist(){
+  if(!_blmSelBacklogId||!_blmSelTaskId)return;
+  var b=(appConfig.backlog||[]).find(function(x){return x.id===_blmSelBacklogId;});if(!b)return;
+  var item=items.find(function(i){return i.id===_blmSelTaskId;});if(!item)return;
+  if(!item.checklists)item.checklists=[];
+  if(!appConfig.clCounter)appConfig.clCounter=0;
+  appConfig.clCounter++;
+  var numTag='#'+appConfig.clCounter+'-26';
+  item.checklists.push({id:uid(),name:numTag+' Backlog items',open:true,description:'',
+    items:[{id:uid(),text:b.text,done:false,flagged:false,labels:[],order:0}]});
+  appConfig.backlog=(appConfig.backlog||[]).filter(function(x){return x.id!==_blmSelBacklogId;});
+  saveConfig();saveData();closeBacklogModal();renderBacklog();
+  setTimeout(function(){
+    selectedId=item.id;renderTracker();
+    setTimeout(function(){var el=document.getElementById('card_'+item.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');}renderDetail();},80);
+  },100);
+  showToast('✓ New checklist created!');
+}
+/* ══ END BACKLOG ══════════════════════════════════════════════════════════ */
+
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ v2.7.10 FOCUS TIMER ═══════════════════════════ */
 let _tmrTotal=15*60, _tmrLeft=15*60, _tmrId=null, _tmrRunning=false;
@@ -4032,7 +4278,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v2.7.20';
+const CURRENT_VER='v3.0';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})
@@ -4066,6 +4312,8 @@ document.addEventListener('keydown',function(e){
 function renderAll(){try{renderTracker();}catch(e){}}
 
 window.addEventListener('load',()=>{
+  var _bm=document.getElementById('backlogModal');
+  if(_bm)_bm.addEventListener('click',function(e){if(e.target===_bm)closeBacklogModal();});
   loadConfig();
   const wait=setInterval(()=>{if(window.google?.accounts?.oauth2){clearInterval(wait);initApp();}},100);
   // Check every minute for 9 AM reminder emails

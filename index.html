@@ -1074,7 +1074,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.0</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.1</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1468,7 +1468,7 @@ let dragSrc=null; // for drag-to-reorder
 let folderId=localStorage.getItem('trackerFolderId')||null;
 let fileId=localStorage.getItem('trackerFileId')||null;
 let tokenClient, accessToken, tokenExpiry=0, saveTimer=null;
-const DEFAULT_CONFIG={theme:'dark',categories:['Work','Personal','Finance','Health','Learning','Project'],owners:['Don','San','Nivin','Common'],notifyDefault:'1d',labels:[],quickLinks:[null,null,null]};
+const DEFAULT_CONFIG={theme:'dark',categories:['Work','Personal','Finance','Health','Learning','Project'],owners:['Don','San','Nivin','Common'],notifyDefault:'1d',labels:[],quickLinks:[null,null,null,null,null,null,null]};
 let appConfig={...DEFAULT_CONFIG};
 function loadConfig(){try{const s=JSON.parse(localStorage.getItem('pmtf_cfg')||'{}');appConfig={...DEFAULT_CONFIG,...s};if(!appConfig.emailjs)appConfig.emailjs={key:localStorage.getItem('ejs_key')||'',svc:localStorage.getItem('ejs_svc')||'',tpl:localStorage.getItem('ejs_tpl')||''};
   // Ensure default categories (e.g. Project) exist even for older saved configs
@@ -1679,7 +1679,7 @@ async function loadData(){
   try{initEjs();checkAndSendReminders();}catch(e){}
 }
 
-async function saveData(){if(saveTimer)clearTimeout(saveTimer);setSyncState('load','Saving…');saveTimer=setTimeout(async()=>{try{const body=JSON.stringify({items,expanded,reminders,quickLinks:(appConfig.quickLinks||[null,null,null]),savedAt:new Date().toISOString()});const flId=await ensureFolder();let fid=fileId||await findFile();const meta=JSON.stringify(fid?{}:{name:FILE_NAME,mimeType:'application/json',parents:[flId]});const bnd='tracker_bnd_x9';const mp=`--${bnd}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${bnd}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${bnd}--`;await ensureToken();const resp=await fetch(fid?`https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=multipart`:`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`,{method:fid?'PATCH':'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${bnd}`},body:mp});if(!resp.ok)throw new Error(resp.status);const result=await resp.json();fileId=result.id;localStorage.setItem('trackerFileId',fileId);lsSave();setSyncState('ok','Saved ✓ 📁 Project Tracker');}catch(e){console.error(e);setSyncState('err','Save failed');}},1800);}
+async function saveData(){if(saveTimer)clearTimeout(saveTimer);setSyncState('load','Saving…');saveTimer=setTimeout(async()=>{try{const body=JSON.stringify({items,expanded,reminders,quickLinks:(appConfig.quickLinks||[null,null,null,null,null,null,null]),savedAt:new Date().toISOString()});const flId=await ensureFolder();let fid=fileId||await findFile();const meta=JSON.stringify(fid?{}:{name:FILE_NAME,mimeType:'application/json',parents:[flId]});const bnd='tracker_bnd_x9';const mp=`--${bnd}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${bnd}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${bnd}--`;await ensureToken();const resp=await fetch(fid?`https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=multipart`:`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`,{method:fid?'PATCH':'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':`multipart/related; boundary=${bnd}`},body:mp});if(!resp.ok)throw new Error(resp.status);const result=await resp.json();fileId=result.id;localStorage.setItem('trackerFileId',fileId);lsSave();setSyncState('ok','Saved ✓ 📁 Project Tracker');}catch(e){console.error(e);setSyncState('err','Save failed');}},1800);}
 
 /* ══ UI HELPERS ════════════════════════════════════ */
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));document.getElementById(id).classList.add('show');}
@@ -1765,14 +1765,14 @@ function renderSidebar(){
 }
 /* v2.7.17 — Quick Links (top 3 revisable tasks) */
 function getQuickLinks(){
-  if(!appConfig.quickLinks||!Array.isArray(appConfig.quickLinks))appConfig.quickLinks=[null,null,null];
-  while(appConfig.quickLinks.length<3)appConfig.quickLinks.push(null);
+  if(!appConfig.quickLinks||!Array.isArray(appConfig.quickLinks))appConfig.quickLinks=[null,null,null,null,null,null,null];
+  while(appConfig.quickLinks.length<7)appConfig.quickLinks.push(null);
   return appConfig.quickLinks;
 }
 function renderQuickLinks(){
   const el=document.getElementById('qlList');if(!el)return;
   const ql=getQuickLinks();
-  el.innerHTML=ql.slice(0,3).map((id,idx)=>{
+  el.innerHTML=ql.slice(0,7).map((id,idx)=>{
     const it=id?items.find(i=>i.id===id):null;
     if(!it){
       return `<div class="ql-slot ql-empty" onclick="openQuickLinkPicker(${idx})"><span class="ql-plus">+</span><span class="ql-empty-lbl">Add quick link ${idx+1}</span></div>`;
@@ -2102,6 +2102,9 @@ function toggleCLItem(itemId,clId,ciId){
   if(ci.done){const ix=cl.items.findIndex(i=>i.id===ciId);cl.items.splice(ix,1);cl.items.push(ci);}
   patchCard(item);saveData();refreshDash();
   if(document.getElementById('viewFollowup')?.style.display!=='none')renderFollowup();
+  // v3.1 — sync detail pane and labels board when toggled
+  if(typeof renderDetail==='function'&&selectedId===itemId)renderDetail();
+  const _lv=document.getElementById('viewLabels');if(_lv&&_lv.style.display!=='none')renderLabelsBoard();
 }
 
 function delCLItem(itemId,clId,ciId){
@@ -2502,8 +2505,6 @@ function buildItemParts(item){
             onkeydown="if(event.key==='Enter'){event.stopPropagation();addChecklist('${item.id}');}"/>
           <button class="ci-add" onclick="event.stopPropagation();addChecklist('${item.id}')">+ List</button>
           <button class="ci-add" onclick="event.stopPropagation();addWeekChecklists('${item.id}')" title="Auto-create Mon-Sun checklists for NEXT week" style="background:rgba(240,180,41,.15);color:var(--gold);border-color:rgba(240,180,41,.3)">📅 Week</button>
-          <button class="ci-add" onclick="event.stopPropagation();showTemplateMenu('${item.id}',this)" style="background:rgba(192,132,252,.1);color:var(--c7);border-color:rgba(192,132,252,.3)">📋 Template</button>
-          <button class="ci-add" onclick="event.stopPropagation();saveClTemplate('${item.id}')" style="background:rgba(34,211,165,.1);color:var(--done);border-color:rgba(34,211,165,.3)" title="Save first checklist as template">💾 Save Tpl</button>
         </div>
       </div>
     </div>
@@ -3481,34 +3482,20 @@ function showCILabelPicker(itemId,clId,ciId,btn){
 function toggleCILabel(itemId,clId,ciId,labelId){const item=items.find(i=>i.id===itemId);if(!item)return;const cl=item.checklists?.find(c=>c.id===clId);if(!cl)return;const ci=cl.items?.find(i=>i.id===ciId);if(!ci)return;if(!ci.labels)ci.labels=[];const ix=ci.labels.indexOf(labelId);if(ix===-1)ci.labels.push(labelId);else ci.labels.splice(ix,1);patchCard(item);saveData();}
 /* Move a checklist item to another checklist (menu-based, touch-friendly) */
 function showMoveCIMenu(itemId,clId,ciId,btn){
-  document.querySelectorAll('.ci-move-menu').forEach(el=>el.remove());
+  // v3.1 — open backlog-style modal for GLOBAL cross-task move
   const item=items.find(i=>i.id===itemId);if(!item)return;
-  const targets=(item.checklists||[]).filter(c=>c.id!==clId);
-  if(!targets.length){alert('No other checklist to move to — add another checklist first.');return;}
-  const menu=document.createElement('div');
-  menu.className='ci-move-menu';
-  menu.style.cssText='position:fixed;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:6px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:170px;max-height:240px;overflow-y:auto';
-  const hdr=document.createElement('div');
-  hdr.style.cssText='font-family:DM Mono,monospace;font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m2);padding:3px 6px 6px';
-  hdr.textContent='Move to checklist';
-  menu.appendChild(hdr);
-  targets.forEach(function(t){
-    const div=document.createElement('div');
-    div.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;cursor:pointer;font-size:.78rem';
-    div.textContent='↪ '+t.name;
-    div.onmouseenter=function(){this.style.background='var(--s3)';};
-    div.onmouseleave=function(){this.style.background='';};
-    div.onclick=function(){moveCIToChecklist(itemId,clId,ciId,t.id);document.querySelectorAll('.ci-move-menu').forEach(e=>e.remove());};
-    menu.appendChild(div);
-  });
-  const rect=btn.getBoundingClientRect();
-  document.body.appendChild(menu);
-  const pw=menu.offsetWidth||180, ph=menu.offsetHeight||200;
-  const vw=window.innerWidth, vh=window.innerHeight;
-  const left=Math.max(8,Math.min(rect.left, vw-pw-8));
-  const top=vh-rect.bottom>ph+8 ? rect.bottom+4 : rect.top-ph-4;
-  menu.style.left=left+'px';menu.style.top=Math.max(8,top)+'px';
-  setTimeout(()=>document.addEventListener('click',function h(){menu.remove();document.removeEventListener('click',h);},true),10);
+  const cl=(item.checklists||[]).find(c=>c.id===clId);if(!cl)return;
+  const ci=(cl.items||[]).find(x=>x.id===ciId);if(!ci)return;
+  // Use the backlog modal — but mark source so we can remove from there
+  _blmSelBacklogId=null;
+  _blmSrc={itemId:itemId,clId:clId,ciId:ciId};
+  document.getElementById('blmItemName').textContent=ci.text;
+  document.getElementById('blmTitle').textContent='Move item to another checklist';
+  document.getElementById('blmStep1').style.display='';
+  document.getElementById('blmStep2').style.display='none';
+  document.getElementById('blmSearch').value='';
+  renderBlmTaskList('');
+  var m=document.getElementById('backlogModal');if(m)m.style.display='flex';
 }
 function moveCIToChecklist(itemId,srcClId,ciId,dstClId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
@@ -3619,9 +3606,13 @@ function renderLabelsBoard(){
     el.innerHTML=labels.map(function(lbl){
       const tagged=[];
       items.filter(i=>!i.archived).forEach(function(item){
-        if((item.labels||[]).includes(lbl.id))tagged.push({type:'item',item,text:item.text});
+        // v3.1 — Skip closed items (stage 8) from labels board
+        if((item.labels||[]).includes(lbl.id)&&item.stage!==8)tagged.push({type:'item',item,text:item.text});
         (item.checklists||[]).forEach(function(cl){
-          (cl.items||[]).filter(function(ci){return (ci.labels||[]).includes(lbl.id);}).forEach(function(ci){
+          (cl.items||[]).filter(function(ci){
+            // v3.1 — Skip done checklist items from labels board
+            return (ci.labels||[]).includes(lbl.id)&&!ci.done;
+          }).forEach(function(ci){
             tagged.push({type:'ci',item,cl,ci,text:ci.text});
           });
         });
@@ -4034,7 +4025,7 @@ function clearExcel(){
 }
 
 /* ══ v3.0 BACKLOG ════════════════════════════════════════════════════════ */
-var _blmSelBacklogId=null,_blmSelTaskId=null;
+var _blmSelBacklogId=null,_blmSelTaskId=null,_blmSrc=null;
 
 function showToast(txt,col){
   var t=document.createElement('div');
@@ -4113,7 +4104,7 @@ function openBacklogMoveModal(backlogId){
 
 function closeBacklogModal(){
   var m=document.getElementById('backlogModal');if(m)m.style.display='none';
-  _blmSelBacklogId=null;_blmSelTaskId=null;
+  _blmSelBacklogId=null;_blmSelTaskId=null;_blmSrc=null;
 }
 
 function filterBlmTasks(q){renderBlmTaskList(q);}
@@ -4178,36 +4169,63 @@ function blmBack(){
 }
 
 function blmMoveToChecklist(clId){
-  if(!_blmSelBacklogId||!_blmSelTaskId)return;
-  var b=(appConfig.backlog||[]).find(function(x){return x.id===_blmSelBacklogId;});if(!b)return;
-  var item=items.find(function(i){return i.id===_blmSelTaskId;});if(!item)return;
-  var cl=(item.checklists||[]).find(function(c){return c.id===clId;});if(!cl)return;
-  if(!cl.items)cl.items=[];
-  cl.items.unshift({id:uid(),text:b.text,done:false,flagged:false,labels:[],order:0});
-  appConfig.backlog=(appConfig.backlog||[]).filter(function(x){return x.id!==_blmSelBacklogId;});
-  saveConfig();saveData();closeBacklogModal();renderBacklog();
+  if((!_blmSelBacklogId&&!_blmSrc)||!_blmSelTaskId)return;
+  var dstItem=items.find(function(i){return i.id===_blmSelTaskId;});if(!dstItem)return;
+  var dstCl=(dstItem.checklists||[]).find(function(c){return c.id===clId;});if(!dstCl)return;
+  if(!dstCl.items)dstCl.items=[];
+  // v3.1 — handle both backlog source AND checklist source
+  if(_blmSrc){
+    // Cross-task move
+    var srcItem=items.find(function(i){return i.id===_blmSrc.itemId;});
+    if(!srcItem){closeBacklogModal();return;}
+    var srcCl=(srcItem.checklists||[]).find(function(c){return c.id===_blmSrc.clId;});
+    if(!srcCl){closeBacklogModal();return;}
+    var srcIdx=(srcCl.items||[]).findIndex(function(x){return x.id===_blmSrc.ciId;});
+    if(srcIdx<0){closeBacklogModal();return;}
+    var ci=srcCl.items.splice(srcIdx,1)[0];
+    dstCl.items.unshift(ci);
+    saveData();
+    if(srcItem.id!==dstItem.id){patchCard(srcItem);}
+  } else {
+    var b=(appConfig.backlog||[]).find(function(x){return x.id===_blmSelBacklogId;});if(!b)return;
+    dstCl.items.unshift({id:uid(),text:b.text,done:false,flagged:false,labels:[],order:0});
+    appConfig.backlog=(appConfig.backlog||[]).filter(function(x){return x.id!==_blmSelBacklogId;});
+    saveConfig();saveData();renderBacklog();
+  }
+  closeBacklogModal();
   setTimeout(function(){
-    selectedId=item.id;renderTracker();
-    setTimeout(function(){var el=document.getElementById('card_'+item.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');}renderDetail();},80);
+    selectedId=dstItem.id;renderTracker();
+    setTimeout(function(){var el=document.getElementById('card_'+dstItem.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');}if(typeof renderDetail==='function')renderDetail();},80);
   },100);
   showToast('✓ Moved to checklist!');
 }
 
 function blmMoveToNewChecklist(){
-  if(!_blmSelBacklogId||!_blmSelTaskId)return;
-  var b=(appConfig.backlog||[]).find(function(x){return x.id===_blmSelBacklogId;});if(!b)return;
-  var item=items.find(function(i){return i.id===_blmSelTaskId;});if(!item)return;
-  if(!item.checklists)item.checklists=[];
+  if((!_blmSelBacklogId&&!_blmSrc)||!_blmSelTaskId)return;
+  var dstItem=items.find(function(i){return i.id===_blmSelTaskId;});if(!dstItem)return;
+  if(!dstItem.checklists)dstItem.checklists=[];
   if(!appConfig.clCounter)appConfig.clCounter=0;
   appConfig.clCounter++;
   var numTag='#'+appConfig.clCounter+'-26';
-  item.checklists.push({id:uid(),name:numTag+' Backlog items',open:true,description:'',
-    items:[{id:uid(),text:b.text,done:false,flagged:false,labels:[],order:0}]});
-  appConfig.backlog=(appConfig.backlog||[]).filter(function(x){return x.id!==_blmSelBacklogId;});
-  saveConfig();saveData();closeBacklogModal();renderBacklog();
+  if(_blmSrc){
+    var srcItem=items.find(function(i){return i.id===_blmSrc.itemId;});if(!srcItem){closeBacklogModal();return;}
+    var srcCl=(srcItem.checklists||[]).find(function(c){return c.id===_blmSrc.clId;});if(!srcCl){closeBacklogModal();return;}
+    var srcIdx=(srcCl.items||[]).findIndex(function(x){return x.id===_blmSrc.ciId;});if(srcIdx<0){closeBacklogModal();return;}
+    var ci=srcCl.items.splice(srcIdx,1)[0];
+    dstItem.checklists.push({id:uid(),name:numTag+' Moved items',open:true,description:'',items:[ci]});
+    saveData();
+    if(srcItem.id!==dstItem.id){patchCard(srcItem);}
+  } else {
+    var b=(appConfig.backlog||[]).find(function(x){return x.id===_blmSelBacklogId;});if(!b)return;
+    dstItem.checklists.push({id:uid(),name:numTag+' Backlog items',open:true,description:'',
+      items:[{id:uid(),text:b.text,done:false,flagged:false,labels:[],order:0}]});
+    appConfig.backlog=(appConfig.backlog||[]).filter(function(x){return x.id!==_blmSelBacklogId;});
+    saveConfig();saveData();renderBacklog();
+  }
+  closeBacklogModal();
   setTimeout(function(){
-    selectedId=item.id;renderTracker();
-    setTimeout(function(){var el=document.getElementById('card_'+item.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');}renderDetail();},80);
+    selectedId=dstItem.id;renderTracker();
+    setTimeout(function(){var el=document.getElementById('card_'+dstItem.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');}if(typeof renderDetail==='function')renderDetail();},80);
   },100);
   showToast('✓ New checklist created!');
 }
@@ -4278,7 +4296,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v3.0';
+const CURRENT_VER='v3.1';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

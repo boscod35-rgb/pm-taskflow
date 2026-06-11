@@ -1029,6 +1029,54 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
   .ws-sidebar{position:relative !important;top:0 !important;max-height:none !important;}
   .ribbon-pipe{display:none !important;}
 }
+
+/* ══ v3.2 CUSTOM TABLES ═════════════════════════════════════════════════ */
+.tbl-sec{margin-top:14px;border-top:1px solid var(--b1);padding-top:12px;}
+.tbl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;}
+.tbl-title{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;color:var(--c2);}
+.tbl-add-btn{padding:5px 12px;background:rgba(167,139,250,.1);color:var(--c2);border:1px solid rgba(167,139,250,.3);border-radius:5px;font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.tbl-add-btn:hover{background:var(--c2);color:#fff;}
+.tbl-list{display:flex;flex-direction:column;gap:14px;}
+.tbl-box{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px;}
+.tbl-box-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.tbl-name{flex:1;font-family:'Syne',sans-serif;font-weight:700;font-size:.84rem;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background .15s;min-width:120px;}
+.tbl-name:hover{background:var(--s3);}
+.tbl-name-inp{flex:1;font-family:'Syne',sans-serif;font-weight:700;font-size:.84rem;background:var(--s3);border:1px solid var(--blue);border-radius:4px;color:var(--tx);padding:2px 6px;outline:none;min-width:120px;}
+.tbl-meta{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--m2);}
+.tbl-ctrl-btn{background:none;border:1px solid var(--b1);border-radius:4px;color:var(--m1);cursor:pointer;font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;transition:all .12s;}
+.tbl-ctrl-btn:hover{border-color:var(--blue);color:var(--blue);}
+.tbl-ctrl-btn.tbl-del:hover{border-color:var(--red);color:var(--red);}
+.tbl-scroll{overflow-x:auto;border:1px solid var(--b1);border-radius:6px;-webkit-overflow-scrolling:touch;}
+.tbl-grid{border-collapse:collapse;width:100%;font-size:.78rem;}
+.tbl-grid th,.tbl-grid td{border:1px solid var(--b1);padding:0;min-width:80px;position:relative;}
+.tbl-grid th{background:var(--s3);font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);font-weight:500;}
+.tbl-grid td{background:var(--bg);}
+.tbl-grid .tbl-rownum{background:var(--s3);color:var(--m2);font-family:'DM Mono',monospace;font-size:.55rem;text-align:center;min-width:30px;width:30px;padding:4px 6px;user-select:none;}
+.tbl-cell-inp{width:100%;background:transparent;border:none;outline:none;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:6px 8px;box-sizing:border-box;}
+.tbl-cell-inp:focus{background:var(--blue-d);box-shadow:inset 0 0 0 1px var(--blue);}
+.tbl-grid th .tbl-cell-inp{font-family:'DM Mono',monospace;font-size:.6rem;font-weight:500;color:var(--gold);text-transform:uppercase;letter-spacing:.04em;}
+.tbl-row-del{background:none;border:none;color:var(--m2);cursor:pointer;font-size:.7rem;padding:2px;opacity:0;transition:opacity .15s;}
+.tbl-grid tr:hover .tbl-row-del{opacity:.6;}
+.tbl-row-del:hover{color:var(--red);opacity:1!important;}
+/* Add row/col controls below table */
+.tbl-actions{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+.tbl-act-btn{padding:4px 10px;background:var(--s3);border:1px solid var(--b1);border-radius:5px;color:var(--m1);font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .12s;}
+.tbl-act-btn:hover{border-color:var(--done);color:var(--done);}
+/* Modal for create table */
+.tbl-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;}
+.tbl-modal.tbl-show{display:flex;}
+.tbl-modal-box{background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:22px;width:380px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:14px;}
+.tbl-modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;display:flex;align-items:center;justify-content:space-between;}
+.tbl-modal-close{background:none;border:none;color:var(--m2);cursor:pointer;font-size:1.1rem;}
+.tbl-field{display:flex;flex-direction:column;gap:5px;}
+.tbl-field label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.05em;text-transform:uppercase;color:var(--m1);}
+.tbl-field input{padding:8px 11px;border:1px solid var(--b1);background:var(--s2);border-radius:6px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;}
+.tbl-field input:focus{border-color:var(--blue);}
+.tbl-modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+.tbl-modal-cancel{padding:7px 14px;background:none;border:1px solid var(--b1);border-radius:6px;color:var(--m1);font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;cursor:pointer;}
+.tbl-modal-create{padding:7px 18px;background:var(--c2);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-weight:600;}
+.tbl-empty{font-size:.74rem;color:var(--m2);padding:14px 0;text-align:center;border:1px dashed var(--b1);border-radius:6px;}
+
 </style>
 </head>
 <body>
@@ -1074,7 +1122,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.1</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.2</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1370,6 +1418,33 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
           <button onclick="addBacklogItem()" style="padding:9px 16px;background:var(--blue-d);color:var(--blue);border:1px solid rgba(77,158,255,.3);border-radius:7px;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap">+ Add</button>
         </div>
         <div id="backlogList"></div>
+      </div>
+    </div>
+    <!-- v3.2 Create Table Modal -->
+    <div class="tbl-modal" id="createTableModal">
+      <div class="tbl-modal-box">
+        <div class="tbl-modal-title">
+          <span>📊 Create New Table</span>
+          <button class="tbl-modal-close" onclick="closeCreateTableModal()">✕</button>
+        </div>
+        <div class="tbl-field">
+          <label>Table Name</label>
+          <input id="newTableName" placeholder="e.g. Budget Tracker" maxlength="60"/>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="tbl-field" style="flex:1">
+            <label>Rows (incl. header)</label>
+            <input id="newTableRows" type="number" min="1" max="100" value="5"/>
+          </div>
+          <div class="tbl-field" style="flex:1">
+            <label>Columns</label>
+            <input id="newTableCols" type="number" min="1" max="20" value="3"/>
+          </div>
+        </div>
+        <div class="tbl-modal-actions">
+          <button class="tbl-modal-cancel" onclick="closeCreateTableModal()">Cancel</button>
+          <button class="tbl-modal-create" onclick="confirmCreateTable()">Create Table</button>
+        </div>
       </div>
     </div>
     <!-- Backlog Move Modal -->
@@ -2564,6 +2639,14 @@ function buildItemParts(item){
             ${getOwners().some(o=>o===item.owner)?'':`<option value="${esc(item.owner||'')}" selected>${esc(item.owner||'—')}</option>`}
           </select>
         </div>
+      </div>
+      <!-- v3.2 Custom Tables -->
+      <div class="tbl-sec">
+        <div class="tbl-hdr">
+          <span class="tbl-title">📊 Custom Tables ${(item.tables||[]).length?`(${(item.tables||[]).length})`:''}</span>
+          <button class="tbl-add-btn" onclick="event.stopPropagation();openCreateTableModal('${item.id}')">+ Add Table</button>
+        </div>
+        <div class="tbl-list" id="tbl_list_${item.id}">${renderTablesHTML(item)}</div>
       </div>
       <div class="meta-stamp">📅 ${created}${ownerStr}${dueStr}${item.cat?` · ${esc(item.cat)}`:''}</div>
       ${item.stage===8&&!item.archived?`<button class="arch-btn" style="margin-top:10px" onclick="event.stopPropagation();archiveItem('${item.id}')">📦 Archive now</button>`:''}
@@ -4231,6 +4314,169 @@ function blmMoveToNewChecklist(){
 }
 /* ══ END BACKLOG ══════════════════════════════════════════════════════════ */
 
+
+/* ══ v3.2 CUSTOM TABLES ════════════════════════════════════════════════ */
+var _newTableItemId=null;
+
+function renderTablesHTML(item){
+  var tables=item.tables||[];
+  if(!tables.length){
+    return '<div class="tbl-empty">No tables yet. Click <strong>+ Add Table</strong> to create one.</div>';
+  }
+  return tables.map(function(tbl){
+    var rows=tbl.rows||1;
+    var cols=tbl.cols||1;
+    var data=tbl.data||[];
+    var html='<div class="tbl-box">';
+    html+='<div class="tbl-box-hd">';
+    html+='<span class="tbl-name" id="tbl_name_'+tbl.id+'" ondblclick="event.stopPropagation();editTableName(\''+item.id+'\',\''+tbl.id+'\',this)" title="Double-click to rename">'+esc(tbl.name)+'</span>';
+    html+='<span class="tbl-meta">'+rows+'r × '+cols+'c</span>';
+    html+='<button class="tbl-ctrl-btn tbl-del" onclick="event.stopPropagation();delCustomTable(\''+item.id+'\',\''+tbl.id+'\')">🗑 Delete</button>';
+    html+='</div>';
+    html+='<div class="tbl-scroll"><table class="tbl-grid"><thead><tr><th class="tbl-rownum">#</th>';
+    for(var c=0;c<cols;c++){
+      var hdr=(data[0]&&data[0][c])||('Col '+(c+1));
+      html+='<th><input class="tbl-cell-inp" value="'+esc(hdr)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCell(\''+item.id+'\',\''+tbl.id+'\',0,'+c+',this.value)"/></th>';
+    }
+    html+='</tr></thead><tbody>';
+    for(var r=1;r<rows;r++){
+      html+='<tr><td class="tbl-rownum">'+r+'<button class="tbl-row-del" onclick="event.stopPropagation();delTableRow(\''+item.id+'\',\''+tbl.id+'\','+r+')" title="Delete row">×</button></td>';
+      for(var c2=0;c2<cols;c2++){
+        var val=(data[r]&&data[r][c2])||'';
+        html+='<td><input class="tbl-cell-inp" value="'+esc(val)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCell(\''+item.id+'\',\''+tbl.id+'\','+r+','+c2+',this.value)"/></td>';
+      }
+      html+='</tr>';
+    }
+    html+='</tbody></table></div>';
+    html+='<div class="tbl-actions">';
+    html+='<button class="tbl-act-btn" onclick="event.stopPropagation();addTableRow(\''+item.id+'\',\''+tbl.id+'\')">+ Row</button>';
+    html+='<button class="tbl-act-btn" onclick="event.stopPropagation();addTableCol(\''+item.id+'\',\''+tbl.id+'\')">+ Column</button>';
+    html+='</div>';
+    html+='</div>';
+    return html;
+  }).join('');
+}
+
+function openCreateTableModal(itemId){
+  _newTableItemId=itemId;
+  document.getElementById('newTableName').value='';
+  document.getElementById('newTableRows').value='5';
+  document.getElementById('newTableCols').value='3';
+  document.getElementById('createTableModal').classList.add('tbl-show');
+  setTimeout(function(){document.getElementById('newTableName').focus();},50);
+}
+
+function closeCreateTableModal(){
+  document.getElementById('createTableModal').classList.remove('tbl-show');
+  _newTableItemId=null;
+}
+
+function confirmCreateTable(){
+  if(!_newTableItemId)return;
+  var name=(document.getElementById('newTableName').value||'').trim()||'Untitled Table';
+  var rows=Math.max(1,Math.min(100,parseInt(document.getElementById('newTableRows').value)||5));
+  var cols=Math.max(1,Math.min(20,parseInt(document.getElementById('newTableCols').value)||3));
+  var item=items.find(function(i){return i.id===_newTableItemId;});
+  if(!item){closeCreateTableModal();return;}
+  if(!item.tables)item.tables=[];
+  // Build empty data: rows x cols
+  var data=[];
+  for(var r=0;r<rows;r++){
+    var row=[];
+    for(var c=0;c<cols;c++){
+      // First row = headers
+      if(r===0)row.push('Col '+(c+1));
+      else row.push('');
+    }
+    data.push(row);
+  }
+  item.tables.push({id:uid(),name:name,rows:rows,cols:cols,data:data,created:Date.now()});
+  closeCreateTableModal();
+  saveData();
+  if(typeof renderDetail==='function'&&selectedId===item.id)renderDetail();
+  showToast('✓ Table created!');
+}
+
+function delCustomTable(itemId,tblId){
+  if(!confirm('Delete this table? This cannot be undone.'))return;
+  var item=items.find(function(i){return i.id===itemId;});if(!item)return;
+  item.tables=(item.tables||[]).filter(function(t){return t.id!==tblId;});
+  saveData();
+  if(typeof renderDetail==='function'&&selectedId===itemId)renderDetail();
+  showToast('Table deleted');
+}
+
+function editTableName(itemId,tblId,el){
+  var item=items.find(function(i){return i.id===itemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===tblId;});if(!tbl)return;
+  var cur=tbl.name;
+  var inp=document.createElement('input');
+  inp.className='tbl-name-inp';inp.value=cur;inp.maxLength=60;
+  el.replaceWith(inp);inp.focus();inp.select();
+  inp.onblur=function(){
+    tbl.name=inp.value.trim()||cur;
+    saveData();
+    if(typeof renderDetail==='function'&&selectedId===itemId)renderDetail();
+  };
+  inp.onkeydown=function(e){
+    if(e.key==='Enter')inp.blur();
+    if(e.key==='Escape'){inp.value=cur;inp.blur();}
+  };
+  inp.onclick=function(e){e.stopPropagation();};
+}
+
+function editTableCell(itemId,tblId,row,col,val){
+  var item=items.find(function(i){return i.id===itemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===tblId;});if(!tbl)return;
+  if(!tbl.data)tbl.data=[];
+  while(tbl.data.length<=row)tbl.data.push([]);
+  while(tbl.data[row].length<=col)tbl.data[row].push('');
+  tbl.data[row][col]=val;
+  saveData();
+}
+
+function addTableRow(itemId,tblId){
+  var item=items.find(function(i){return i.id===itemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===tblId;});if(!tbl)return;
+  var newRow=[];
+  for(var c=0;c<tbl.cols;c++)newRow.push('');
+  if(!tbl.data)tbl.data=[];
+  tbl.data.push(newRow);
+  tbl.rows=(tbl.rows||1)+1;
+  saveData();
+  if(typeof renderDetail==='function'&&selectedId===itemId)renderDetail();
+}
+
+function addTableCol(itemId,tblId){
+  var item=items.find(function(i){return i.id===itemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===tblId;});if(!tbl)return;
+  if(!tbl.data)tbl.data=[];
+  // Ensure all rows exist with proper columns
+  for(var r=0;r<tbl.rows;r++){
+    if(!tbl.data[r])tbl.data[r]=[];
+    while(tbl.data[r].length<tbl.cols)tbl.data[r].push('');
+    // Add new column
+    if(r===0)tbl.data[r].push('Col '+(tbl.cols+1));
+    else tbl.data[r].push('');
+  }
+  tbl.cols=(tbl.cols||1)+1;
+  saveData();
+  if(typeof renderDetail==='function'&&selectedId===itemId)renderDetail();
+}
+
+function delTableRow(itemId,tblId,rowIdx){
+  if(!confirm('Delete this row?'))return;
+  var item=items.find(function(i){return i.id===itemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===tblId;});if(!tbl)return;
+  if(rowIdx<1||rowIdx>=tbl.rows)return;
+  if(!tbl.data)tbl.data=[];
+  tbl.data.splice(rowIdx,1);
+  tbl.rows=Math.max(1,(tbl.rows||1)-1);
+  saveData();
+  if(typeof renderDetail==='function'&&selectedId===itemId)renderDetail();
+}
+/* ══ END CUSTOM TABLES ════════════════════════════════════════════════════ */
+
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ v2.7.10 FOCUS TIMER ═══════════════════════════ */
 let _tmrTotal=15*60, _tmrLeft=15*60, _tmrId=null, _tmrRunning=false;
@@ -4296,7 +4542,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v3.1';
+const CURRENT_VER='v3.2';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})
@@ -4332,6 +4578,8 @@ function renderAll(){try{renderTracker();}catch(e){}}
 window.addEventListener('load',()=>{
   var _bm=document.getElementById('backlogModal');
   if(_bm)_bm.addEventListener('click',function(e){if(e.target===_bm)closeBacklogModal();});
+  var _ctm=document.getElementById('createTableModal');
+  if(_ctm)_ctm.addEventListener('click',function(e){if(e.target===_ctm)closeCreateTableModal();});
   loadConfig();
   const wait=setInterval(()=>{if(window.google?.accounts?.oauth2){clearInterval(wait);initApp();}},100);
   // Check every minute for 9 AM reminder emails

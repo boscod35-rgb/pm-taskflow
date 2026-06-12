@@ -1076,6 +1076,33 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .tbl-modal-cancel{padding:7px 14px;background:none;border:1px solid var(--b1);border-radius:6px;color:var(--m1);font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;cursor:pointer;}
 .tbl-modal-create{padding:7px 18px;background:var(--c2);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-weight:600;}
 .tbl-empty{font-size:.74rem;color:var(--m2);padding:14px 0;text-align:center;border:1px dashed var(--b1);border-radius:6px;}
+/* v3.3 Fullscreen table */
+.tbl-ctrl-btn.tbl-expand{background:var(--blue-d);color:var(--blue);border-color:rgba(77,158,255,.4);font-weight:600;}
+.tbl-ctrl-btn.tbl-expand:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+.tbl-box-hd{flex-wrap:wrap!important;}
+.tbl-box-hd .tbl-ctrl-btn{flex-shrink:0;}
+.tbl-fs-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:none;align-items:stretch;justify-content:center;padding:30px;}
+.tbl-fs-overlay.tbl-fs-show{display:flex;}
+@media(max-width:768px){.tbl-fs-overlay{padding:0;}}
+.tbl-fs-box{background:var(--s1);border:1px solid var(--b2);border-radius:12px;width:100%;max-width:1400px;max-height:100%;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.7);overflow:hidden;}
+@media(max-width:768px){.tbl-fs-box{border-radius:0;border:none;}}
+.tbl-fs-hd{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--b1);background:var(--s2);flex-wrap:wrap;flex-shrink:0;}
+.tbl-fs-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;flex:1;min-width:120px;cursor:pointer;padding:3px 8px;border-radius:5px;transition:background .15s;}
+.tbl-fs-name:hover{background:var(--s3);}
+.tbl-fs-name-inp{font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;flex:1;min-width:120px;background:var(--s3);border:1px solid var(--blue);border-radius:5px;color:var(--tx);padding:3px 8px;outline:none;}
+.tbl-fs-meta{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--m1);}
+.tbl-fs-close{padding:5px 12px;background:none;border:1px solid var(--b1);border-radius:5px;color:var(--m1);cursor:pointer;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.04em;text-transform:uppercase;transition:all .15s;}
+.tbl-fs-close:hover{border-color:var(--red);color:var(--red);}
+.tbl-fs-body{flex:1;overflow:auto;padding:14px 18px;-webkit-overflow-scrolling:touch;}
+.tbl-fs-body .tbl-grid{font-size:.88rem;}
+.tbl-fs-body .tbl-grid th{font-size:.68rem;padding:0;}
+.tbl-fs-body .tbl-grid th .tbl-cell-inp{font-size:.68rem;padding:9px 12px;}
+.tbl-fs-body .tbl-grid .tbl-cell-inp{padding:9px 12px;font-size:.86rem;}
+.tbl-fs-body .tbl-grid td,.tbl-fs-body .tbl-grid th{min-width:120px;}
+.tbl-fs-body .tbl-rownum{min-width:40px!important;font-size:.62rem!important;padding:6px 8px!important;}
+.tbl-fs-actions{padding:10px 18px;border-top:1px solid var(--b1);background:var(--s2);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;}
+.tbl-fs-hint{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--m2);margin-left:auto;align-self:center;}
+
 
 </style>
 </head>
@@ -1122,7 +1149,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.2</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.3.1</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1420,7 +1447,24 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
         <div id="backlogList"></div>
       </div>
     </div>
-    <!-- v3.2 Create Table Modal -->
+    <!-- v3.3 Table Fullscreen Modal -->
+    <div class="tbl-fs-overlay" id="tableFsModal">
+      <div class="tbl-fs-box">
+        <div class="tbl-fs-hd">
+          <span style="font-size:1.1rem">📊</span>
+          <span class="tbl-fs-name" id="tblFsName" ondblclick="editTableFsName()" title="Double-click to rename"></span>
+          <span class="tbl-fs-meta" id="tblFsMeta"></span>
+          <button class="tbl-fs-close" onclick="closeTableFullscreen()">✕ Close</button>
+        </div>
+        <div class="tbl-fs-body" id="tblFsBody"></div>
+        <div class="tbl-fs-actions">
+          <button class="tbl-act-btn" id="tblFsAddRow">+ Row</button>
+          <button class="tbl-act-btn" id="tblFsAddCol">+ Column</button>
+          <span class="tbl-fs-hint">Esc to close · cells auto-save</span>
+        </div>
+      </div>
+    </div>
+        <!-- v3.2 Create Table Modal -->
     <div class="tbl-modal" id="createTableModal">
       <div class="tbl-modal-box">
         <div class="tbl-modal-title">
@@ -4331,6 +4375,7 @@ function renderTablesHTML(item){
     html+='<div class="tbl-box-hd">';
     html+='<span class="tbl-name" id="tbl_name_'+tbl.id+'" ondblclick="event.stopPropagation();editTableName(\''+item.id+'\',\''+tbl.id+'\',this)" title="Double-click to rename">'+esc(tbl.name)+'</span>';
     html+='<span class="tbl-meta">'+rows+'r × '+cols+'c</span>';
+    html+='<button class="tbl-ctrl-btn tbl-expand" onclick="event.stopPropagation();openTableFullscreen(\''+item.id+'\',\''+tbl.id+'\')" title="Open in full-screen pop-out">⛶ Pop-out</button>';
     html+='<button class="tbl-ctrl-btn tbl-del" onclick="event.stopPropagation();delCustomTable(\''+item.id+'\',\''+tbl.id+'\')">🗑 Delete</button>';
     html+='</div>';
     html+='<div class="tbl-scroll"><table class="tbl-grid"><thead><tr><th class="tbl-rownum">#</th>';
@@ -4477,6 +4522,118 @@ function delTableRow(itemId,tblId,rowIdx){
 }
 /* ══ END CUSTOM TABLES ════════════════════════════════════════════════════ */
 
+
+/* ══ v3.3 TABLE FULLSCREEN ════════════════════════════════════════════════ */
+var _fsItemId=null, _fsTblId=null;
+
+function openTableFullscreen(itemId,tblId){
+  _fsItemId=itemId;_fsTblId=tblId;
+  renderTableFs();
+  var m=document.getElementById('tableFsModal');
+  if(m)m.classList.add('tbl-fs-show');
+}
+
+function closeTableFullscreen(){
+  var m=document.getElementById('tableFsModal');
+  if(m)m.classList.remove('tbl-fs-show');
+  _fsItemId=null;_fsTblId=null;
+  // Refresh detail pane so any changes appear there too
+  if(typeof renderDetail==='function')renderDetail();
+}
+
+function renderTableFs(){
+  if(!_fsItemId||!_fsTblId)return;
+  var item=items.find(function(i){return i.id===_fsItemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===_fsTblId;});if(!tbl){closeTableFullscreen();return;}
+  document.getElementById('tblFsName').textContent=tbl.name;
+  document.getElementById('tblFsMeta').textContent=tbl.rows+' rows × '+tbl.cols+' cols';
+  // Render the grid - reuse same handlers
+  var rows=tbl.rows||1, cols=tbl.cols||1, data=tbl.data||[];
+  var html='<table class="tbl-grid"><thead><tr><th class="tbl-rownum">#</th>';
+  for(var c=0;c<cols;c++){
+    var hdr=(data[0]&&data[0][c])||('Col '+(c+1));
+    html+='<th><input class="tbl-cell-inp" value="'+esc(hdr)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCellFs(0,'+c+',this.value)"/></th>';
+  }
+  html+='</tr></thead><tbody>';
+  for(var r=1;r<rows;r++){
+    html+='<tr><td class="tbl-rownum">'+r+'<button class="tbl-row-del" onclick="event.stopPropagation();delTableRowFs('+r+')" title="Delete row">×</button></td>';
+    for(var c2=0;c2<cols;c2++){
+      var val=(data[r]&&data[r][c2])||'';
+      html+='<td><input class="tbl-cell-inp" value="'+esc(val)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCellFs('+r+','+c2+',this.value)"/></td>';
+    }
+    html+='</tr>';
+  }
+  html+='</tbody></table>';
+  document.getElementById('tblFsBody').innerHTML=html;
+  // Hook up action buttons
+  document.getElementById('tblFsAddRow').onclick=function(e){e.stopPropagation();addTableRowFs();};
+  document.getElementById('tblFsAddCol').onclick=function(e){e.stopPropagation();addTableColFs();};
+}
+
+function editTableCellFs(row,col,val){
+  if(!_fsItemId||!_fsTblId)return;
+  editTableCell(_fsItemId,_fsTblId,row,col,val);
+}
+
+function addTableRowFs(){
+  if(!_fsItemId||!_fsTblId)return;
+  var item=items.find(function(i){return i.id===_fsItemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===_fsTblId;});if(!tbl)return;
+  var newRow=[];
+  for(var c=0;c<tbl.cols;c++)newRow.push('');
+  if(!tbl.data)tbl.data=[];
+  tbl.data.push(newRow);
+  tbl.rows=(tbl.rows||1)+1;
+  saveData();renderTableFs();
+}
+
+function addTableColFs(){
+  if(!_fsItemId||!_fsTblId)return;
+  var item=items.find(function(i){return i.id===_fsItemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===_fsTblId;});if(!tbl)return;
+  if(!tbl.data)tbl.data=[];
+  for(var r=0;r<tbl.rows;r++){
+    if(!tbl.data[r])tbl.data[r]=[];
+    while(tbl.data[r].length<tbl.cols)tbl.data[r].push('');
+    if(r===0)tbl.data[r].push('Col '+(tbl.cols+1));
+    else tbl.data[r].push('');
+  }
+  tbl.cols=(tbl.cols||1)+1;
+  saveData();renderTableFs();
+}
+
+function delTableRowFs(rowIdx){
+  if(!_fsItemId||!_fsTblId)return;
+  if(!confirm('Delete this row?'))return;
+  var item=items.find(function(i){return i.id===_fsItemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===_fsTblId;});if(!tbl)return;
+  if(rowIdx<1||rowIdx>=tbl.rows)return;
+  if(!tbl.data)tbl.data=[];
+  tbl.data.splice(rowIdx,1);
+  tbl.rows=Math.max(1,(tbl.rows||1)-1);
+  saveData();renderTableFs();
+}
+
+function editTableFsName(){
+  if(!_fsItemId||!_fsTblId)return;
+  var item=items.find(function(i){return i.id===_fsItemId;});if(!item)return;
+  var tbl=(item.tables||[]).find(function(t){return t.id===_fsTblId;});if(!tbl)return;
+  var el=document.getElementById('tblFsName');if(!el)return;
+  var cur=tbl.name;
+  var inp=document.createElement('input');
+  inp.className='tbl-fs-name-inp';inp.value=cur;inp.maxLength=60;
+  el.replaceWith(inp);inp.focus();inp.select();
+  inp.onblur=function(){
+    tbl.name=inp.value.trim()||cur;
+    saveData();renderTableFs();
+  };
+  inp.onkeydown=function(e){
+    if(e.key==='Enter')inp.blur();
+    if(e.key==='Escape'){inp.value=cur;inp.blur();}
+  };
+}
+/* ══ END FULLSCREEN ═══════════════════════════════════════════════════════ */
+
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ v2.7.10 FOCUS TIMER ═══════════════════════════ */
 let _tmrTotal=15*60, _tmrLeft=15*60, _tmrId=null, _tmrRunning=false;
@@ -4542,7 +4699,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v3.2';
+const CURRENT_VER='v3.3.1';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})
@@ -4580,6 +4737,14 @@ window.addEventListener('load',()=>{
   if(_bm)_bm.addEventListener('click',function(e){if(e.target===_bm)closeBacklogModal();});
   var _ctm=document.getElementById('createTableModal');
   if(_ctm)_ctm.addEventListener('click',function(e){if(e.target===_ctm)closeCreateTableModal();});
+  var _tfs=document.getElementById('tableFsModal');
+  if(_tfs)_tfs.addEventListener('click',function(e){if(e.target===_tfs)closeTableFullscreen();});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      var fs=document.getElementById('tableFsModal');
+      if(fs&&fs.classList.contains('tbl-fs-show'))closeTableFullscreen();
+    }
+  });
   loadConfig();
   const wait=setInterval(()=>{if(window.google?.accounts?.oauth2){clearInterval(wait);initApp();}},100);
   // Check every minute for 9 AM reminder emails

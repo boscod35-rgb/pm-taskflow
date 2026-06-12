@@ -1052,7 +1052,8 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .tbl-grid th{background:var(--s3);font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);font-weight:500;}
 .tbl-grid td{background:var(--bg);}
 .tbl-grid .tbl-rownum{background:var(--s3);color:var(--m2);font-family:'DM Mono',monospace;font-size:.55rem;text-align:center;min-width:30px;width:30px;padding:4px 6px;user-select:none;}
-.tbl-cell-inp{width:100%;background:transparent;border:none;outline:none;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:6px 8px;box-sizing:border-box;}
+.tbl-cell-inp{width:100%;background:transparent;border:none;outline:none;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:6px 8px;box-sizing:border-box;resize:none;min-height:30px;overflow:hidden;white-space:pre-wrap;word-wrap:break-word;line-height:1.4;display:block;}
+.tbl-grid td{vertical-align:top;}
 .tbl-cell-inp:focus{background:var(--blue-d);box-shadow:inset 0 0 0 1px var(--blue);}
 .tbl-grid th .tbl-cell-inp{font-family:'DM Mono',monospace;font-size:.6rem;font-weight:500;color:var(--gold);text-transform:uppercase;letter-spacing:.04em;}
 .tbl-row-del{background:none;border:none;color:var(--m2);cursor:pointer;font-size:.7rem;padding:2px;opacity:0;transition:opacity .15s;}
@@ -1076,6 +1077,11 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .tbl-modal-cancel{padding:7px 14px;background:none;border:1px solid var(--b1);border-radius:6px;color:var(--m1);font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;cursor:pointer;}
 .tbl-modal-create{padding:7px 18px;background:var(--c2);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;cursor:pointer;font-weight:600;}
 .tbl-empty{font-size:.74rem;color:var(--m2);padding:14px 0;text-align:center;border:1px dashed var(--b1);border-radius:6px;}
+/* v3.3.2 Move modal tabs */
+.blm-tab{padding:5px 11px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:6px;font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.04em;cursor:pointer;transition:all .15s;}
+.blm-tab:hover{color:var(--tx);border-color:var(--b2);}
+.blm-tab.blm-tab-act{background:var(--blue-d);border-color:var(--blue);color:var(--blue);font-weight:600;}
+.blm-cat-pre{background:var(--s2)!important;border:1px solid var(--gold)!important;color:var(--gold)!important;}
 /* v3.3 Fullscreen table */
 .tbl-ctrl-btn.tbl-expand{background:var(--blue-d);color:var(--blue);border-color:rgba(77,158,255,.4);font-weight:600;}
 .tbl-ctrl-btn.tbl-expand:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
@@ -1149,7 +1155,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 <div id="screenApp" class="screen" style="flex-direction:column">
   <header>
     <div class="hdr-top">
-      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.3.1</span></div>
+      <div class="logo">Project<span>.</span>Tracker<span class="ver-badge">v3.3.2</span></div>
       <div class="folder-chip">📁 Project Tracker</div>
       <div id="syncPill" class="sync-pill sp-idle"><span class="sp-dot"></span><span id="syncMsg">Idle</span></div>
       <div class="hdr-right">
@@ -1442,6 +1448,16 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
             <option value="onetime">1× One Time</option>
             <option value="recurring">🔄 Recurring</option>
           </select>
+          <select id="backlogCat" style="padding:8px 9px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:7px;font-family:'DM Mono',monospace;font-size:.62rem;outline:none;cursor:pointer">
+            <option value="">— Category —</option>
+            <option value="Work">💼 Work</option>
+            <option value="Personal">👤 Personal</option>
+            <option value="Finance">💰 Finance</option>
+            <option value="Health">🏃 Health</option>
+            <option value="Learning">📚 Learning</option>
+            <option value="Project">📁 Project</option>
+            <option value="General">📋 General</option>
+          </select>
           <button onclick="addBacklogItem()" style="padding:9px 16px;background:var(--blue-d);color:var(--blue);border:1px solid rgba(77,158,255,.3);border-radius:7px;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap">+ Add</button>
         </div>
         <div id="backlogList"></div>
@@ -1500,9 +1516,13 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
         </div>
         <div id="blmItemName" style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);background:var(--gold-d);border:1px solid rgba(240,180,41,.3);border-radius:5px;padding:4px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
         <div id="blmStep1">
-          <input id="blmSearch" placeholder="Search tasks…" oninput="filterBlmTasks(this.value)"
+          <div id="blmTabs" style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap"></div>
+          <input id="blmSearch" placeholder="Search…" oninput="filterBlmTasks(this.value)"
             style="width:100%;padding:7px 10px;border:1px solid var(--b1);background:var(--s2);border-radius:7px;color:var(--tx);font-size:.82rem;outline:none;margin-bottom:8px"/>
-          <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--m2);margin-bottom:5px">Select a task or milestone:</div>
+          <div id="blmCatFilter" style="display:none;font-family:'DM Mono',monospace;font-size:.58rem;color:var(--m2);margin-bottom:5px;padding:4px 8px;background:var(--s2);border-radius:4px;display:flex;align-items:center;gap:6px">
+            <span>Filtered by category: <strong id="blmCatName"></strong></span>
+            <button onclick="clearBlmCatFilter()" style="margin-left:auto;background:none;border:1px solid var(--b1);border-radius:4px;color:var(--m1);cursor:pointer;font-size:.55rem;padding:2px 8px;font-family:'DM Mono',monospace">Show All</button>
+          </div>
           <div id="blmTaskList" style="overflow-y:auto;max-height:320px"></div>
         </div>
         <div id="blmStep2" style="display:none">
@@ -2964,6 +2984,8 @@ function renderDetail(){
   if(ns&&prevScroll)ns.scrollTop=prevScroll;
   // v2.7.16 — if a workbook is loaded in this session, re-render it into the panel
   if(typeof _xlWb!=='undefined'&&_xlWb&&document.getElementById('excelGridWrap')){try{renderExcel();}catch(e){}}
+  // v3.3.2 — auto-size all table textareas
+  setTimeout(autoSizeAllCells,0);
 }
 function toggleAddCI(itemId){const row=document.getElementById('ciadd_'+itemId);const inp=document.getElementById('ciinp_'+itemId);if(!row)return;row.classList.toggle('open');if(row.classList.contains('open')&&inp)inp.focus();}
 
@@ -3609,13 +3631,12 @@ function showCILabelPicker(itemId,clId,ciId,btn){
 function toggleCILabel(itemId,clId,ciId,labelId){const item=items.find(i=>i.id===itemId);if(!item)return;const cl=item.checklists?.find(c=>c.id===clId);if(!cl)return;const ci=cl.items?.find(i=>i.id===ciId);if(!ci)return;if(!ci.labels)ci.labels=[];const ix=ci.labels.indexOf(labelId);if(ix===-1)ci.labels.push(labelId);else ci.labels.splice(ix,1);patchCard(item);saveData();}
 /* Move a checklist item to another checklist (menu-based, touch-friendly) */
 function showMoveCIMenu(itemId,clId,ciId,btn){
-  // v3.1 — open backlog-style modal for GLOBAL cross-task move
   const item=items.find(i=>i.id===itemId);if(!item)return;
   const cl=(item.checklists||[]).find(c=>c.id===clId);if(!cl)return;
   const ci=(cl.items||[]).find(x=>x.id===ciId);if(!ci)return;
-  // Use the backlog modal — but mark source so we can remove from there
   _blmSelBacklogId=null;
   _blmSrc={itemId:itemId,clId:clId,ciId:ciId};
+  _blmTab='within';_blmCatFilter='';  // start with "Within This Task" tab
   document.getElementById('blmItemName').textContent=ci.text;
   document.getElementById('blmTitle').textContent='Move item to another checklist';
   document.getElementById('blmStep1').style.display='';
@@ -4153,6 +4174,7 @@ function clearExcel(){
 
 /* ══ v3.0 BACKLOG ════════════════════════════════════════════════════════ */
 var _blmSelBacklogId=null,_blmSelTaskId=null,_blmSrc=null;
+var _blmTab='within',_blmCatFilter='';
 
 function showToast(txt,col){
   var t=document.createElement('div');
@@ -4186,10 +4208,16 @@ function renderBacklog(){
     var typeBadge=b.taskType==='recurring'
       ?'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:rgba(34,211,165,.1);color:var(--done);border:1px solid rgba(34,211,165,.3);white-space:nowrap">🔄 Recurring</span>'
       :'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:rgba(77,158,255,.1);color:var(--blue);border:1px solid rgba(77,158,255,.3);white-space:nowrap">1× One Time</span>';
+    var catColors={Work:'#4d9eff',Personal:'#f0b429',Finance:'#34d399',Health:'#f97316',Learning:'#c084fc',Project:'#22d3a5',General:'#9b7ff4'};
+    var catIcons={Work:'💼',Personal:'👤',Finance:'💰',Health:'🏃',Learning:'📚',Project:'📁',General:'📋'};
+    var catCol=catColors[b.category]||'#888';
+    var catIcon=catIcons[b.category]||'';
+    var catBadge=b.category?'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:'+catCol+'22;color:'+catCol+';border:1px solid '+catCol+'55;white-space:nowrap">'+catIcon+' '+b.category+'</span>':'';
     div.innerHTML='<span style="font-family:\'DM Mono\',monospace;font-size:.58rem;color:var(--m2);min-width:24px;flex-shrink:0">'+(idx+1)+'.</span>'
       +'<div style="flex:1;min-width:0"><div style="font-size:.86rem;font-weight:500">'+esc(b.text)+'</div></div>'
       +'<div style="display:flex;align-items:center;gap:5px;flex-shrink:0">'
       +typeBadge
+      +catBadge
       +'<span class="pri '+priCls[b.priority||'medium']+'">'+priLbl[b.priority||'medium']+'</span>'
       +'</div>'
       +'<button data-id="'+b.id+'" style="padding:5px 11px;background:var(--done-d);color:var(--done);border:1px solid rgba(34,211,165,.3);border-radius:5px;font-family:\'DM Mono\',monospace;font-size:.58rem;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Move to task checklist">&#8594; Move</button>'
@@ -4206,8 +4234,9 @@ function addBacklogItem(){
   var typ=document.getElementById('backlogType');
   var text=inp?inp.value.trim():'';if(!text)return;
   if(!appConfig.backlog)appConfig.backlog=[];
-  appConfig.backlog.unshift({id:uid(),text:text,priority:pri?pri.value:'medium',taskType:typ?typ.value:'onetime',created:Date.now()});
-  if(inp)inp.value='';if(pri)pri.value='medium';if(typ)typ.value='onetime';
+  var catSel=document.getElementById('backlogCat');
+  appConfig.backlog.unshift({id:uid(),text:text,priority:pri?pri.value:'medium',taskType:typ?typ.value:'onetime',category:catSel?catSel.value:'',created:Date.now()});
+  if(inp)inp.value='';if(pri)pri.value='medium';if(typ)typ.value='onetime';if(catSel)catSel.value='';
   saveConfig();renderBacklog();
 }
 
@@ -4219,6 +4248,7 @@ function delBacklogItem(id){
 
 function openBacklogMoveModal(backlogId){
   _blmSelBacklogId=backlogId;_blmSelTaskId=null;
+  _blmTab='tasks';_blmCatFilter='';  // reset, will auto-set from backlog cat
   var b=(appConfig.backlog||[]).find(function(x){return x.id===backlogId;});if(!b)return;
   document.getElementById('blmItemName').textContent=b.text;
   document.getElementById('blmTitle').textContent='Move to Task Checklist';
@@ -4232,30 +4262,139 @@ function openBacklogMoveModal(backlogId){
 function closeBacklogModal(){
   var m=document.getElementById('backlogModal');if(m)m.style.display='none';
   _blmSelBacklogId=null;_blmSelTaskId=null;_blmSrc=null;
+  _blmTab='within';_blmCatFilter='';
 }
 
 function filterBlmTasks(q){renderBlmTaskList(q);}
 
 function renderBlmTaskList(q){
+  // v3.3.2 — 3-tab grouped picker (Within Task / Other Tasks / Other Milestones)
   var el=document.getElementById('blmTaskList');if(!el)return;
   q=(q||'').toLowerCase();
-  var vis=items.filter(function(i){return !i.archived&&(!q||i.text.toLowerCase().includes(q));}).slice(0,30);
+
+  // Determine source context
+  var sourceItem=null;
+  if(_blmSrc&&_blmSrc.itemId)sourceItem=items.find(function(i){return i.id===_blmSrc.itemId;});
+
+  // Default tab based on source
+  var defaultTab=sourceItem?'within':'tasks';
+  if(_blmTab==='within'&&!sourceItem)_blmTab='tasks';
+
+  // Determine category filter for backlog source
+  var preCat='';
+  if(_blmSelBacklogId){
+    var bItem=(appConfig.backlog||[]).find(function(x){return x.id===_blmSelBacklogId;});
+    if(bItem&&bItem.category&&!_blmCatFilter){
+      // First load: pre-filter by category
+      _blmCatFilter=bItem.category;
+      preCat=bItem.category;
+    }
+  }
+
+  // Render tabs
+  var tabsEl=document.getElementById('blmTabs');
+  if(tabsEl){
+    var tabs=[];
+    if(sourceItem){
+      var withinCnt=((sourceItem.checklists||[]).filter(function(c){return c.id!==_blmSrc.clId;})).length;
+      tabs.push({k:'within',l:'🗓 Within This Task',c:withinCnt});
+    }
+    var taskList=items.filter(function(i){return !i.archived&&!i.isMile&&(!sourceItem||i.id!==sourceItem.id);});
+    var mileList=items.filter(function(i){return !i.archived&&i.isMile&&(!sourceItem||i.id!==sourceItem.id);});
+    tabs.push({k:'tasks',l:'📋 Other Tasks',c:taskList.length});
+    tabs.push({k:'miles',l:'⬟ Milestones',c:mileList.length});
+    tabsEl.innerHTML=tabs.map(function(t){
+      return '<button class="blm-tab '+(_blmTab===t.k?'blm-tab-act':'')+'" onclick="setBlmTab(\''+t.k+'\')">'+t.l+' <span style="opacity:.6">('+t.c+')</span></button>';
+    }).join('');
+  }
+
+  // Show category filter banner if active
+  var catEl=document.getElementById('blmCatFilter');
+  if(catEl){
+    if(_blmCatFilter&&_blmTab!=='within'){
+      catEl.style.display='flex';
+      document.getElementById('blmCatName').textContent=_blmCatFilter;
+    } else {
+      catEl.style.display='none';
+    }
+  }
+
+  // Build visible list based on tab
+  var vis=[];
+  if(_blmTab==='within'&&sourceItem){
+    // Show checklists in same task (except source checklist)
+    vis=(sourceItem.checklists||[]).filter(function(cl){return cl.id!==_blmSrc.clId;});
+    // Render as direct checklist picker, skip step 2
+    el.innerHTML='';
+    if(!vis.length){
+      el.innerHTML='<div style="padding:16px;text-align:center;font-size:.78rem;color:var(--m2)">This task has no other checklists.</div>';
+      return;
+    }
+    vis.forEach(function(cl){
+      if(q&&!cl.name.toLowerCase().includes(q))return;
+      var done=(cl.items||[]).filter(function(x){return x.done;}).length;
+      var total=(cl.items||[]).length;
+      var d=document.createElement('div');d.dataset.id=cl.id;
+      d.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;transition:all .15s';
+      d.innerHTML='<span>📋</span><span style="flex:1;font-size:.84rem">'+esc(cl.name)+'</span>'
+        +'<span style="font-family:\'DM Mono\',monospace;font-size:.6rem;color:var(--m2)">'+done+'/'+total+'</span>';
+      d.onmouseenter=function(){this.style.background='var(--done-d)';this.style.borderColor='rgba(34,211,165,.3)';};
+      d.onmouseleave=function(){this.style.background='';this.style.borderColor='transparent';};
+      d.onclick=function(){
+        // Set task to current source task, then directly trigger move
+        _blmSelTaskId=sourceItem.id;
+        blmMoveToChecklist(this.dataset.id);
+      };
+      el.appendChild(d);
+    });
+    return;
+  }
+
+  // Tasks or Milestones tab
+  var pool=_blmTab==='miles'
+    ?items.filter(function(i){return !i.archived&&i.isMile&&(!sourceItem||i.id!==sourceItem.id);})
+    :items.filter(function(i){return !i.archived&&!i.isMile&&(!sourceItem||i.id!==sourceItem.id);});
+
+  // Apply category filter
+  if(_blmCatFilter){
+    pool=pool.filter(function(i){return (i.cat||'').toLowerCase()===_blmCatFilter.toLowerCase();});
+  }
+  // Apply search
+  if(q)pool=pool.filter(function(i){return i.text.toLowerCase().includes(q);});
+
+  pool=pool.slice(0,30);
   el.innerHTML='';
-  if(!vis.length){el.innerHTML='<div style="padding:16px;text-align:center;font-size:.78rem;color:var(--m2)">No tasks found</div>';return;}
-  vis.forEach(function(i){
+  if(!pool.length){
+    var noResult=_blmCatFilter
+      ?'No '+(_blmTab==='miles'?'milestones':'tasks')+' in category "'+_blmCatFilter+'". Click "Show All" to override.'
+      :'No '+(_blmTab==='miles'?'milestones':'tasks')+' found.';
+    el.innerHTML='<div style="padding:16px;text-align:center;font-size:.78rem;color:var(--m2)">'+noResult+'</div>';
+    return;
+  }
+  pool.forEach(function(i){
     var cl=(i.checklists||[]).length;
     var st=(STAGES.find(function(s){return s.n===i.stage;})||{short:'?'}).short;
-    var d=document.createElement('div');
-    d.dataset.id=i.id;
-    d.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;transition:all .15s';
+    var d=document.createElement('div');d.dataset.id=i.id;
+    var isCatMatch=_blmCatFilter&&(i.cat||'').toLowerCase()===_blmCatFilter.toLowerCase();
+    d.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:7px;cursor:pointer;border:1px solid '+(isCatMatch?'rgba(240,180,41,.3)':'transparent')+';margin-bottom:3px;transition:all .15s';
     d.innerHTML='<span>'+(i.isMile?'⬟':'📋')+'</span>'
       +'<span style="flex:1;font-size:.84rem;font-weight:500">'+esc(i.text)+'</span>'
       +'<span style="font-family:\'DM Mono\',monospace;font-size:.58rem;color:var(--m1)">'+esc(i.cat||'')+' · '+st+' · '+cl+'cl</span>';
-    d.onmouseenter=function(){this.style.background='var(--s2)';this.style.borderColor='var(--b1)';};
-    d.onmouseleave=function(){this.style.background='';this.style.borderColor='transparent';};
+    d.onmouseenter=function(){this.style.background='var(--s2)';};
+    d.onmouseleave=function(){this.style.background='';};
     d.onclick=function(){blmSelectTask(this.dataset.id);};
     el.appendChild(d);
   });
+}
+
+function setBlmTab(tab){
+  _blmTab=tab;
+  renderBlmTaskList(document.getElementById('blmSearch').value);
+}
+
+function clearBlmCatFilter(){
+  _blmCatFilter='';
+  renderBlmTaskList(document.getElementById('blmSearch').value);
 }
 
 function blmSelectTask(taskId){
@@ -4381,14 +4520,14 @@ function renderTablesHTML(item){
     html+='<div class="tbl-scroll"><table class="tbl-grid"><thead><tr><th class="tbl-rownum">#</th>';
     for(var c=0;c<cols;c++){
       var hdr=(data[0]&&data[0][c])||('Col '+(c+1));
-      html+='<th><input class="tbl-cell-inp" value="'+esc(hdr)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCell(\''+item.id+'\',\''+tbl.id+'\',0,'+c+',this.value)"/></th>';
+      html+='<th><textarea class="tbl-cell-inp" onclick="event.stopPropagation()" oninput="autoSizeCell(this)" onchange="event.stopPropagation();editTableCell(\''+item.id+'\',\''+tbl.id+'\',0,'+c+',this.value)" rows="1">'+esc(hdr)+'</textarea></th>';
     }
     html+='</tr></thead><tbody>';
     for(var r=1;r<rows;r++){
       html+='<tr><td class="tbl-rownum">'+r+'<button class="tbl-row-del" onclick="event.stopPropagation();delTableRow(\''+item.id+'\',\''+tbl.id+'\','+r+')" title="Delete row">×</button></td>';
       for(var c2=0;c2<cols;c2++){
         var val=(data[r]&&data[r][c2])||'';
-        html+='<td><input class="tbl-cell-inp" value="'+esc(val)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCell(\''+item.id+'\',\''+tbl.id+'\','+r+','+c2+',this.value)"/></td>';
+        html+='<td><textarea class="tbl-cell-inp" onclick="event.stopPropagation()" oninput="autoSizeCell(this)" onchange="event.stopPropagation();editTableCell(\''+item.id+'\',\''+tbl.id+'\','+r+','+c2+',this.value)" rows="1">'+esc(val)+'</textarea></td>';
       }
       html+='</tr>';
     }
@@ -4552,14 +4691,14 @@ function renderTableFs(){
   var html='<table class="tbl-grid"><thead><tr><th class="tbl-rownum">#</th>';
   for(var c=0;c<cols;c++){
     var hdr=(data[0]&&data[0][c])||('Col '+(c+1));
-    html+='<th><input class="tbl-cell-inp" value="'+esc(hdr)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCellFs(0,'+c+',this.value)"/></th>';
+    html+='<th><textarea class="tbl-cell-inp" onclick="event.stopPropagation()" oninput="autoSizeCell(this)" onchange="event.stopPropagation();editTableCellFs(0,'+c+',this.value)" rows="1">'+esc(hdr)+'</textarea></th>';
   }
   html+='</tr></thead><tbody>';
   for(var r=1;r<rows;r++){
     html+='<tr><td class="tbl-rownum">'+r+'<button class="tbl-row-del" onclick="event.stopPropagation();delTableRowFs('+r+')" title="Delete row">×</button></td>';
     for(var c2=0;c2<cols;c2++){
       var val=(data[r]&&data[r][c2])||'';
-      html+='<td><input class="tbl-cell-inp" value="'+esc(val)+'" onclick="event.stopPropagation()" onchange="event.stopPropagation();editTableCellFs('+r+','+c2+',this.value)"/></td>';
+      html+='<td><textarea class="tbl-cell-inp" onclick="event.stopPropagation()" oninput="autoSizeCell(this)" onchange="event.stopPropagation();editTableCellFs('+r+','+c2+',this.value)" rows="1">'+esc(val)+'</textarea></td>';
     }
     html+='</tr>';
   }
@@ -4568,6 +4707,7 @@ function renderTableFs(){
   // Hook up action buttons
   document.getElementById('tblFsAddRow').onclick=function(e){e.stopPropagation();addTableRowFs();};
   document.getElementById('tblFsAddCol').onclick=function(e){e.stopPropagation();addTableColFs();};
+  setTimeout(autoSizeAllCells,0);
 }
 
 function editTableCellFs(row,col,val){
@@ -4634,6 +4774,17 @@ function editTableFsName(){
 }
 /* ══ END FULLSCREEN ═══════════════════════════════════════════════════════ */
 
+
+/* ══ v3.3.2 TABLE CELL AUTO-SIZE ════════════════════════════════════════ */
+function autoSizeCell(ta){
+  if(!ta)return;
+  ta.style.height='auto';
+  ta.style.height=Math.max(30,ta.scrollHeight)+'px';
+}
+function autoSizeAllCells(){
+  document.querySelectorAll('.tbl-cell-inp').forEach(autoSizeCell);
+}
+
 /* ══ BOOT ══════════════════════════════════════════ */
 /* ══ v2.7.10 FOCUS TIMER ═══════════════════════════ */
 let _tmrTotal=15*60, _tmrLeft=15*60, _tmrId=null, _tmrRunning=false;
@@ -4699,7 +4850,7 @@ function resetTimer(){
 }
 
 /* ══ AUTO-UPDATE CHECKER C2 v1.9 ══════════════════ */
-const CURRENT_VER='v3.3.1';
+const CURRENT_VER='v3.3.2';
 function checkForUpdate(){
   if(!document.getElementById('screenApp')?.classList.contains('show'))return;
   fetch(location.href+'?nc='+Date.now(),{cache:'no-store'})

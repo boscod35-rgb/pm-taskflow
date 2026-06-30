@@ -2534,7 +2534,7 @@ function buildItemParts(item){
       const subs=ci.subItems||[];
       const subDone=subs.filter(s=>s.done).length;
       const subHTML=subOpen?`<div class="ci-sub-wrap">
-        ${subs.map(s=>`<div class="ci-sub-item">
+        ${subs.filter(s=>!(hideDone&&s.done)).map(s=>`<div class="ci-sub-item">
           <div class="ci-sub-box" onclick="event.stopPropagation();toggleSubItem('${item.id}','${cl.id}','${ci.id}','${s.id}')" style="${s.done?'background:var(--done);border-color:var(--done);color:#fff':''}">${s.done?'✓':''}</div>
           <span class="ci-sub-txt" style="${s.done?'text-decoration:line-through;color:var(--m1)':''}" ondblclick="event.stopPropagation();editSubItem('${item.id}','${cl.id}','${ci.id}','${s.id}')" title="Double-click to edit">${esc(s.text)}</span>
           <button class="ci-sub-flag ${s.flagged?'csf-on':'csf-off'}" onclick="event.stopPropagation();toggleSubFlag('${item.id}','${cl.id}','${ci.id}','${s.id}')" title="${s.flagged?'Flagged sub-item — click to remove':'Flag sub-item for follow-up'}">⚑</button>

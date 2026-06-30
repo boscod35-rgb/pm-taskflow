@@ -792,6 +792,9 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 .rem-group-hdr-week{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);padding:8px 0 4px;margin-top:6px;border-bottom:1px solid var(--b1);margin-bottom:6px;}
 /* v2.5 — Reminder active/inactive */
 .ri-chk-toggle{width:22px;height:22px;border-radius:50%;border:2px solid var(--red);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .2s;}
+.ri-chk-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--m1);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;transition:all .15s;color:#fff;}
+.ri-chk-box:hover{border-color:var(--done);}
+.ri-chk-box.rcb-on{background:var(--done);border-color:var(--done);}
 .ri-chk-toggle.rit-on{background:var(--red);border-color:var(--red);color:#fff;opacity:1;box-shadow:0 0 0 2px rgba(239,68,68,.25);}
 .ri-chk-toggle.rit-off{background:transparent;border-color:var(--red);color:var(--red);opacity:.4;}
 .ri-chk-toggle.rit-off:hover{opacity:.7;}
@@ -2284,6 +2287,7 @@ function toggleSubItem(itemId,clId,ciId,sId){
   const r=_findCI(itemId,clId,ciId);if(!r||!r.ci.subItems)return;
   const s=r.ci.subItems.find(x=>x.id===sId);if(!s)return;
   s.done=!s.done;patchCard(r.item);saveData();refreshDash();
+  if(document.getElementById('viewFollowup')&&document.getElementById('viewFollowup').style.display!=='none')renderFollowup();
 }
 function toggleSubFlag(itemId,clId,ciId,sId){
   const r=_findCI(itemId,clId,ciId);if(!r||!r.ci.subItems)return;
@@ -2567,7 +2571,7 @@ function buildItemParts(item){
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
       <button class="ci-move-btn" onclick="event.stopPropagation();showMoveCIMenu('${item.id}','${cl.id}','${ci.id}',this)" title="Move to another checklist">↪</button>
       <button class="ci-del" onclick="event.stopPropagation();delCLItem('${item.id}','${cl.id}','${ci.id}')">×</button>
-    </div>${(ci.labels||[]).some(lid=>{const l=getLabelById(lid);return l&&l.active!==false;})?`<div class="ci-lbl-strip" style="display:${!lblVisible(ci.id)?'none':'flex'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l&&l.active!==false?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':'';}).join('')}</div>`:''}${subHTML}</div>`}).join('');
+    </div>${(ci.labels||[]).some(lid=>{const l=getLabelById(lid);return l&&l.active!==false;})?`<div class="ci-lbl-strip" id="cilbls_${ci.id}" style="display:${!lblVisible(ci.id)?'none':'flex'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l&&l.active!==false?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':'';}).join('')}</div>`:''}${subHTML}</div>`}).join('');
     return`<div class="cl-group">
       <div class="cl-group-hd" onclick="event.stopPropagation();toggleChecklist('${item.id}','${cl.id}')" ondragover="event.preventDefault();this.closest('.cl-group').classList.add('cl-drop-target')" ondrop="event.stopPropagation();clGroupDrop(event,'${item.id}','${cl.id}')">
         <button onclick="event.stopPropagation();moveChecklist('${item.id}','${cl.id}',-1)" title="Move up" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.75rem;padding:0 3px" onmousedown="event.stopPropagation()">▲</button>
@@ -3108,6 +3112,23 @@ function toggleReminder(id){
 function doneReminder(id){
   const r=reminders.find(r=>r.id===id);if(!r)return;
   r.done=!r.done;if(r.done)r.active=false;else r.active=true;
+  // v3.3.3 — propagate completion back to the original checklist item or task
+  if(r.linkedItemId){
+    const srcItem=items.find(i=>i.id===r.linkedItemId);
+    if(srcItem){
+      if(r.linkedCIId){
+        const srcCl=(srcItem.checklists||[]).find(c=>(c.items||[]).some(ci=>ci.id===r.linkedCIId));
+        const srcCi=srcCl&&srcCl.items.find(ci=>ci.id===r.linkedCIId);
+        if(srcCi)srcCi.done=r.done;
+      } else if(r.fromChecklist!==true){
+        // reminder linked directly to a task/milestone due date
+        if(r.done){srcItem.stage=8;PHASES.forEach(p=>srcItem.phases[p.key]=p.wt);srcItem.closedAt=srcItem.closedAt||Date.now();}
+      }
+      patchCard(srcItem);
+      if(typeof renderDetail==='function'&&selectedId===srcItem.id)renderDetail();
+    }
+    saveData();
+  }
   renderReminders();saveData();
 }
 function toggleRemImportant(id){const r=reminders.find(r=>r.id===id);if(!r)return;r.priority=r.priority==='important'?'normal':'important';renderReminders();saveData();}
@@ -3252,6 +3273,7 @@ function renderReminders(){
           +'</select>';
       }
       return '<div class="rem-item'+(r.done?' ri-done':'')+(!isActive?' ri-inactive':'')+'" style="animation:fadeUp .15s ease both">'
+        +'<div class="ri-chk-box '+(r.done?'rcb-on':'')+'" onclick="doneReminder(\''+r.id+'\')" title="'+(r.done?'Completed — click to reopen':'Mark complete')+'">'+(r.done?'&#10003;':'')+'</div>'
         +'<div class="ri-chk-toggle '+(isActive?'rit-on':'rit-off')+'" onclick="toggleReminder(\''+r.id+'\')" title="'+(isActive?'Active \u2014 click to pause':'Paused \u2014 click to activate')+'">'+(isActive?'&#9679;':'&#9675;')+'</div>'
         +'<div class="ri-body">'
         +'<div class="ri-txt">'+esc(r.text)+(r.linkedItemId?'<span class="rem-linked-tag">'+(r.linkedType||'Task')+'</span>':'')+'</div>'
@@ -3261,7 +3283,6 @@ function renderReminders(){
         +notifySel
         +'</div></div>'
         +'<span class="ri-flag" onclick="toggleRemImportant(\''+r.id+'\')" title="'+(r.priority==='important'?'Remove important':'Mark important')+'">'+(r.priority==='important'?'&#11088;':'&#9734;')+'</span>'
-        +'<button class="ri-del" onclick="doneReminder(\''+r.id+'\')" title="Mark done" style="color:'+(r.done?'var(--done)':'var(--m2)')+'">&#10003;</button>'
         +'<button class="ri-del" onclick="delReminder(\''+r.id+'\')">&#128465;</button>'
         +'</div>';
     }
@@ -3680,8 +3701,8 @@ function renderFollowup(){
     items.filter(i=>!i.archived).forEach(item=>{
       (item.checklists||[]).forEach(cl=>{
         (cl.items||[]).forEach(ci=>{
-          if(ci.flagged===true)flagged.push({item,cl,ci});
-          (ci.subItems||[]).filter(s=>s.flagged===true).forEach(s=>flagged.push({item,cl,ci,sub:s}));
+          if(ci.flagged===true&&!ci.done)flagged.push({item,cl,ci});
+          (ci.subItems||[]).filter(s=>s.flagged===true&&!s.done).forEach(s=>flagged.push({item,cl,ci,sub:s}));
         });
       });
     });
@@ -3998,7 +4019,7 @@ function ciLblVisible(id){return ciLblState[id]!==false;}
 function toggleCILabels(ciId){
   ciLblState[ciId]=!ciLblVisible(ciId);
   var b=document.getElementById('cilbls_'+ciId);
-  if(b)b.style.display=ciLblVisible(ciId)?'inline':'none';
+  if(b)b.style.display=ciLblVisible(ciId)?'flex':'none';
   var e=document.getElementById('lbleye_'+ciId);
   if(e){e.textContent=ciLblVisible(ciId)?'👁':'🚫';e.classList.toggle('lbl-hidden',!ciLblVisible(ciId));}
 }

@@ -241,6 +241,7 @@ header{background:linear-gradient(180deg,var(--s1),color-mix(in srgb,var(--s1) 8
 .ci-txt{flex:1;font-size:.78rem;min-width:60px;}
 .ci-flag,.ci-lbl-btn,.ci-lbl-eye,.ci-move-btn,.ci-del,.ci-sub-toggle{flex-shrink:0;}
 .ci-lbl-badges{flex-shrink:0;}
+.ci-lbl-strip{display:flex;flex-wrap:wrap;gap:4px;padding:2px 0 5px 30px;}
 .ci-del{background:none;border:none;color:transparent;cursor:pointer;font-size:.82rem;padding:1px 3px;transition:color .15s;}
 .cl-item:hover .ci-del{color:var(--m2);}
 .ci-del:hover{color:var(--red)!important;}
@@ -634,6 +635,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
 /* C9: LABELS */
 .lbl-badge{font-family:'DM Mono',monospace;font-size:.6rem;padding:2px 8px;border-radius:99px;border:1px solid;white-space:nowrap;}
 .row-lbl{font-size:.55rem;padding:1px 6px;vertical-align:middle;cursor:pointer;}
+.row-lbl-strip{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:0 13px 9px 41px;margin-top:-4px;}
 .label-group{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:10px;}
 .label-group-hdr{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--b1);}
 .label-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--s3);font-size:.8rem;}
@@ -1450,7 +1452,7 @@ function getWsCats(key){return WORKSPACES.find(w=>w.key===key)?.cats||null;}
           </select>
           <select id="backlogCat" style="padding:8px 9px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:7px;font-family:'DM Mono',monospace;font-size:.62rem;outline:none;cursor:pointer">
             <option value="">— Category —</option>
-            <option value="Work">💼 Work</option>
+            <option value="Work" selected>💼 Work</option>
             <option value="Personal">👤 Personal</option>
             <option value="Finance">💰 Finance</option>
             <option value="Health">🏃 Health</option>
@@ -1621,6 +1623,8 @@ function getCats(){return appConfig.categories||DEFAULT_CONFIG.categories;}
 function getOwners(){return appConfig.owners||DEFAULT_CONFIG.owners;}
 function getLabels(){return appConfig.labels||[];}
 function getLabelById(id){return getLabels().find(l=>l.id===id);}
+function getActiveLabels(){return getLabels().filter(l=>l.active!==false);}
+function toggleLabelActive(i){if(!appConfig.labels||!appConfig.labels[i])return;appConfig.labels[i].active=appConfig.labels[i].active===false?true:false;saveConfig();renderSettings();renderTracker();if(selectedId&&document.getElementById('detailPane'))renderDetail();}
 function lsSave(){try{localStorage.setItem('pmtf_v19',JSON.stringify({items,reminders}));}catch(e){}}
 function lsLoad(){try{const d=JSON.parse(localStorage.getItem('pmtf_v19')||'{}');if(d.items?.length){items=d.items;reminders=d.reminders||[];return true;}}catch(e){}return false;}
 
@@ -2488,7 +2492,7 @@ function buildItemParts(item){
   const ownerStr=item.owner?` · 👤 ${esc(item.owner)}`:'';
   const totalCI=checklists.reduce((s,c)=>s+(c.items?.length||0),0);
   const doneCI=checklists.reduce((s,c)=>s+(c.items?.filter(i=>i.done).length||0),0);
-  const lblVisible=true; // default labels visible; toggled per-item via ciLblState
+  const lblVisible=ciLblVisible; // resolved per-ci below via ciLblVisible(ci.id)
 
   // Stage selector
   const stageSel=STAGES.map(s=>`<div class="ss-btn ${item.stage===s.n?'ss-act':''}"
@@ -2562,9 +2566,8 @@ function buildItemParts(item){
       <button class="ci-lbl-btn" onclick="event.stopPropagation();showCILabelPicker('${item.id}','${cl.id}','${ci.id}',this)" title="Assign label">L</button>
       <button class="ci-lbl-eye" id="lbleye_${ci.id}" onclick="event.stopPropagation();toggleCILabels('${ci.id}')" title="Show/hide labels on this item">👁</button>
       <button class="ci-move-btn" onclick="event.stopPropagation();showMoveCIMenu('${item.id}','${cl.id}','${ci.id}',this)" title="Move to another checklist">↪</button>
-      <span class="ci-lbl-badges" style="display:${!lblVisible?'none':'inline'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}</span>
       <button class="ci-del" onclick="event.stopPropagation();delCLItem('${item.id}','${cl.id}','${ci.id}')">×</button>
-    </div>${subHTML}</div>`}).join('');
+    </div>${(ci.labels||[]).some(lid=>{const l=getLabelById(lid);return l&&l.active!==false;})?`<div class="ci-lbl-strip" style="display:${!lblVisible(ci.id)?'none':'flex'}">${(ci.labels||[]).map(lid=>{const l=getLabelById(lid);return l&&l.active!==false?'<span class="lbl-badge" style="font-size:.52rem;padding:1px 5px;background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':'';}).join('')}</div>`:''}${subHTML}</div>`}).join('');
     return`<div class="cl-group">
       <div class="cl-group-hd" onclick="event.stopPropagation();toggleChecklist('${item.id}','${cl.id}')" ondragover="event.preventDefault();this.closest('.cl-group').classList.add('cl-drop-target')" ondrop="event.stopPropagation();clGroupDrop(event,'${item.id}','${cl.id}')">
         <button onclick="event.stopPropagation();moveChecklist('${item.id}','${cl.id}',-1)" title="Move up" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.75rem;padding:0 3px" onmousedown="event.stopPropagation()">▲</button>
@@ -2788,7 +2791,6 @@ function buildItemParts(item){
         ${item.archived?'<span class="bdg barch">📦 Archived</span>':''}
         ${item.stage===5&&!item.isMile?'<span class="bdg badhoc">⚡ Adhoc</span>':''}
         ${item.stage===6&&!item.isMile?'<span class="bdg bissue">⚠ Issue</span>':''}
-        ${(item.labels||[]).map(lid=>{const l=getLabelById(lid);return l?'<span class="lbl-badge row-lbl" style="background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':''}).join('')}
       </span>
       <div class="row-meta">
         <span class="pri ${priCls}">${priLbl}</span>
@@ -2804,6 +2806,7 @@ function buildItemParts(item){
         <button class="row-del" onclick="event.stopPropagation();delItem('${item.id}')">✕</button>
       </div>
     </div>
+    ${(item.labels||[]).some(lid=>{const l=getLabelById(lid);return l&&l.active!==false;})?`<div class="row-lbl-strip">${(item.labels||[]).map(lid=>{const l=getLabelById(lid);return l&&l.active!==false?'<span class="lbl-badge row-lbl" style="background:'+l.color+'22;color:'+l.color+';border-color:'+l.color+'55">'+esc(l.name)+'</span>':'';}).join('')}</div>`:''}
   </div>`;
   return {head, detail};
 }
@@ -3804,7 +3807,7 @@ function renderSettings(){
     const ejs=cfg.emailjs||{};
     const catRows=cats.map(function(cat,i){return '<div class="settings-tag-row"><span class="settings-tag">'+esc(cat)+'</span><button class="settings-del-btn" onclick="appConfig.categories.splice('+i+',1);saveConfig();renderSettings();updateDropdowns()">×</button></div>';}).join('');
     const ownRows=owners.map(function(own,i){return '<div class="settings-tag-row"><span class="settings-tag">'+esc(own)+'</span><button class="settings-del-btn" onclick="appConfig.owners.splice('+i+',1);saveConfig();renderSettings();updateDropdowns()">×</button></div>';}).join('');
-    const lblRows=labels.map(function(lbl,i){return '<div class="settings-tag-row"><span class="lbl-badge" style="background:'+lbl.color+'20;color:'+lbl.color+';border-color:'+lbl.color+'60">'+esc(lbl.name)+'</span><button class="settings-del-btn" onclick="appConfig.labels.splice('+i+',1);saveConfig();renderSettings()">×</button></div>';}).join('');
+    const lblRows=labels.map(function(lbl,i){var isOff=lbl.active===false;return '<div class="settings-tag-row"><span class="lbl-badge" style="background:'+lbl.color+'20;color:'+lbl.color+';border-color:'+lbl.color+'60;opacity:'+(isOff?'.4':'1')+'">'+esc(lbl.name)+'</span><button class="settings-del-btn" style="color:'+(isOff?'var(--m2)':'var(--blue)')+'" onclick="toggleLabelActive('+i+')" title="'+(isOff?'Turn label on':'Turn label off')+'">'+(isOff?'👁‍🗨':'👁')+'</button><button class="settings-del-btn" onclick="appConfig.labels.splice('+i+',1);saveConfig();renderSettings()" title="Delete label">×</button></div>';}).join('');
     el.innerHTML='<div class="settings-grid">'
       +'<div class="settings-card"><div class="settings-card-title">🎨 Appearance</div>'
       +'<div class="settings-row"><span class="settings-label">Theme</span>'
@@ -4188,6 +4191,7 @@ function showToast(txt,col){
   setTimeout(function(){t.remove();},2200);
 }
 
+var _blEditId=null;
 function renderBacklog(){
   var bl=appConfig.backlog||[];
   var ce=document.getElementById('backlogCount');
@@ -4201,15 +4205,39 @@ function renderBacklog(){
   }
   var priCls={high:'pri-hi',medium:'pri-md',low:'pri-lo'};
   var priLbl={high:'HI',medium:'MED',low:'LO'};
+  var catColors={Work:'#4d9eff',Personal:'#f0b429',Finance:'#34d399',Health:'#f97316',Learning:'#c084fc',Project:'#22d3a5',General:'#9b7ff4'};
+  var catIcons={Work:'💼',Personal:'👤',Finance:'💰',Health:'🏃',Learning:'📚',Project:'📁',General:'📋'};
   el.innerHTML='';
   bl.forEach(function(b,idx){
+    var wrap=document.createElement('div');
+    wrap.style.cssText='margin-bottom:5px';
+    if(_blEditId===b.id){
+      var ef=document.createElement('div');
+      ef.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--blue);border-radius:8px;padding:10px 13px;animation:fadeUp .15s ease both';
+      ef.innerHTML='<input id="bledit_txt_'+b.id+'" value="'+esc(b.text)+'" maxlength="200" style="flex:1;min-width:160px;padding:7px 10px;border:1px solid var(--b1);background:var(--s2);border-radius:6px;color:var(--tx);font-family:\'DM Sans\',sans-serif;font-size:.84rem;outline:none"/>'
+        +'<select id="bledit_cat_'+b.id+'" style="padding:7px 8px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:6px;font-family:\'DM Mono\',monospace;font-size:.6rem">'
+          +['','Work','Personal','Finance','Health','Learning','Project','General'].map(function(c){return '<option value="'+c+'" '+(b.category===c?'selected':'')+'>'+(c?((catIcons[c]||'')+' '+c):'— Category —')+'</option>';}).join('')
+        +'</select>'
+        +'<select id="bledit_pri_'+b.id+'" style="padding:7px 8px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:6px;font-family:\'DM Mono\',monospace;font-size:.6rem">'
+          +['medium','high','low'].map(function(p){return '<option value="'+p+'" '+((b.priority||'medium')===p?'selected':'')+'>'+(p==='medium'?'Medium':p==='high'?'High Priority':'Low Priority')+'</option>';}).join('')
+        +'</select>'
+        +'<select id="bledit_typ_'+b.id+'" style="padding:7px 8px;border:1px solid var(--b1);background:var(--s2);color:var(--m1);border-radius:6px;font-family:\'DM Mono\',monospace;font-size:.6rem">'
+          +'<option value="onetime" '+(b.taskType!=='recurring'?'selected':'')+'>1× One Time</option>'
+          +'<option value="recurring" '+(b.taskType==='recurring'?'selected':'')+'>🔄 Recurring</option>'
+        +'</select>'
+        +'<button data-id="'+b.id+'" class="bledit-save" style="padding:7px 13px;background:var(--done-d);color:var(--done);border:1px solid rgba(34,211,165,.3);border-radius:6px;font-family:\'DM Mono\',monospace;font-size:.6rem;cursor:pointer">✓ Save</button>'
+        +'<button data-id="'+b.id+'" class="bledit-cancel" style="padding:7px 13px;background:none;color:var(--m2);border:1px solid var(--b1);border-radius:6px;font-family:\'DM Mono\',monospace;font-size:.6rem;cursor:pointer">Cancel</button>';
+      ef.querySelector('.bledit-save').onclick=function(){saveBacklogEdit(this.dataset.id);};
+      ef.querySelector('.bledit-cancel').onclick=function(){_blEditId=null;renderBacklog();};
+      wrap.appendChild(ef);
+      el.appendChild(wrap);
+      return;
+    }
     var div=document.createElement('div');
-    div.style.cssText='display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 13px;margin-bottom:5px;animation:fadeUp .15s ease both';
+    div.style.cssText='display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px 13px;animation:fadeUp .15s ease both';
     var typeBadge=b.taskType==='recurring'
       ?'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:rgba(34,211,165,.1);color:var(--done);border:1px solid rgba(34,211,165,.3);white-space:nowrap">🔄 Recurring</span>'
       :'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:rgba(77,158,255,.1);color:var(--blue);border:1px solid rgba(77,158,255,.3);white-space:nowrap">1× One Time</span>';
-    var catColors={Work:'#4d9eff',Personal:'#f0b429',Finance:'#34d399',Health:'#f97316',Learning:'#c084fc',Project:'#22d3a5',General:'#9b7ff4'};
-    var catIcons={Work:'💼',Personal:'👤',Finance:'💰',Health:'🏃',Learning:'📚',Project:'📁',General:'📋'};
     var catCol=catColors[b.category]||'#888';
     var catIcon=catIcons[b.category]||'';
     var catBadge=b.category?'<span style="font-family:\'DM Mono\',monospace;font-size:.54rem;padding:2px 7px;border-radius:4px;background:'+catCol+'22;color:'+catCol+';border:1px solid '+catCol+'55;white-space:nowrap">'+catIcon+' '+b.category+'</span>':'';
@@ -4221,11 +4249,29 @@ function renderBacklog(){
       +'<span class="pri '+priCls[b.priority||'medium']+'">'+priLbl[b.priority||'medium']+'</span>'
       +'</div>'
       +'<button data-id="'+b.id+'" style="padding:5px 11px;background:var(--done-d);color:var(--done);border:1px solid rgba(34,211,165,.3);border-radius:5px;font-family:\'DM Mono\',monospace;font-size:.58rem;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Move to task checklist">&#8594; Move</button>'
+      +'<button data-id="'+b.id+'" style="background:none;border:1px solid var(--b1);color:var(--m1);cursor:pointer;font-size:.7rem;padding:4px 7px;border-radius:5px;flex-shrink:0" title="Edit this item">✏️</button>'
       +'<button data-id="'+b.id+'" style="background:none;border:none;color:var(--m2);cursor:pointer;font-size:.82rem;padding:2px 4px;flex-shrink:0">&#10005;</button>';
     div.querySelectorAll('button')[0].onclick=function(){openBacklogMoveModal(this.dataset.id);};
-    div.querySelectorAll('button')[1].onclick=function(){delBacklogItem(this.dataset.id);};
-    el.appendChild(div);
+    div.querySelectorAll('button')[1].onclick=function(){_blEditId=this.dataset.id;renderBacklog();};
+    div.querySelectorAll('button')[2].onclick=function(){delBacklogItem(this.dataset.id);};
+    wrap.appendChild(div);
+    el.appendChild(wrap);
   });
+}
+function saveBacklogEdit(id){
+  var b=(appConfig.backlog||[]).find(function(x){return x.id===id;});if(!b)return;
+  var t=document.getElementById('bledit_txt_'+id);
+  var c=document.getElementById('bledit_cat_'+id);
+  var p=document.getElementById('bledit_pri_'+id);
+  var ty=document.getElementById('bledit_typ_'+id);
+  var newText=t?t.value.trim():b.text;
+  if(!newText){if(t)t.focus();return;}
+  b.text=newText;
+  if(c)b.category=c.value;
+  if(p)b.priority=p.value;
+  if(ty)b.taskType=ty.value;
+  _blEditId=null;
+  saveConfig();renderBacklog();
 }
 
 function addBacklogItem(){
@@ -4235,8 +4281,8 @@ function addBacklogItem(){
   var text=inp?inp.value.trim():'';if(!text)return;
   if(!appConfig.backlog)appConfig.backlog=[];
   var catSel=document.getElementById('backlogCat');
-  appConfig.backlog.unshift({id:uid(),text:text,priority:pri?pri.value:'medium',taskType:typ?typ.value:'onetime',category:catSel?catSel.value:'',created:Date.now()});
-  if(inp)inp.value='';if(pri)pri.value='medium';if(typ)typ.value='onetime';if(catSel)catSel.value='';
+  appConfig.backlog.unshift({id:uid(),text:text,priority:pri?pri.value:'medium',taskType:typ?typ.value:'onetime',category:catSel&&catSel.value?catSel.value:'Work',created:Date.now()});
+  if(inp)inp.value='';if(pri)pri.value='medium';if(typ)typ.value='onetime';if(catSel)catSel.value='Work';
   saveConfig();renderBacklog();
 }
 

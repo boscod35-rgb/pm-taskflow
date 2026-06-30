@@ -2212,8 +2212,10 @@ function toggleChecklist(itemId,clId){
 /* #4 v2.7.15 — hide/show completed checklist items */
 function toggleHideDone(itemId,clId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
-  const cl=item.checklists.find(c=>c.id===clId);if(!cl)return;
-  cl.hideDone=!(cl.hideDone===true);patchCard(item);saveData();
+  const cl=(item.checklists||[]).find(c=>c.id===clId);if(!cl)return;
+  cl.hideDone=!(cl.hideDone===true);
+  patchCard(item);
+  saveData();
 }
 function delChecklist(itemId,clId){
   const item=items.find(i=>i.id===itemId);if(!item)return;
@@ -2245,7 +2247,7 @@ function toggleCLItem(itemId,clId,ciId){
   if(ci.done){const ix=cl.items.findIndex(i=>i.id===ciId);cl.items.splice(ix,1);cl.items.push(ci);}
   patchCard(item);saveData();refreshDash();
   if(document.getElementById('viewFollowup')?.style.display!=='none')renderFollowup();
-  // v3.1 — sync detail pane and labels board when toggled
+  // always re-render detail so hideDone filter takes immediate effect
   if(typeof renderDetail==='function'&&selectedId===itemId)renderDetail();
   const _lv=document.getElementById('viewLabels');if(_lv&&_lv.style.display!=='none')renderLabelsBoard();
 }
